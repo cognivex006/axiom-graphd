@@ -1,3 +1,7 @@
+## 0.1.6
+
+- Align the graph engine and daemon version with the improved ecosystem installer and expanded graph-build/watch skills. Runtime behavior, graph schemas and permissions are unchanged.
+
 ## 0.1.5 — short command axm release
 
 - Version 0.1.5 to keep one release version across the ADR-0036 short command `axm` (axiom-cli L-016); no functional change [L-019].
