@@ -22,7 +22,7 @@ On Linux/macOS invoke the native program using an absolute or `./` path:
 ./axiom-graphd serve
 ```
 
-Shell snippets illustrate invocation only. Internally use an executable path plus argv; do not require Bash to execute core operations. Ctrl+C requests bounded graceful shutdown, not queue deletion. `axiom doctor` reports native target, effective state root, bundled SQLite version, filesystem capabilities, service availability and missing release evidence.
+Shell snippets illustrate invocation only. Internally use an executable path plus argv; do not require Bash to execute core operations. Ctrl+C requests bounded graceful shutdown, not queue deletion. `axm engine doctor` reports native target, effective state root, bundled SQLite version, filesystem capabilities, service availability and missing release evidence.
 
 ## Workspace setup
 

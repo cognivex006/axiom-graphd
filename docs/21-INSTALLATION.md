@@ -56,7 +56,7 @@ Watcher เป็น library ที่ compile เข้า Rustbinary และ
 3. `axm engine install plan --bundle <verified-local-bundle> --out install-plan.json`
 4. reviewcomponentversions,OSpaths,servicechanges,requiredpermissions และ plannednetworkaccess
 5. `axm engine install apply --plan install-plan.json`
-6. `axiom version --all --json` และ `axiom doctor --all --json`
+6. `axm engine version --all --json` และ `axm engine doctor --all --json`
 
 Defaultinstallper-user ไม่ admin;ห้ามใช้`curl|sh`เป็น defaultrunbook. Archive ต้องมี versioneddirectory;rollbackkeep อย่างน้อย previousworkingversion
 
@@ -128,7 +128,7 @@ Planremoveservices/runtimecomponents และ ownedbootstrapblocks แยกก
 
 `crates/axiom-cli` is the thin `axiom` binary and `crates/axiom` holds its reviewable behaviour. Both are members of this workspace and are built from the same locked toolchain and the same core version (`0.0.0-dev`) as `axiom-graphd`; `cargo build --locked` produces both executables. There is no separate CLI repository and no separate CLI release.
 
-`axiom version --json` prints exactly one frozen `version-report.schema.json` object with `component: "axiom"` and the shared core version. `axiom version --all --json` prints exactly one object, `{"components": [...]}`, containing the frozen report of every component this build can report honestly (the daemon and the CLI). MCP, skills and pinned spec provenance are added by the work packages that implement their registry lookup.
+`axm engine version --json` prints exactly one frozen `version-report.schema.json` object with `component: "axiom"` and the shared core version. `axm engine version --all --json` prints exactly one object, `{"components": [...]}`, containing the frozen report of every component this build can report honestly (the daemon and the CLI). MCP, skills and pinned spec provenance are added by the work packages that implement their registry lookup.
 
 Documented commands that a later work package implements (`install`, `service`, `bootstrap`, `host`, `skills`, `specs`, `update`, `doctor`, `support-bundle`, `migrate`) exit with the frozen `not ready/stale` code `4` and name the command, instead of being misreported as a typo. Unknown commands and invalid flags exit `2`; in `--json` mode the failure is one error envelope on stdout with the diagnostic on stderr.
 
@@ -136,7 +136,7 @@ Documented commands that a later work package implements (`install`, `service`, 
 
 This slice is the half of an update that runs *after* a payload exists. It is
 library behaviour in `crates/axiom` with no CLI verb wired yet, so `axm engine update`,
-`axiom doctor` and `axm support-bundle` still exit with the frozen
+`axm engine doctor` and `axm support-bundle` still exit with the frozen
 `not ready/stale` code `4` and name the command; what follows is what the modules
 already guarantee for the command work package that binds them.
 

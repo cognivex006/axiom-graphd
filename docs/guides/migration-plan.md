@@ -64,7 +64,7 @@ cannot pick a winner on the operator's behalf.
 
 ## Not implemented here
 
-The `axiom migrate plan|apply|verify|rollback` CLI verbs from
+The `axm engine migrate plan|apply|verify|rollback` CLI verbs from
 `migrations/V1-TO-V2.md` section 2 and real cutover execution are separate work.
 This slice implements the plan document, its digest, its validation and its
 apply-time refusals.

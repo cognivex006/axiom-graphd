@@ -43,7 +43,7 @@ and `query` do work; `changed` and `update` are wired but still answer
 | `axge queue list|retry|cancel ...` | available | `cli.rs` slice `queue`; reads and steers the durable queue in the open store |
 | `axge query context|impact ...` | available | `cli.rs` slice `query`; answers from the project's pinned published generation |
 | `axge update check|apply ...` | wired, not implemented | `cli.rs` slice `update` (task H-001); `NOT_READY` (no trusted `axiom` CLI path in this build) |
-| `axiom version [--all] [--json]` | available | `crates/axiom/src/cli.rs` arm `["version"]` |
+| `axm engine version [--all] [--json]` | available | `crates/axiom/src/cli.rs` arm `["version"]` |
 | `axiom help` (also `--help`, `-h`) | available | `crates/axiom/src/cli.rs` |
 
 **wired, not implemented** is a separate state on purpose (task H-001): the verb
@@ -55,17 +55,17 @@ step below may be written as if it were one. Task H-002 left only `changed` and
 Except for the `migrate` and pending-verb rows below, these verbs do **not**
 exist: `parse` rejects them as an unrecognised command (`VALIDATION_ERROR`,
 exit 2), and no binary in this tree implements the work. The `migrate` and
-pending-verb rows are recognised, and since task I-003 `axiom --help` advertises
+pending-verb rows are recognised, and since task I-003 `axm engine --help` advertises
 them and `axiom` dispatches them, so they answer `NOT_READY` (exit 4) instead of
 exit 2 - still with no implementation behind them.
 
 | Not a verb | Why |
 | --- | --- |
 | `axiom-graphd migrate ...` | No positional arm in `cli.rs`. The migration crates are libraries only. |
-| `axiom migrate apply`, `axiom migrate verify`, `axiom migrate rollback` | `migrate` is a recognised **pending** verb in `crates/axiom/src/cli.rs` (`PENDING_VERBS`). Since task I-003 `axiom --help` advertises `migrate plan|apply|status|rollback` and argv reaches them, and each answers `NOT_READY` (exit 4). `migrate verify` is not a declared form and is rejected (`VALIDATION_ERROR`, exit 2). Nothing plans, applies or rolls back. |
+| `axm engine migrate apply`, `axm engine migrate verify`, `axm engine migrate rollback` | `migrate` is a recognised **pending** verb in `crates/axiom/src/cli.rs` (`PENDING_VERBS`). Since task I-003 `axm engine --help` advertises `migrate plan|apply|status|rollback` and argv reaches them, and each answers `NOT_READY` (exit 4). `migrate verify` is not a declared form and is rejected (`VALIDATION_ERROR`, exit 2). Nothing plans, applies or rolls back. |
 | `axiom-graphd checkpoint ...`, `axge snapshot ...` | Documented by the CLI contract, but no module owns them in this revision, so `parse` rejects them. |
 | `axm engine install plan` / `axm engine install apply` | Composed by task I-004 in `crates/axiom/src/cli.rs`: `plan` probes the declared prerequisites and writes one plan behind a single approval digest, and `apply` re-verifies and activates it at that digest. Not a pending verb. |
-| `axm service ...`, `axm bootstrap ...`, `axm host ...`, `axsk ...`, `axm engine specs ...`, `axm engine update ...`, `axiom doctor ...`, `axm support-bundle ...` | Recognised pending verbs (`PENDING_VERBS`). Since task I-003 `axiom --help` advertises every documented form and argv reaches it, and each answers `NOT_READY` (exit 4) with the reason that names the missing binding. None is implemented. |
+| `axm service ...`, `axm bootstrap ...`, `axm host ...`, `axsk ...`, `axm engine specs ...`, `axm engine update ...`, `axm engine doctor ...`, `axm support-bundle ...` | Recognised pending verbs (`PENDING_VERBS`). Since task I-003 `axm engine --help` advertises every documented form and argv reaches it, and each answers `NOT_READY` (exit 4) with the reason that names the missing binding. None is implemented. |
 | `axiom-graphd rollback ...`, `axiom rollback ...` | No such verb exists at all. Recovery is a library call, not a command (see sections 4 and 6). |
 
 Consequence for this runbook: every recovery sequence in sections 4, 5 and 6 is
@@ -311,7 +311,7 @@ Outcomes and refusals:
 | `MIGRATION_ROLLBACK_REFUSED` (rule `no-journal`, `cutover-not-started`) | there is nothing this run may undo |
 | `MIGRATION_ROLLBACK_BLOCKED` (rule `rollback-blocked`) | a human edit or a missing/drifted backup blocked the undo |
 
-**UNVERIFIED / not wired**: there is no `axiom migrate rollback` verb and no
+**UNVERIFIED / not wired**: there is no `axm engine migrate rollback` verb and no
 native `ApplyIo` / `JournalStore`, so this rollback cannot be invoked today. The
 behaviour above is decided by source and covered by in-memory tests only.
 

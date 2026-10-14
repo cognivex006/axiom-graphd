@@ -257,7 +257,7 @@ pre-uninstall state.
   notarisation, LaunchAgent, process or host handshake was exercised on any macOS
   host for this document. Rosetta behaviour was not tested because it is not
   supported as a substitute for the native archive. No macOS target is certified.
-- The `axiom service` command shapes above document an intended contract for a
+- The `axm service` command shapes above document an intended contract for a
   later work package; they are not accepted by any binary in this revision. The
   `axm engine install plan` / `axm engine install apply` forms are now accepted (task
   I-004) and delegate to the ecosystem orchestration module; the signed archive,

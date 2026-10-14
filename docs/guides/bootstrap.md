@@ -259,8 +259,8 @@ So today:
   E-024 records the `git` calls a granted run would make through an executor
   trait instead of running `git` from the engine, so no real staging, commit or
   push is performed by this slice.
-- **available and unverified in this document** — `axiom version` and
-  `axiom version --all` (task E-001). The workspace builds them, but this
+- **available and unverified in this document** — `axm engine version` and
+  `axm engine version --all` (task E-001). The workspace builds them, but this
   documentation-only task did not compile or run the `axiom` binary.
 - **not implemented** — a Rust regression test for this guide, and therefore any
   build-time protection against this page drifting from the engine. Tasks D-005,

@@ -1,14 +1,14 @@
 # Public migration runtime — K-310
 
-The public `axiom migrate` entrypoint now composes the existing migration engine.
+The public `axm engine migrate` entrypoint now composes the existing migration engine.
 `plan` returns `status: ready` for a valid supported input, rather than the old
 unimplemented `NOT_READY` response. Run it from the repository being migrated.
 
 ```text
-axiom migrate plan --solution demo-solution --from auto --to-layout 2 --out migration-plan.json --json
-axiom migrate apply --plan migration-plan.json --approve-digest <plan_digest> --json
-axiom migrate status --transaction <transaction> --json
-axiom migrate rollback --transaction <transaction> --approve-digest <plan_digest> --json
+axm engine migrate plan --solution demo-solution --from auto --to-layout 2 --out migration-plan.json --json
+axm engine migrate apply --plan migration-plan.json --approve-digest <plan_digest> --json
+axm engine migrate status --transaction <transaction> --json
+axm engine migrate rollback --transaction <transaction> --approve-digest <plan_digest> --json
 ```
 
 The supported operation is `immutable_graph_import`: verified graph generation,

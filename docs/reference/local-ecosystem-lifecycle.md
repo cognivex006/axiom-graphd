@@ -5,8 +5,8 @@ payloads and their activation journals. Distribution `installed.json` is a
 separate delivery record; it is not authority to delete engine files or change
 the running daemon.
 
-`axiom uninstall plan --out plan.json` reviews recorded core and skill bundle
-files. `axiom uninstall apply --plan plan.json --approve-digest <digest>`
+`axm engine uninstall plan --out plan.json` reviews recorded core and skill bundle
+files. `axm engine uninstall apply --plan plan.json --approve-digest <digest>`
 revalidates approval and ownership, removes the owned service first, then removes
 only unchanged recorded runtime files. Edited and undeclared files survive.
 Source, annotations, checkpoints, credentials and workspace instructions survive.

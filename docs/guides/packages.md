@@ -3,7 +3,7 @@
 Owner: `axiom-graphd`. Spec baseline: `2.0.0-draft.1`. Task: **E-034**
 (`crates/axiom/src/packages.rs`). This page describes the intended V2 package
 and provenance report. It is documentation, not evidence that a compiled
-`axiom version --json` surface already prints this document; **no command is
+`axm engine version --json` surface already prints this document; **no command is
 invoked here.**
 
 ## The one rule

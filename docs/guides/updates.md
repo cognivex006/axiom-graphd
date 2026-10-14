@@ -73,11 +73,11 @@ auto-installed unsigned.
 |---|---|---|---|
 | axiom-graphd | `axge version`, `axge update check` | `axge update apply --plan <file>` | signed release metadata, pinned trust root, approved plan digest, backup present |
 | axiom-mcp | `axmp version`, `axmp update check` | `axmp update apply --plan <file>` | same trust chain; versioned virtual environment, never an in-place `pip install` over the active environment |
-| axiom CLI (bundled core) | `axiom version --all`, `axm engine update check` | `axm engine update plan` then `axm engine update apply --plan` | signed bundle plus approval digest; the external process performs the swap after the daemon exits |
+| axiom CLI (bundled core) | `axm engine version --all`, `axm engine update check` | `axm engine update plan` then `axm engine update apply --plan` | signed bundle plus approval digest; the external process performs the swap after the daemon exits |
 | skills | `axsk version`, `axsk check` | `axsk update` | reviewed manifest and hash; activates a versioned directory and switches a pointer |
 | specs / fixtures / docs | report the pinned immutable provenance | none | docs inherit the owner component version; there is no independent docs installer or updater |
 
-Only `axiom version` and `axiom version --all` are implemented today. Every
+Only `axm engine version` and `axm engine version --all` are implemented today. Every
 `... check` and `... update` route in this table is a documented verb that the
 CLI recognises and refuses with `NOT_READY` (exit 4) until its work package
 ships.
@@ -293,8 +293,8 @@ So today:
   to `NOT_READY` (exit 4) in `crates/axiom/src/cli.rs`; they do not check, plan,
   apply or roll back anything. That mapping is source-verified, not observed -
   no `axiom` binary was built or run here.
-- **available and unverified in this document** — `axiom version` and
-  `axiom version --all` (task E-001). The workspace builds them, but this
+- **available and unverified in this document** — `axm engine version` and
+  `axm engine version --all` (task E-001). The workspace builds them, but this
   documentation-only task did not compile or run the `axiom` binary. The daemon
   binary's own `version` *was* run: it exits 0 and reports component
   `axiom-graphd`, spec `2.0.0-draft.1`, `graph_schema` 1 and SQLite 3.50.2
