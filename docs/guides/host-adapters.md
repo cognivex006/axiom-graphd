@@ -225,4 +225,4 @@ the URL, plaintext non-loopback HTTP, an oversized document and an unsafe root.
   `~/.gemini` or AGY installation was read or written on this machine. Every
   adapter was exercised against injected documents and rooted temporary paths.
 - No live daemon exists on this host, so the E-031 handshake against a real host
-  is `not_run`; reproducible command: `axiom host verify --host <host> --json`.
+  is `not_run`; reproducible command: `axm host verify --host <host> --json`.

@@ -1,8 +1,8 @@
-# Host detection (`axiom host detect`) — E-026
+# Host detection (`axm host detect`) — E-026
 
 Owner: `axiom-graphd`. Implementation: `crates/axiom/src/hosts/detect.rs`.
 
-`axiom host detect --json` reports which agent host is installed and **which exact
+`axm host detect --json` reports which agent host is installed and **which exact
 version answered**, so a host adapter never renders config for a release it merely
 assumed. The report is produced by [`detect`] over the read-only [`HostProbe`]
 surface; nothing in this path writes, installs or contacts the network.
@@ -64,4 +64,4 @@ program path.
   temporary directory, and the real `~/.codex`, `~/.claude`, `~/.gemini` and AGY
   installs were never located or launched.
 - Reproducible command for the unrun real-host probe:
-  `axiom host detect --json` on a machine with the host installed.
+  `axm host detect --json` on a machine with the host installed.

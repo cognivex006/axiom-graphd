@@ -71,10 +71,10 @@ auto-installed unsigned.
 
 | Component | Check route | Update route | Trust requirement |
 |---|---|---|---|
-| axiom-graphd | `axiom-graphd version`, `axiom-graphd update check` | `axiom-graphd update apply --plan <file>` | signed release metadata, pinned trust root, approved plan digest, backup present |
-| axiom-mcp | `axiom-mcp version`, `axiom-mcp update check` | `axiom-mcp update apply --plan <file>` | same trust chain; versioned virtual environment, never an in-place `pip install` over the active environment |
-| axiom CLI (bundled core) | `axiom version --all`, `axiom update check` | `axiom update plan` then `axiom update apply --plan` | signed bundle plus approval digest; the external process performs the swap after the daemon exits |
-| skills | `axiom skills version`, `axiom skills check` | `axiom skills update` | reviewed manifest and hash; activates a versioned directory and switches a pointer |
+| axiom-graphd | `axge version`, `axge update check` | `axge update apply --plan <file>` | signed release metadata, pinned trust root, approved plan digest, backup present |
+| axiom-mcp | `axmp version`, `axmp update check` | `axmp update apply --plan <file>` | same trust chain; versioned virtual environment, never an in-place `pip install` over the active environment |
+| axiom CLI (bundled core) | `axiom version --all`, `axm engine update check` | `axm engine update plan` then `axm engine update apply --plan` | signed bundle plus approval digest; the external process performs the swap after the daemon exits |
+| skills | `axsk version`, `axsk check` | `axsk update` | reviewed manifest and hash; activates a versioned directory and switches a pointer |
 | specs / fixtures / docs | report the pinned immutable provenance | none | docs inherit the owner component version; there is no independent docs installer or updater |
 
 Only `axiom version` and `axiom version --all` are implemented today. Every
@@ -154,7 +154,7 @@ The order is fixed and every step is recoverable:
 10. run MCP health plus a fixture query; resume the queue; finalize the journal.
 
 A multi-binary, database and skills replacement is **not** atomic, so a
-transaction journal and crash recovery are mandatory. `axiom-graphd update`
+transaction journal and crash recovery are mandatory. `axge update`
 must let an external updater process perform the swap after the daemon exits,
 because Windows will not overwrite a running executable.
 

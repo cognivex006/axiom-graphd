@@ -19,11 +19,11 @@ exact definition hash and active pointer hash. Foreign definitions or labels
 are refused. Registration injects the scoped AXIOM_HOME into the daemon.
 Service mutation and installation/removal share the maintenance lock.
 
-The local update entrypoint is `axiom update plan --to <exact-version>
+The local update entrypoint is `axm engine update plan --to <exact-version>
 --bundle <directory> --out <plan.json>`. Apply requires its outer digest, which
 binds the inner verified ecosystem plan and prior active state. Update and
 rollback operate the engine pointer and coordinate an existing owned service.
-`axiom update rollback --transaction <id>` addresses a recorded transaction,
+`axm engine update rollback --transaction <id>` addresses a recorded transaction,
 not an arbitrary path. Retained payload hashes are verified before restoration.
 
 These are feature-branch development interfaces. Native evidence under

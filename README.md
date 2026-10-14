@@ -1,5 +1,12 @@
 # axiom-graphd
 
+| Component | CLI Command | คำอ่าน | Responsibility |
+|---|---|---|---|
+| Axiom CLI | `axm` | แอ็กซ์-เอ็ม | Main CLI / Orchestrator |
+| Axiom Skills | `axsk` | แอ็กซ์-สกิล | Skills Manager |
+| Axiom Graph Engine | `axge` | แอ็กซ์-จี | Graph Engine |
+| Axiom MCP | `axmp` | แอ็กซ์-เอ็ม-พี | MCP Server / Gateway |
+
 Rust daemon, durable queue, SQLite index, static analyzers, immutable
 publication engine and the `axiom` installation/operations CLI for the Axiom
 Graph Ecosystem. Specification baseline: `2.0.0-draft.1`.

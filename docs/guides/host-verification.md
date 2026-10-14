@@ -55,7 +55,7 @@ separately as `tool-not-found`, and an answering tool that returns nothing is
   `HostTransport` double. The live effect is **`not_run`**: no Codex, Claude,
   Gemini or AGY host is installed in the build environment, so no real MCP
   handshake was performed. Reproducible command on a machine with the host
-  installed: `axiom host verify --host <host> --json`.
+  installed: `axm host verify --host <host> --json`.
 - No native Windows or macOS runtime is available on this host, so the platform
   leg of the verification is `not_run`; the logic is platform-independent by
   construction (it sees only request answers).

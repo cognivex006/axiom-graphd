@@ -3,7 +3,7 @@
 Owner: `axiom-graphd`. Spec baseline: `2.0.0-draft.1`. Task: **E-032**
 (`crates/axiom/src/skills/install.rs`). This page describes the intended V2
 behavior of the skills installer. It is documentation, not evidence that a
-compiled `axiom skills update apply` command exists; **no command is invoked
+compiled `axsk update apply` command exists; **no command is invoked
 here.**
 
 ## The one rule
@@ -73,4 +73,4 @@ The installer is policy over an injected `PayloadSource` and `InstallFs`. The
 only filesystem writer is the production `LocalInstallFs`, rooted at the install
 root. Nothing here downloads a bundle, contacts a network, spawns a process or
 executes a script: an entry declared as a script is *installed*, never run. The
-`axiom skills update apply` command line is a separate, still-pending slice.
+`axsk update apply` command line is a separate, still-pending slice.

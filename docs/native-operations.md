@@ -32,17 +32,17 @@ and `query` do work; `changed` and `update` are wired but still answer
 
 | Verb | State | Source |
 | --- | --- | --- |
-| `axiom-graphd serve [--registry <path>] [--json]` | available | `cli.rs` arm `["serve"]`; acquires the instance lock and runs one bounded reconcile pass, publishing a generation |
-| `axiom-graphd version [--json]` | available | `cli.rs` arm `["version"]` |
+| `axge serve [--registry <path>] [--json]` | available | `cli.rs` arm `["serve"]`; acquires the instance lock and runs one bounded reconcile pass, publishing a generation |
+| `axge version [--json]` | available | `cli.rs` arm `["version"]` |
 | `axiom-graphd help` (also `--help`, `-h`) | available | `cli.rs` arm `["help"]` and the empty argv case |
-| `axiom-graphd doctor [--solution <id>] [--json]` | available | `cli.rs` slice `doctor`; prints a diagnostic report from the open store (`overall` may be `degraded`) |
-| `axiom-graphd status --solution <id> [--json]` | available | `cli.rs` slice `status`; reads queue, freshness and coverage state from the open store |
-| `axiom-graphd solution register|list|remove ...` | available | `cli.rs` slice `solution`; reads and writes the solution registry in the open store |
-| `axiom-graphd changed ...` | wired, not implemented | `cli.rs` slice `changed` (task H-001); `NOT_READY` (the change-hint path has no binding source in argv) |
-| `axiom-graphd reconcile ...` | available | `cli.rs` slice `reconcile`; enqueues the plan and runs the same bounded pass as `serve` |
-| `axiom-graphd queue list|retry|cancel ...` | available | `cli.rs` slice `queue`; reads and steers the durable queue in the open store |
-| `axiom-graphd query context|impact ...` | available | `cli.rs` slice `query`; answers from the project's pinned published generation |
-| `axiom-graphd update check|apply ...` | wired, not implemented | `cli.rs` slice `update` (task H-001); `NOT_READY` (no trusted `axiom` CLI path in this build) |
+| `axge doctor [--solution <id>] [--json]` | available | `cli.rs` slice `doctor`; prints a diagnostic report from the open store (`overall` may be `degraded`) |
+| `axge status --solution <id> [--json]` | available | `cli.rs` slice `status`; reads queue, freshness and coverage state from the open store |
+| `axge solution register|list|remove ...` | available | `cli.rs` slice `solution`; reads and writes the solution registry in the open store |
+| `axge changed ...` | wired, not implemented | `cli.rs` slice `changed` (task H-001); `NOT_READY` (the change-hint path has no binding source in argv) |
+| `axge reconcile ...` | available | `cli.rs` slice `reconcile`; enqueues the plan and runs the same bounded pass as `serve` |
+| `axge queue list|retry|cancel ...` | available | `cli.rs` slice `queue`; reads and steers the durable queue in the open store |
+| `axge query context|impact ...` | available | `cli.rs` slice `query`; answers from the project's pinned published generation |
+| `axge update check|apply ...` | wired, not implemented | `cli.rs` slice `update` (task H-001); `NOT_READY` (no trusted `axiom` CLI path in this build) |
 | `axiom version [--all] [--json]` | available | `crates/axiom/src/cli.rs` arm `["version"]` |
 | `axiom help` (also `--help`, `-h`) | available | `crates/axiom/src/cli.rs` |
 
@@ -63,9 +63,9 @@ exit 2 - still with no implementation behind them.
 | --- | --- |
 | `axiom-graphd migrate ...` | No positional arm in `cli.rs`. The migration crates are libraries only. |
 | `axiom migrate apply`, `axiom migrate verify`, `axiom migrate rollback` | `migrate` is a recognised **pending** verb in `crates/axiom/src/cli.rs` (`PENDING_VERBS`). Since task I-003 `axiom --help` advertises `migrate plan|apply|status|rollback` and argv reaches them, and each answers `NOT_READY` (exit 4). `migrate verify` is not a declared form and is rejected (`VALIDATION_ERROR`, exit 2). Nothing plans, applies or rolls back. |
-| `axiom-graphd checkpoint ...`, `axiom-graphd snapshot ...` | Documented by the CLI contract, but no module owns them in this revision, so `parse` rejects them. |
-| `axiom install plan` / `axiom install apply` | Composed by task I-004 in `crates/axiom/src/cli.rs`: `plan` probes the declared prerequisites and writes one plan behind a single approval digest, and `apply` re-verifies and activates it at that digest. Not a pending verb. |
-| `axiom service ...`, `axiom bootstrap ...`, `axiom host ...`, `axiom skills ...`, `axiom specs ...`, `axiom update ...`, `axiom doctor ...`, `axiom support-bundle ...` | Recognised pending verbs (`PENDING_VERBS`). Since task I-003 `axiom --help` advertises every documented form and argv reaches it, and each answers `NOT_READY` (exit 4) with the reason that names the missing binding. None is implemented. |
+| `axiom-graphd checkpoint ...`, `axge snapshot ...` | Documented by the CLI contract, but no module owns them in this revision, so `parse` rejects them. |
+| `axm engine install plan` / `axm engine install apply` | Composed by task I-004 in `crates/axiom/src/cli.rs`: `plan` probes the declared prerequisites and writes one plan behind a single approval digest, and `apply` re-verifies and activates it at that digest. Not a pending verb. |
+| `axm service ...`, `axm bootstrap ...`, `axm host ...`, `axsk ...`, `axm engine specs ...`, `axm engine update ...`, `axiom doctor ...`, `axm support-bundle ...` | Recognised pending verbs (`PENDING_VERBS`). Since task I-003 `axiom --help` advertises every documented form and argv reaches it, and each answers `NOT_READY` (exit 4) with the reason that names the missing binding. None is implemented. |
 | `axiom-graphd rollback ...`, `axiom rollback ...` | No such verb exists at all. Recovery is a library call, not a command (see sections 4 and 6). |
 
 Consequence for this runbook: every recovery sequence in sections 4, 5 and 6 is
@@ -78,9 +78,9 @@ document says so instead of inventing one.
 ### 2.1 Foreground daemon
 
 ```text
-axiom-graphd serve
-axiom-graphd serve --registry <path>
-axiom-graphd serve --json --registry <path>
+axge serve
+axge serve --registry <path>
+axge serve --json --registry <path>
 ```
 
 `serve` resolves `AXIOM_HOME`, verifies the destination, loads the service
@@ -166,9 +166,9 @@ An operator needs two facts to reason about a startup record:
 
 | Host | Mechanism (`ServiceKind`) | Program | Definition location | Documented foreground fallback |
 | --- | --- | --- | --- | --- |
-| Windows | `PerUserStartup` | `schtasks.exe` | inside the CLI install root | `axiom-graphd serve --registry <registry.json>` |
-| Linux | `SystemdUserUnit` | `systemctl` | `~/.config/systemd/user/<component>.service` | `axiom-graphd serve --registry <registry.json>` |
-| macOS | `LaunchAgent` | `launchctl` | `~/Library/LaunchAgents/<component>.plist` | `axiom-graphd serve --registry <registry.json>` |
+| Windows | `PerUserStartup` | `schtasks.exe` | inside the CLI install root | `axge serve --registry <registry.json>` |
+| Linux | `SystemdUserUnit` | `systemctl` | `~/.config/systemd/user/<component>.service` | `axge serve --registry <registry.json>` |
+| macOS | `LaunchAgent` | `launchctl` | `~/Library/LaunchAgents/<component>.plist` | `axge serve --registry <registry.json>` |
 
 ### 2.3 Reconciling hints
 
@@ -435,7 +435,7 @@ The differences below are the ones that change an operator's actions.
 | --- | --- | --- | --- |
 | Startup mechanism (`ServiceKind`) | `PerUserStartup`, a per-user Scheduled Task at logon (`schtasks.exe`) | `SystemdUserUnit`, a **user** unit (`systemctl --user`) when a user session bus exists | `LaunchAgent`, a per-user `LaunchAgents` plist (`launchctl`) |
 | Definition location | inside the CLI install root | `~/.config/systemd/user/<component>.service` | `~/Library/LaunchAgents/<component>.plist` |
-| No-backend fallback | foreground `axiom-graphd serve --registry <registry.json>` | foreground, unchanged; a distribution without systemd is **not** a platform failure | foreground `axiom-graphd serve --registry <registry.json>` |
+| No-backend fallback | foreground `axge serve --registry <registry.json>` | foreground, unchanged; a distribution without systemd is **not** a platform failure | foreground `axge serve --registry <registry.json>` |
 | Path limit | `MAX_NATIVE_PATH_UNITS` = 260 code units unless the path is already verbatim (`\\?\`), then the limit does not apply | no limit imposed | no limit imposed |
 | Open-handle observation | not observable through `std` | not observable through `std` | not observable through `std` |
 | Storage class of a path | `StorageLocation::Unknown` (drive type is not available through `std`) | `StorageLocation::Local { volume_id }` from `metadata.dev()` | `StorageLocation::Local { volume_id }` from `metadata.dev()` |

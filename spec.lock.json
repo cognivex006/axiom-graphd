@@ -1,8 +1,8 @@
 {
   "spec_version": "2.0.0-draft.1",
   "spec_repository": "axiom-specs",
-  "spec_revision": "2564d53d6a39f7a9b4b1c99528387807eee7b73d",
-  "spec_content_sha256": "30b51a7709a88ca3b37464297c41b1a9bd3cb89eead96ff23ff7a33c93aedbc6",
+  "spec_revision": "5f416cd3301441eb4c150af0914e4d5fb6dcd683",
+  "spec_content_sha256": "d9ba4a70cc20939437aaea3455accab56f8cac6c630e48045d90cbb524eb6af5",
   "owner_repository": "axiom-graphd",
   "workspace_layout": 2,
   "graph_payload_schema": 1,
@@ -13,7 +13,7 @@
     "adrs/ADR-0019.md": "aae92d700b3019a535ab0a57cf91bf4e01771f02890ebb043ff8aaecd3e44fbd",
     "adrs/ADR-0020.md": "8a53b170dcc8e2a6635b35e77dec252037941fd5690de6e41e802344840c8d72",
     "adrs/ADR-0026.md": "73f852d9ad9c5ed7fe4a5d84c156bed84ae13a7a2a8b0fc219c2fca11b8d3f58",
-    "compatibility/platform-matrix.json": "c7c4113af96fecd9125495e0b5be68eb6f0aac0efaa6f5f1958126d45d943659",
+    "compatibility/platform-matrix.json": "316b60c99fd4bf4687d4b4dec99844cecc6f66398831fdc003f759f2e0247395",
     "conformance/fixture-index.json": "e889087c9468ab9ec4a5816d964bee516dc29445139c7fed955415781e393263",
     "conformance/k-scope.md": "c58656a9f4fded8baaa8e63bfa84faa25522a405956691b2103d79222d7159d8",
     "conformance/k_scope.py": "c0f8e46379db43546017d898d1f1ce39c131aebe3fb6233be3ce83ff859fbf6a",
@@ -27,12 +27,14 @@
     "specs/v2/K-release-readiness.md": "a5c94280d0f6be8403c6bd000d6534e16b9f86d4f2e3d8dd78128e8c2d517d44",
     "tasks/K/K-310.md": "04383daf249200f4a851aec4790318ff9b01d8b7258563b6954386f417222f81",
     "tasks/K/scope-map.json": "5690a2f5b8b5d95f68120ab97e165826e3c734758e08c9d0e8efeb4f7c071fc7",
-    "tasks/tasks.json": "61f2b43badf186a90cb07f164c083e849ba7b4da1e40ce40cb276dd53392840e",
-    "tools/specctl.py": "2353a4ca139b5d52f0904fb98a2cacfb14ffb08acee9a828d4d299e812db099f",
+    "tasks/tasks.json": "698bb0c1e80fd2d155927c950c3074e37ce55a03d9384148b58b5248c6c06318",
+    "tools/specctl.py": "1aa9a09021d3d5f070f29de86d5410b89cfeccd938ef15e44ddc828fe8ebca1d",
     "adrs/ADR-0030.md": "ceef7442a2fb947fe49bd30f512191c3a3acc648f6b12b13bb18456f2050765d",
     "contracts/graphd-readiness.md": "d2516c8df9d198e70ec734aea870b179f4238cc3c59c451d2d77fbfbd74e1715",
     "conformance/graphd_readiness.py": "84b645f7fef942654dde8ed88e8e26653685c6322a5a1ba7090283b10fe30697",
     "adrs/ADR-0032.md": "edf0a5fe1dcbf3fd48804b5b2e79d6e217218a40765950d47799a16a587ae518",
-    "release/v0.1.2-plan.json": "7a72701a80917cfb5457f6687c53e718d96d440bd869cbfe9094c54a35427d2d"
+    "release/v0.1.2-plan.json": "7a72701a80917cfb5457f6687c53e718d96d440bd869cbfe9094c54a35427d2d",
+    "adrs/ADR-0037.md": "5752bcf3be83658c84ba3fffe157a8086d4fbf66438d731a7e5b76b7a4103559",
+    "contracts/command-names.json": "7c43a18ae5e859cd37316c7d71727ae73a93c1255c1fc31d999aef1f411d5caa"
   }
 }

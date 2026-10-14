@@ -120,7 +120,7 @@ fn help_prints_the_generated_exit_code_table() {
     assert_eq!(output.status.code(), Some(0));
     let text = stdout_text(&output);
     assert!(
-        text.contains("Usage: axiom <command> [options]"),
+        text.contains("Usage: axm engine <command> [options]"),
         "got {text:?}"
     );
     assert!(text.contains("2  validation"), "got {text:?}");

@@ -21,7 +21,7 @@ one into a configuration file, a command line or a plist.
 | Step | State | Reason |
 | ---- | ----- | ------ |
 | 1 Prerequisites and architecture selection | pending | Target selection is defined, but no archive exists for either macOS architecture. |
-| 2 Approved release and trust setup | pending | No signed or notarised release archive exists; `axiom install` has no implementation in this build. |
+| 2 Approved release and trust setup | pending | No signed or notarised release archive exists; `axm engine install` has no implementation in this build. |
 | 3 Install the core release | pending | No installer, no archive and no `crates/axiom` crate exist in the pinned revision. |
 | 4 Machine-local state, bindings and filesystem permission checks | pending | `AXIOM_HOME` resolution and the storage policy exist; the registry/binding commands (`status`, `solution`) execute against a machine-local store in this revision, but no released artifact installs them for a user. |
 | 5 User LaunchAgent | pending | No LaunchAgent template or service adapter exists in this build. |
@@ -94,8 +94,8 @@ ecosystem orchestration module. Signing, archive and the LaunchAgent legs remain
 host exists in this environment, so neither form was executed for this document.
 
 ```text
-axiom install plan  --bundle <verified-local-bundle> --out install-plan.json
-axiom install apply --plan install-plan.json --approve-digest <plan-sha256>
+axm engine install plan  --bundle <verified-local-bundle> --out install-plan.json
+axm engine install apply --plan install-plan.json --approve-digest <plan-sha256>
 ```
 
 - Install into a versioned directory under the user state home
@@ -259,7 +259,7 @@ pre-uninstall state.
   supported as a substitute for the native archive. No macOS target is certified.
 - The `axiom service` command shapes above document an intended contract for a
   later work package; they are not accepted by any binary in this revision. The
-  `axiom install plan` / `axiom install apply` forms are now accepted (task
+  `axm engine install plan` / `axm engine install apply` forms are now accepted (task
   I-004) and delegate to the ecosystem orchestration module; the signed archive,
   LaunchAgent and trust/notarisation steps still are not.
 

@@ -20,7 +20,7 @@ no implementation in the pinned revision and cannot be executed at all.
 | Step | State | Reason |
 | ---- | ----- | ------ |
 | 1 Prerequisites | available | Read-only checklist; nothing is executed. |
-| 2 Approved release and trust setup | pending | No signed release archive exists; `axiom install` has no implementation in this build. |
+| 2 Approved release and trust setup | pending | No signed release archive exists; `axm engine install` has no implementation in this build. |
 | 3 Install the core release | pending | No installer, no archive and no `crates/axiom` crate exist in the pinned revision. |
 | 4 Machine-local state and bindings | pending | `AXIOM_HOME` resolution exists in `graph-core`; the registry/binding commands (`status`, `solution`) execute against a machine-local store in this revision, but no released artifact installs them for a user. |
 | 5 Opt-in user service | pending | No service adapter, registration or native lifecycle evidence exists. |
@@ -93,8 +93,8 @@ remain `pending`; see [reference/axiom-graphd](../reference/axiom-graphd.md)
 for the availability table.
 
 ```text
-axiom install plan  --bundle <verified-local-bundle> --out install-plan.json
-axiom install apply --plan install-plan.json --approve-digest <plan-sha256>
+axm engine install plan  --bundle <verified-local-bundle> --out install-plan.json
+axm engine install apply --plan install-plan.json --approve-digest <plan-sha256>
 ```
 
 - Install into a versioned directory under the user state home
@@ -147,9 +147,9 @@ AXIOM_HOME/
   cross-project alias. The command shape for the intended revision is:
 
 ```text
-axiom-graphd solution register --config solution.yaml --bindings bindings.json --dry-run
-axiom-graphd solution register --config solution.yaml --bindings bindings.json --apply
-axiom-graphd solution list --json
+axge solution register --config solution.yaml --bindings bindings.json --dry-run
+axge solution register --config solution.yaml --bindings bindings.json --apply
+axge solution list --json
 ```
 
 `solution` is not a command this build accepts; see the availability table in
@@ -248,10 +248,10 @@ to their pre-uninstall state.
   document. No Windows target is certified.
 - The commands in sections 5, 6 and 9 are documentation of an intended contract
   for a later work package; they are not accepted by any binary in this revision,
-  except the `axiom-graphd solution` shape, which task H-001 wired into argv and
+  except the `axge solution` shape, which task H-001 wired into argv and
   task H-002 bound to the registry, so `solution register|list|remove` now
-  executes against a machine-local store. The section 4 `axiom install plan` /
-  `axiom install apply` forms are now accepted (task I-004) and delegate to the
+  executes against a machine-local store. The section 4 `axm engine install plan` /
+  `axm engine install apply` forms are now accepted (task I-004) and delegate to the
   ecosystem orchestration module; the signed archive, service and
   trust-verification steps still are not.
 

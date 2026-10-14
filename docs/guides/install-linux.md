@@ -21,7 +21,7 @@ setuid helper, or write access to a system-owned directory such as `/usr`,
 | Step | State | Reason |
 | ---- | ----- | ------ |
 | 1 Prerequisites | available | Read-only checklist; nothing is executed. |
-| 2 Approved release and trust setup | pending | No signed release archive exists; `axiom install` has no implementation in this build. |
+| 2 Approved release and trust setup | pending | No signed release archive exists; `axm engine install` has no implementation in this build. |
 | 3 Install the core release | pending | No installer, no archive and no `crates/axiom` crate exist in the pinned revision. |
 | 4 Machine-local state and bindings | pending | `AXIOM_HOME` resolution exists in `graph-core`; the registry/binding commands (`status`, `solution`) execute against a machine-local store in this revision, but no released artifact installs them for a user. |
 | 5 User-service detection and foreground fallback | pending | No service adapter, unit template or detection probe exists in this build. |
@@ -81,8 +81,8 @@ forms were exercised for this platform on WSL2 Ubuntu 26.04.1 LTS
 outside the declared `>=3.13,<3.14` range is refused with exit `4`.
 
 ```text
-axiom install plan  --bundle <verified-local-bundle> --out install-plan.json
-axiom install apply --plan install-plan.json --approve-digest <plan-sha256>
+axm engine install plan  --bundle <verified-local-bundle> --out install-plan.json
+axm engine install apply --plan install-plan.json --approve-digest <plan-sha256>
 ```
 
 - Install into a versioned directory under the user state home
@@ -156,13 +156,13 @@ Detect managed-service availability without assuming it:
 "$AXIOM_INSTALL/axiom-graphd" serve --registry "$AXIOM_HOME/config/registry.json"
 
 # managed user service - only when detection above succeeds
-axiom service install --user --component axiom-graphd
-axiom service start   --component axiom-graphd
-axiom service status  --component axiom-graphd
+axm service install --user --component axiom-graphd
+axm service start   --component axiom-graphd
+axm service status  --component axiom-graphd
 ```
 
-`axiom service ...` is not usable in this revision: `service` is not an accepted
-command. `axiom-graphd serve --registry <path>` runs one bounded reconcile pass
+`axm service ...` is not usable in this revision: `service` is not an accepted
+command. `axge serve --registry <path>` runs one bounded reconcile pass
 under the instance lock and exits `0` (task H-002); it is a foreground pass, not
 a managed service.
 
@@ -254,7 +254,7 @@ pre-uninstall state.
   `systemd --user` detection. No Linux target is certified.
 - The `axiom service` command shapes above document an intended contract for a
   later work package; they are not accepted by any binary in this revision. The
-  `axiom install plan` / `axiom install apply` forms are now accepted (task
+  `axm engine install plan` / `axm engine install apply` forms are now accepted (task
   I-004) and delegate to the ecosystem orchestration module; the signed archive,
   user-service and trust-verification steps still are not. The `axiom-graphd
   solution` shape is another exception: task H-001 wired it into argv and task

@@ -53,9 +53,9 @@ Watcher เป็น library ที่ compile เข้า Rustbinary และ
 
 1. เลือก GitHubowner/repositories/trustroot จาก organization ที่ผู้ใช้กำหนดจริงและบันทึก trustedsourceconfig
 2. ดาวน์โหลด bootstrapaxiomarchive ของ OS จาก trustedrelease,verifychecksum+signature กับ knownroot ก่อน execute;installer ต้องมี offlineverificationprocedure
-3. `axiom install plan --bundle <verified-local-bundle> --out install-plan.json`
+3. `axm engine install plan --bundle <verified-local-bundle> --out install-plan.json`
 4. reviewcomponentversions,OSpaths,servicechanges,requiredpermissions และ plannednetworkaccess
-5. `axiom install apply --plan install-plan.json`
+5. `axm engine install apply --plan install-plan.json`
 6. `axiom version --all --json` และ `axiom doctor --all --json`
 
 Defaultinstallper-user ไม่ admin;ห้ามใช้`curl|sh`เป็น defaultrunbook. Archive ต้องมี versioneddirectory;rollbackkeep อย่างน้อย previousworkingversion
@@ -65,9 +65,9 @@ Defaultinstallper-user ไม่ admin;ห้ามใช้`curl|sh`เป็�
 คัดลอก`examples/config/solution.yaml`แล้วแก้ logicalprojectids/repoaliases. สร้าง localbindings จาก template แยก absolutecheckoutpaths. Registryconfig อยู่นอก Git โดย owner-onlyACL
 
 ```bash
-axiom-graphd solution register --config solution.yaml --bindings bindings.json --dry-run
-axiom-graphd solution register --config solution.yaml --bindings bindings.json --apply
-axiom-graphd solution list --json
+axge solution register --config solution.yaml --bindings bindings.json --dry-run
+axge solution register --config solution.yaml --bindings bindings.json --apply
+axge solution list --json
 ```
 
 Dryrun แสดงทุก root/outputpath/excludedpath/profile/crossprojectalias และ collision;missingroot ไม่ autoclone. หากมีหลาย projects ใน repo เดียวต้อง define source_root/outputprojectid ไม่ให้ทับกัน
@@ -77,19 +77,19 @@ Dryrun แสดงทุก root/outputpath/excludedpath/profile/crossprojectal
 Development/foreground:
 
 ```bash
-axiom-graphd serve --registry <registry.json>
+axge serve --registry <registry.json>
 # อีก terminal หลังตั้ง scoped credentials แล้ว
-axiom-mcp serve --registry <registry.json> --host 127.0.0.1 --port 8766
+axmp http --host 127.0.0.1 --port 8766 --allow-host 127.0.0.1:8766 --allow-origin http://127.0.0.1:8766
 ```
 
 Manageduserprocess:
 
 ```bash
-axiom service install --user --component axiom-graphd
-axiom service install --user --component mcp
-axiom service start --component axiom-graphd
-axiom service start --component mcp
-axiom service status --component axiom-graphd
+axm service install --user --component axiom-graphd
+axm service install --user --component mcp
+axm service start --component axiom-graphd
+axm service start --component mcp
+axm service status --component axiom-graphd
 ```
 
 Windowsadapter ใช้ per-userstartupmechanism ที่ทดสอบแล้ว(defaultScheduledTaskatlogon เป็น designchoice);Linuxsystemduserunit;macOSlaunchdagent. Implementation ต้องให้ logs/restartpolicy/stop/uninstall/testpermissiondenial ครบ. ไม่มี adminpermission ให้ใช้ foreground ไม่แก้ executionpolicy ทั้งเครื่อง
@@ -97,10 +97,10 @@ Windowsadapter ใช้ per-userstartupmechanism ที่ทดสอบแล
 ## F. Bootstrap projects / configure hosts
 
 ```bash
-axiom host detect --json
-axiom bootstrap plan --solution demo-solution --hosts codex,claude,gemini,agy --out bootstrap-plan.json
-axiom bootstrap apply --plan bootstrap-plan.json
-axiom bootstrap verify --solution demo-solution
+axm host detect --json
+axm bootstrap plan --solution demo-solution --hosts codex,claude,gemini,agy --out bootstrap-plan.json
+axm bootstrap apply --plan bootstrap-plan.json
+axm bootstrap verify --solution demo-solution
 ```
 
 ConfigureMCP ต้อง preserveexistingservers และใช้ env/credentialreference;ไม่ใส่ token ใน trackedprojectconfig. Templateexamples อยู่`examples/hosts/` เป็น shapeexamples ต้อง render ผ่าน certifiedadapter ของ installedversion ไม่ blindoverwritewholeconfig
@@ -108,8 +108,8 @@ ConfigureMCP ต้อง preserveexistingservers และใช้ env/credent
 ## G. First index / human edit smoke test
 
 ```bash
-axiom-graphd reconcile --solution demo-solution --scope full --wait --timeout 30s --json
-axiom-graphd status --solution demo-solution --json
+axge reconcile --solution demo-solution --scope full --wait --timeout 30s --json
+axge status --solution demo-solution --json
 ```
 
 Firstindex อาจเกิน timeout ตาม size: command ต้องคืน jobid แล้วติดตาม`queue list`/jobstatus ไม่อ้าง failed ถ้ายัง processing และไม่รับประกันเสร็จภายใน 30s
@@ -135,8 +135,8 @@ Documented commands that a later work package implements (`install`, `service`, 
 ## K. Update activation, doctor, rollback and release manifest (E-042 - E-048)
 
 This slice is the half of an update that runs *after* a payload exists. It is
-library behaviour in `crates/axiom` with no CLI verb wired yet, so `axiom update`,
-`axiom doctor` and `axiom support-bundle` still exit with the frozen
+library behaviour in `crates/axiom` with no CLI verb wired yet, so `axm engine update`,
+`axiom doctor` and `axm support-bundle` still exit with the frozen
 `not ready/stale` code `4` and name the command; what follows is what the modules
 already guarantee for the command work package that binds them.
 
@@ -189,12 +189,12 @@ recorded as `not_run` rather than invented.
 
 `crates/axiom/src/install/ecosystem.rs` owns the *ecosystem* view of an
 installation, and the `axiom` entrypoint composes it (task I-004):
-`axiom install plan --bundle <verified-local-bundle> [--out install-plan.json]
-[--json]` probes and writes one plan, and `axiom install apply --plan <file>
+`axm engine install plan --bundle <verified-local-bundle> [--out install-plan.json]
+[--json]` probes and writes one plan, and `axm engine install apply --plan <file>
 --approve-digest <sha256> [--json]` re-verifies and applies it. Applying at a
 digest other than the one the plan was approved at, or omitting
 `--approve-digest`, is `FORBIDDEN` with code `5`, exactly as section 6 of the
-installation contract requires; a bare `axiom install` is a
+installation contract requires; a bare `axm engine install` is a
 `VALIDATION_ERROR` with code `2` because these forms require a subcommand. The
 binding delegates to the module rather than re-implementing it - it resolves the
 install root from the resolved `AXIOM_HOME`, probes through the host probe and
@@ -255,13 +255,13 @@ and no `python`), which is exactly why the refused-prerequisite leg reproduces
 there. No macOS host exists in the environment, so the Apple rows stay `not_run`.
 
 The composed operator surface is exercised with real runs on both hosts:
-`axiom install plan` exits `0` and writes one plan (thirteen prerequisite rows,
+`axm engine install plan` exits `0` and writes one plan (thirteen prerequisite rows,
 one sealed component plan per contract position in contract order, one approval
-digest), `axiom install apply --plan ... --approve-digest ...` exits `0` with
+digest), `axm engine install apply --plan ... --approve-digest ...` exits `0` with
 `status=installed`, the idempotent re-run exits `0` with
 `status=already-installed` and moves no bytes, a refused prerequisite exits `4`
 naming every blocking `(component, class)` row before any write, a stale or
-absent approval digest exits `5`, and a bare `axiom install` exits `2`. The
+absent approval digest exits `5`, and a bare `axm engine install` exits `2`. The
 installation mechanism itself requires no WSL, Docker, Bash, elevation or system
 service; WSL2 was used only as the Linux test host, and every generated plan
 requests no elevation.

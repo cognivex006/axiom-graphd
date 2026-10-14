@@ -81,7 +81,7 @@ Parsing notes that are contract:
 
 ```text
 axiom-graphd help
-axiom-graphd --help
+axge --help
 axiom-graphd -h
 ```
 
@@ -126,8 +126,8 @@ Exit codes:
 ## 3. `version`
 
 ```text
-axiom-graphd version
-axiom-graphd version --json
+axge version
+axge version --json
 axiom-graphd --version
 axiom-graphd -V
 ```
@@ -165,9 +165,9 @@ axiom-graphd -V
 ## 4. `doctor`
 
 ```text
-axiom-graphd doctor
-axiom-graphd doctor --solution <id>
-axiom-graphd doctor --json
+axge doctor
+axge doctor --solution <id>
+axge doctor --json
 ```
 
 - Arguments: optional `--solution <id>` (wired in task H-001); `--all` is
@@ -199,9 +199,9 @@ axiom-graphd doctor --json
 ## 5. `serve`
 
 ```text
-axiom-graphd serve
-axiom-graphd serve --registry <path>
-axiom-graphd serve --json --registry <path>
+axge serve
+axge serve --registry <path>
+axge serve --json --registry <path>
 ```
 
 - Arguments: optional `--registry <path>`. A path may contain spaces, Thai
@@ -271,8 +271,8 @@ axiom-graphd serve --json --registry <path>
 ## 6. `status`
 
 ```text
-axiom-graphd status --solution <id>
-axiom-graphd status --solution <id> --json
+axge status --solution <id>
+axge status --solution <id> --json
 ```
 
 - Arguments: required `--solution <id>`; optional `--json`. Omitting `--solution`
@@ -297,9 +297,9 @@ axiom-graphd status --solution <id> --json
 ## 7. `solution`
 
 ```text
-axiom-graphd solution register --config <solution.yaml> [--bindings <bindings.json>] (--dry-run|--apply)
-axiom-graphd solution list [--solution <id>]
-axiom-graphd solution remove --solution <id> (--dry-run|--apply)
+axge solution register --config <solution.yaml> [--bindings <bindings.json>] (--dry-run|--apply)
+axge solution list [--solution <id>]
+axge solution remove --solution <id> (--dry-run|--apply)
 ```
 
 - Arguments: `register` takes `--config <solution.yaml>` and optional
@@ -335,8 +335,8 @@ axiom-graphd solution remove --solution <id> (--dry-run|--apply)
 ## 8. `changed`
 
 ```text
-axiom-graphd changed --solution <id> --project <project> --path <repo-relative> --reason <manual|git|tool|reconcile>
-axiom-graphd changed --solution <id> --from-json <changes.json>
+axge changed --solution <id> --project <project> --path <repo-relative> --reason <manual|git|tool|reconcile>
+axge changed --solution <id> --from-json <changes.json>
 ```
 
 - Arguments: required `--solution <id>`; either the explicit hint
@@ -359,9 +359,9 @@ axiom-graphd changed --solution <id> --from-json <changes.json>
 ## 9. `reconcile`
 
 ```text
-axiom-graphd reconcile --solution <id> --scope dirty [--wait] [--timeout <ms|Ns>]
-axiom-graphd reconcile --solution <id> --scope project --project <project>
-axiom-graphd reconcile --solution <id> --scope full
+axge reconcile --solution <id> --scope dirty [--wait] [--timeout <ms|Ns>]
+axge reconcile --solution <id> --scope project --project <project>
+axge reconcile --solution <id> --scope full
 ```
 
 - Arguments: required `--solution <id>` and `--scope <dirty|project|full>`.
@@ -384,9 +384,9 @@ axiom-graphd reconcile --solution <id> --scope full
 ## 10. `queue`
 
 ```text
-axiom-graphd queue list --solution <id> [--limit <n>]
-axiom-graphd queue retry --job <id>
-axiom-graphd queue cancel --job <id>
+axge queue list --solution <id> [--limit <n>]
+axge queue retry --job <id>
+axge queue cancel --job <id>
 ```
 
 - Arguments: `list` takes required `--solution <id>` and optional `--limit <n>`,
@@ -412,8 +412,8 @@ axiom-graphd queue cancel --job <id>
 ## 11. `query`
 
 ```text
-axiom-graphd query context --solution <id> (--symbol <name>|--node-id <id>) [--max-bytes <n>] [--max-nodes <n>] [--depth <n>]
-axiom-graphd query impact --solution <id> (--symbol <name>|--node-id <id>) [--max-bytes <n>] [--max-nodes <n>] [--depth <n>]
+axge query context --solution <id> (--symbol <name>|--node-id <id>) [--max-bytes <n>] [--max-nodes <n>] [--depth <n>]
+axge query impact --solution <id> (--symbol <name>|--node-id <id>) [--max-bytes <n>] [--max-nodes <n>] [--depth <n>]
 ```
 
 - Arguments: required `--solution <id>` and exactly one of `--symbol <name>` or
@@ -443,7 +443,7 @@ axiom-graphd query impact --solution <id> (--symbol <name>|--node-id <id>) [--ma
 ## 12. `render`
 
 ```text
-axiom-graphd render --solution <id> [--project <id>]... --out <dir>
+axge render --solution <id> [--project <id>]... --out <dir>
 ```
 
 - Arguments: required `--solution <id>`; repeatable `--project <id>`, where an
@@ -477,13 +477,13 @@ axiom-graphd render --solution <id> [--project <id>]... --out <dir>
 
 ## 13. `update`
 
-The persistent daemon's `axiom-graphd update check` remains a status check. The
+The persistent daemon's `axge update check` remains a status check. The
 local installation transaction is provided by the trusted `axiom` CLI:
 
 ```text
-axiom update plan --to <graphd-version> --bundle <directory> --out <plan.json>
-axiom update apply --plan <plan.json> --approve-digest <sha256>
-axiom update rollback --transaction <id>
+axm engine update plan --to <graphd-version> --bundle <directory> --out <plan.json>
+axm engine update apply --plan <plan.json> --approve-digest <sha256>
+axm engine update rollback --transaction <id>
 ```
 
 `plan` verifies the local bundle and binds the sealed update plan to the current
@@ -521,16 +521,16 @@ a rejection, and so a future implementation has a documented target.
 
 | Proposed command | Target contract | Current behaviour |
 | ---------------- | --------------- | ----------------- |
-| `axiom service install`, then `axiom service start` / `status` / `uninstall --user` | [../21-INSTALLATION-QUICKSTART.md](../21-INSTALLATION-QUICKSTART.md) | Not accepted as a command. |
-| `axiom host detect`, and `axiom bootstrap plan` / `apply` / `verify` | [../18-BOOTSTRAP-AND-MANAGED-INSTRUCTIONS](../18-BOOTSTRAP-AND-MANAGED-INSTRUCTIONS.md) | Not accepted as commands. |
-| `axiom-graphd checkpoint create\|verify`, `axiom-graphd snapshot read\|export\|gc` | CLI contract `docs/16-CLI-AND-CONTROL-API.md` in `axiom-specs` | Documented in the contract, but no module owns them in this revision, so `parse` rejects them as an unrecognised command (`VALIDATION_ERROR`, exit 2). |
-| `axiom-mcp serve --host 127.0.0.1 --port 8766` | Owned by `axiom-mcp`, not this repository. | Out of scope for this reference; loopback-only binding is contract. |
+| `axm service install`, then `axm service start` / `status` / `uninstall --user` | [../21-INSTALLATION-QUICKSTART.md](../21-INSTALLATION-QUICKSTART.md) | Not accepted as a command. |
+| `axm host detect`, and `axm bootstrap plan` / `apply` / `verify` | [../18-BOOTSTRAP-AND-MANAGED-INSTRUCTIONS](../18-BOOTSTRAP-AND-MANAGED-INSTRUCTIONS.md) | Not accepted as commands. |
+| `axge checkpoint create\|verify`, `axge snapshot read\|export\|gc` | CLI contract `docs/16-CLI-AND-CONTROL-API.md` in `axiom-specs` | Documented in the contract, but no module owns them in this revision, so `parse` rejects them as an unrecognised command (`VALIDATION_ERROR`, exit 2). |
+| `axmp http --host 127.0.0.1 --port 8766 --allow-host 127.0.0.1:8766 --allow-origin http://127.0.0.1:8766` | Owned by `axiom-mcp`, not this repository. | Out of scope for this reference; loopback-only binding is contract. |
 
 Do not treat a module existing in `crates/` as a command: availability is decided
 by `parse` in `crates/axiom-graphd/src/cli.rs`, and the tables in sections 1 and
 4 to 13 mirror exactly that.
 
-`axiom install plan` / `axiom install apply` are no longer proposed: task I-004
+`axm engine install plan` / `axm engine install apply` are no longer proposed: task I-004
 composed them onto the sibling `axiom` entrypoint (`crates/axiom/src/cli.rs`,
 package `axiom`) and they delegate to the ecosystem orchestration module. They
 remain unrecognised by `axiom-graphd` itself, which is why the `install` row in

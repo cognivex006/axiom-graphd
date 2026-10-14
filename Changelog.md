@@ -35,6 +35,10 @@ Owner-authorized publication of current code; see release/v0.1.1-notes.md.
 
 ## Unreleased
 
+### Documentation
+
+- Use `axge` for graph-engine commands and `axm` for orchestration in public help and workflow examples. The engine remains the owner of graph construction, watching and publication.
+
 ### K-302 Windows x64 core candidate
 
 Package and verify native MSVC x64 daemon and engine CLI as a deterministic

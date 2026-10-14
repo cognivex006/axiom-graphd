@@ -25,7 +25,7 @@ ClaudeCode: CLAUDE.mdmanagedpointer,skill/nativepluginlayout และ hooksetti
 GeminiCLI: GEMINI.mdmanagedpointer,extension/skills/config ตาม version.
 AGY/Antigravity: `.agents/rules`/`.agents/skills`เป็น documentedcurrentpaths แต่เก่ามี`.agent`compatibility;MCPserverUrl ต่างจาก GeminihttpUrl [S13][S14][S15]. ต้อง detectversion และไม่เขียนทั้งสองโดยไม่มี migrationplan
 
-CanonicalSKILL.md เก็บ repoA;axiommaterializeversionedcopy ใต้ hostlocation. Datafiles ไม่ selfexecute; `axiom skills update...`ทำ actualupdate. ไม่ symlink เป็น default เพราะ Windowsprivilege และ Gitportability;ใช้ copieswithhashmanifest
+CanonicalSKILL.md เก็บ repoA;axiommaterializeversionedcopy ใต้ hostlocation. Datafiles ไม่ selfexecute; `axsk update...`ทำ actualupdate. ไม่ symlink เป็น default เพราะ Windowsprivilege และ Gitportability;ใช้ copieswithhashmanifest
 
 ## 3. Plan contract
 
@@ -58,7 +58,7 @@ Bootstrapdefault ไม่ commit/push เอง; `--commit`/`--push`เป็�
 
 ## 7. Updating all repositories
 
-Templateversion ใหม่→`axiom bootstrap update plan --solution demo-solution --to x.y.z`→per-repodiff→applyapprovedplan→verifyownership/hostcapability→reportold/newversion และ remainingrepos→ผู้ใช้ review/authorizedpush
+Templateversion ใหม่→`axm bootstrap update plan --solution demo-solution --to x.y.z`→per-repodiff→applyapprovedplan→verifyownership/hostcapability→reportold/newversion และ remainingrepos→ผู้ใช้ review/authorizedpush
 
 Updatingcentralpolicy ไม่ทำให้ copies ทุก repo ใหม่เองโดย magic ต้องมี actualsynccommand หรือ opt-inscheduledmaintenance. Skills/MCP/axiom-graphd ทุกตัว reportinstalledandavailableversions แยกกัน
 

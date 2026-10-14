@@ -3,7 +3,7 @@
 Owner: `axiom-graphd`. Spec baseline: `2.0.0-draft.1`. This guide describes the
 intended V2 behavior of the bootstrap engine. It is documentation, not evidence
 that a compiled `axiom` CLI or a working `bootstrap` command exists; **no
-`axiom bootstrap ...` command is invoked in this guide, because that command is
+`axm bootstrap ...` command is invoked in this guide, because that command is
 not implemented yet.**
 
 **Status: the bootstrap engine's policy half is implemented and unit-tested; the
@@ -46,12 +46,12 @@ the disagreement. Do not overwrite it to give the graph precedence.
 Bootstrap is a two-step operation, and the first step never writes to the target
 repositories.
 
-1. `axiom bootstrap plan` reads the explicitly registered solution and the
+1. `axm bootstrap plan` reads the explicitly registered solution and the
    target hosts and produces, per repository: the proposed operations, the
    before-hashes of affected files, the managed-block hashes, the template
    version and hash, destination-relative paths, a change classification, a
    proposed Git diff, the policy configuration and a plan `SHA256`.
-2. `axiom bootstrap apply --plan <file> --approve-digest <sha256>` re-reads the
+2. `axm bootstrap apply --plan <file> --approve-digest <sha256>` re-reads the
    exact approved plan, re-verifies root bindings, ownership and before-hashes,
    and rejects an expired or stale plan. Re-running must be idempotent.
 
@@ -228,7 +228,7 @@ exist, and both matter to an operator:
 
 - the `axiom` argv layer (`crates/axiom-cli` over `crates/axiom`, task E-001)
   lists `bootstrap` among its documented-but-pending verbs and maps it to
-  `NOT_READY` (exit code 4) with the verb name, so `axiom bootstrap ...` is
+  `NOT_READY` (exit code 4) with the verb name, so `axm bootstrap ...` is
   never mistaken for a typo. That mapping is verified by reading
   `crates/axiom/src/cli.rs`; this documentation-only task did not build or run
   the `axiom` binary, so the observed exit status is unverified here even though
@@ -251,8 +251,8 @@ So today:
   engine above, including the managed update (E-022), the ignore lane (E-023),
   the commit proposal (E-024) and the rollback (E-025). The `bootstrap` verb is
   still recognised-and-refused, so it cannot drive any of them yet.
-- **not available / unverified** — `axiom bootstrap plan`,
-  `axiom bootstrap apply`, the plan digest and the apply journal described in
+- **not available / unverified** — `axm bootstrap plan`,
+  `axm bootstrap apply`, the plan digest and the apply journal described in
   sections 1 and 3. The `bootstrap` verb is recognised and refuses with
   `NOT_READY` (exit 4); it does not plan, diff, approve or apply anything.
 - **not implemented** — a live `git` executor behind the commit proposal. Task

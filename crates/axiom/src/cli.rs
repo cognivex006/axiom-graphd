@@ -520,9 +520,9 @@ pub const VERBS: &[FormSpec] = &[
 /// purpose: `mod tests` parses it back and compares it with [`VERBS`] in both
 /// directions, so it cannot silently drift from the dispatcher.
 pub const USAGE: &str = "\
-axiom - Axiom installation, bootstrap and operations CLI
+axm engine - Axiom installation, bootstrap and operations CLI
 
-Usage: axiom <command> [options]
+Usage: axm engine <command> [options]
 
 Commands:
   version [--all]  print component and build versions
@@ -2186,7 +2186,7 @@ mod tests {
 
         let (code, stdout, stderr) = run_argv(&[String::from("--help")]);
         assert_eq!(code, ExitCode::Success);
-        assert!(stdout.contains("Usage: axiom <command> [options]"));
+        assert!(stdout.contains("Usage: axm engine <command> [options]"));
         assert!(stdout.contains("2  validation"));
         assert!(stderr.is_empty());
 

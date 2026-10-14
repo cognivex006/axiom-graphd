@@ -118,11 +118,11 @@ Rules:
 ## 5. Operator flow (target interface)
 
 ```bash
-axiom-graphd solution register --config .axiom/config/solutions/demo-solution.json --bindings <machine-local-bindings> --dry-run
-axiom-graphd solution register --config .axiom/config/solutions/demo-solution.json --bindings <machine-local-bindings> --apply
-axiom-graphd solution list --json
-axiom-graphd reconcile --solution demo-solution --scope full --wait --timeout 30s --json
-axiom-graphd status --solution demo-solution --json
+axge solution register --config .axiom/config/solutions/demo-solution.json --bindings <machine-local-bindings> --dry-run
+axge solution register --config .axiom/config/solutions/demo-solution.json --bindings <machine-local-bindings> --apply
+axge solution list --json
+axge reconcile --solution demo-solution --scope full --wait --timeout 30s --json
+axge status --solution demo-solution --json
 ```
 
 The dry run reports every root, output path, excluded path, profile and

@@ -3,7 +3,7 @@
 Owner: `axiom-graphd`. Spec baseline: `2.0.0-draft.1`. Task: **E-033**
 (`crates/axiom/src/skills/update.rs`). This page describes the intended V2
 behavior of the skills check and update surfaces. It is documentation, not
-evidence that a compiled `axiom skills check` command exists; **no command is
+evidence that a compiled `axsk check` command exists; **no command is
 invoked here.**
 
 ## The two rules
@@ -71,5 +71,5 @@ before those checks pass.
 
 The check and the apply path are policy over injected inputs and a small
 filesystem trait. Nothing here opens a socket, drains a real service or runs a
-bundle script. The `axiom skills version/check/update` command lines are a
+bundle script. The `axsk version/check/update` command lines are a
 separate, still-pending slice.

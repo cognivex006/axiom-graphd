@@ -170,9 +170,9 @@ pub fn slice_links() -> Vec<(&'static str, String)> {
 
 /// Usage text without the operator-slice forms and the exit-code table.
 pub const USAGE: &str = "\
-axiom-graphd - Axiom graph engine daemon
+axge - Axiom Graph Engine
 
-Usage: axiom-graphd <command> [options]
+Usage: axge <command> [options]
 
 Commands:
   serve [--registry <path>] [--json]   run the foreground daemon
@@ -185,7 +185,7 @@ Commands:
   queue list|retry|cancel ...          inspect and steer the operational queue
   query context|impact ...             bounded context and impact over a pinned snapshot
   render --solution <id> --out <dir>   render a published generation as a diagram
-  update check|apply ...               delegate to the trusted axiom CLI
+  update check|apply ...               delegate to the trusted axm orchestrator
   help, --help                         print this help
 
 Options:
