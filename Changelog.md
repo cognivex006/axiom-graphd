@@ -1,3 +1,11 @@
+# Changelog
+
+## Unreleased
+
+### Documentation
+
+- Use `axm`, `axsk`, `axge` and `axmp` in current guides. Access private installation-engine operations through `axm engine`.
+
 ## 0.1.6
 
 - Align the graph engine and daemon version with the improved ecosystem installer and expanded graph-build/watch skills. Runtime behavior, graph schemas and permissions are unchanged.
