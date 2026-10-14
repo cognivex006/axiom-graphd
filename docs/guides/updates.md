@@ -298,7 +298,8 @@ So today:
   documentation-only task did not compile or run the `axiom` binary. The daemon
   binary's own `version` *was* run: it exits 0 and reports component
   `axiom-graphd`, spec `2.0.0-draft.1`, `graph_schema` 1 and SQLite 3.50.2
-  below the 3.51.3 WAL baseline, with `build_revision` `unknown`.
+  with `build_revision` `unknown`. This is a historical observation; current SQLite readiness
+  uses actual connection/query checks and treats its version as informational.
 - **not implemented** — a Rust regression test for this guide, and therefore any
   build-time protection against this page drifting from the guard it documents.
   Tasks D-005, D-009 and D-016 gave their guides a `*_guide.rs` oracle under

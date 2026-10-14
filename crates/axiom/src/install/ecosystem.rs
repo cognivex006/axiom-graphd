@@ -43,40 +43,9 @@
 //! *guessed*: this module has no "look up the latest version" path, so an
 //! undeclared row can only come back `unsatisfied` or `unknown`.
 //!
-//! The one version this module compares against is taken from the owning
-//! component, never copied: the store WAL baseline is rendered from
-//! `graph_store::open::MIN_SQLITE_VERSION` by [`Expected::render`], so a store
-//! baseline change moves this report with it.
-//!
-//! ## What blocks, and what does not
-//!
-//! A row is `blocking` when it is `required` and its observed status is not
-//! `satisfied`. Only rows this ecosystem *owns a pin for* are `required`:
-//!
-//! * `axiom-graphd/runtime` -- a supported native OS on local storage,
-//! * `axiom-mcp/interpreter` -- Python `>=3.13,<3.14`,
-//! * `axiom-graphd/host_executable` -- the running `axiom` executable,
-//! * `axiom-graphd/permission` -- per-user write access, never elevation.
-//!
-//! The other rows are reported honestly and are deliberately not gating:
-//!
-//! * `axiom-graphd/toolchain` (the Rust 1.85.0 channel) is a *developer and
-//!   build* prerequisite; the prebuilt bundle needs no compiler.
-//! * `axiom-graphd/interpreter`, `axiom-mcp/toolchain`, `axiom-skills/interpreter`
-//!   and `axiom-skills/toolchain` are declared as *no requirement at all*.
-//! * `axiom-mcp/runtime` and `axiom-skills/runtime` are discharged by the
-//!   installation itself, so the planner obligation is the report.
-//! * `axiom-graphd/native_dependency` (the patched SQLite runtime) is recorded
-//!   `undeclared` by contract section 3 with a null version source, and section
-//!   10 states that an undeclared item "blocks a claim, not the contract". The
-//!   store's own runtime gate stays the enforcement point, and this module
-//!   records the row as a *verification gap* instead of inventing a pin the
-//!   contract forbids inventing. A run on a host whose SQLite is below the
-//!   store's WAL baseline therefore reports the row `unsatisfied`, names it in
-//!   `verification_gaps`, and still installs.
-//! * `axiom-skills/approval` is bound by [`crate::plan::approval_reasons`] at
-//!   activation time, which is a stronger gate than a probe: an activation with
-//!   no approved digest is refused outright.
+//! SQLite readiness is a required functional create/write/read probe of the linked driver.
+//! Its observed version is informational. Rust remains a build-time requirement;
+//! Python interpreter compatibility, storage, permissions and activation approval remain enforced.
 //!
 //! ## Probe before write
 //!
@@ -254,7 +223,7 @@ pub const STATUS_INSTALLED: &str = "installed";
 /// Status of a component whose payload bytes were already in place.
 pub const STATUS_ALREADY_INSTALLED: &str = "already-installed";
 
-/// Verification gap recorded when the store's SQLite baseline is not met.
+/// Legacy refusal spelling retained for historical recorded plans; no numeric gate uses it.
 pub const GAP_SQLITE_WAL_BASELINE: &str = "sqlite-wal-reset-baseline";
 
 /// Why the ecosystem refused, in one named rule and one observed value.
@@ -326,17 +295,13 @@ impl DeclarationStatus {
     }
 }
 
-/// The version one row is compared against.
-///
-/// The variance between rows is not prose: a row either names a literal pin the
-/// owning repository published, or it names the store's own WAL baseline, whose
-/// text is rendered from `graph_store`'s constant rather than copied here.
+/// The expectation a prerequisite row reports: an owner pin or functional SQLite readiness.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Expected {
     /// A pin the owning document publishes verbatim.
     Value(&'static str),
-    /// The patched SQLite baseline the store gate enforces.
-    SqliteWalBaseline,
+    /// Functional SQLite readiness, independent of numeric version.
+    SqliteReadiness,
 }
 
 impl Expected {
@@ -345,10 +310,9 @@ impl Expected {
     pub fn render(self) -> String {
         match self {
             Self::Value(text) => text.to_string(),
-            Self::SqliteWalBaseline => format!(
-                "SQLite >= {} (the store WAL baseline)",
-                graph_store::open::MIN_SQLITE_VERSION
-            ),
+            Self::SqliteReadiness => {
+                "usable SQLite driver (create/write/read probe; version informational)".to_string()
+            }
         }
     }
 }
@@ -409,12 +373,12 @@ static DECLARATIONS: [PrerequisiteDeclaration; 13] = [
     PrerequisiteDeclaration {
         component: "axiom-graphd",
         class: PrerequisiteClass::NativeDependency,
-        status: DeclarationStatus::Undeclared,
-        requirement: "the patched SQLite runtime the store requires is bundled or explicitly declared, and its runtime version is checked for the required WAL fixes",
-        version_source: None,
-        pin: "undeclared",
-        required: false,
-        expected: Some(Expected::SqliteWalBaseline),
+        status: DeclarationStatus::Declared,
+        requirement: "the engine-linked SQLite driver can open a connection and create, write and read data; versions are informational",
+        version_source: Some("axiom-specs/contracts/sqlite-runtime.json"),
+        pin: "declared",
+        required: true,
+        expected: Some(Expected::SqliteReadiness),
     },
     PrerequisiteDeclaration {
         component: "axiom-graphd",
@@ -829,20 +793,13 @@ impl<'a> NativeProbe<'a> {
 
     /// The SQLite runtime the store requires, probed through the store itself.
     fn observe_sqlite(&self) -> PrerequisiteObservation {
-        match graph_store::open::runtime_version_probe() {
-            Ok(version) => {
-                if version.is_supported_for_wal() {
-                    PrerequisiteObservation::satisfied(format!(
-                        "SQLite {version} meets the store WAL baseline"
-                    ))
-                } else {
-                    PrerequisiteObservation::unsatisfied(format!(
-                        "SQLite {version} is below the store WAL baseline; reported as a verification gap because the contract records this row undeclared"
-                    ))
-                }
-            }
-            Err(error) => PrerequisiteObservation::unknown(format!(
-                "the SQLite runtime could not be probed: {error}"
+        match graph_store::open::runtime_readiness_probe() {
+            Ok(probe) => PrerequisiteObservation::satisfied(format!(
+                "SQLite: create/write/read passed (observed version {})",
+                probe.version
+            )),
+            Err(error) => PrerequisiteObservation::unsatisfied(format!(
+                "SQLite connection/query failed: {error}; repair the graph engine"
             )),
         }
     }
@@ -2650,31 +2607,26 @@ mod tests {
             .collect();
         assert_eq!(
             required,
-            vec!["runtime", "host_executable", "permission", "interpreter"]
+            vec![
+                "runtime",
+                "native_dependency",
+                "host_executable",
+                "permission",
+                "interpreter"
+            ]
         );
         assert!(declaration("axiom-graphd", PrerequisiteClass::Runtime).is_some());
         assert!(declaration("axiom-skills", PrerequisiteClass::Approval).is_some());
     }
 
     #[test]
-    fn the_sqlite_row_renders_the_store_baseline_instead_of_a_copy() {
-        let row = declaration("axiom-graphd", PrerequisiteClass::NativeDependency)
-            .expect("the store row is declared");
-        assert_eq!(row.status, DeclarationStatus::Undeclared);
-        assert!(!row.required);
-        let expected = row
-            .expected
-            .expect("the store row carries an expectation")
-            .render();
-        assert!(
-            expected.contains(&graph_store::open::MIN_SQLITE_VERSION.to_string()),
-            "the report must render the store constant: {expected}"
-        );
-        let reported = report(&SatisfiedProbe, row);
-        assert_eq!(reported.status, "unknown");
-        assert_eq!(reported.pin, "undeclared");
-        assert_eq!(reported.expected.as_deref(), Some(expected.as_str()));
-        assert!(!reported.blocking);
+    fn sqlite_readiness_is_required_and_failed_sql_refuses_before_mutation() {
+        let row = declaration("axiom-graphd", PrerequisiteClass::NativeDependency).unwrap();
+        assert_eq!(row.status, DeclarationStatus::Declared);
+        assert!(row.required);
+        assert_eq!(report(&SatisfiedProbe, row).status, "satisfied");
+        let reports = probe(&unsatisfied("axiom-graphd", "native_dependency"));
+        assert!(prerequisite_refusal(&reports).is_some());
     }
 
     #[test]
@@ -2683,10 +2635,7 @@ mod tests {
         assert_eq!(reports.len(), 13);
         assert!(blocking_rows(&reports).is_empty());
         assert!(prerequisite_refusal(&reports).is_none());
-        assert_eq!(
-            verification_gaps(&reports),
-            vec!["axiom-graphd/native_dependency"]
-        );
+        assert!(verification_gaps(&reports).is_empty());
         for row in &reports {
             assert!(row.status == "satisfied" || row.status == "unknown");
             if row.required {
@@ -2734,7 +2683,7 @@ mod tests {
     }
 
     #[test]
-    fn an_undeclared_row_is_a_recorded_gap_and_never_a_blocker() {
+    fn a_functional_sqlite_row_is_satisfied_without_version_manifest_gaps() {
         let fixture = fixture();
         let plan = planned(&fixture);
         assert!(plan
@@ -2742,12 +2691,9 @@ mod tests {
             .iter()
             .any(|row| row.component == "axiom-graphd"
                 && row.class == "native_dependency"
-                && row.status == "unknown"
+                && row.status == "satisfied"
                 && !row.blocking));
-        assert_eq!(
-            plan.verification_gaps,
-            vec!["axiom-graphd/native_dependency"]
-        );
+        assert!(plan.verification_gaps.is_empty());
     }
 
     #[test]

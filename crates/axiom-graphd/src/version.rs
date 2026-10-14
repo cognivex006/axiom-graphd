@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 
 use graph_core::error::{AxiomError, ErrorCode};
 use graph_store::migrations::CURRENT_SCHEMA_VERSION;
-use graph_store::open::{runtime_version_probe, MIN_SQLITE_VERSION};
+use graph_store::open::runtime_readiness_probe;
 
 /// Component name used in the version report.
 pub const COMPONENT: &str = "axiom-graphd";
@@ -242,9 +242,11 @@ pub struct VersionOutput {
     pub report: VersionReport,
     /// Actual `sqlite_version()` of the linked runtime.
     pub sqlite_version: String,
-    /// WAL baseline this build requires.
+    /// Whether the linked driver passed a create/write/read probe.
+    pub sqlite_available: bool,
+    /// Readiness policy (legacy field retained for JSON compatibility).
     pub sqlite_wal_baseline: String,
-    /// Whether the linked runtime meets the WAL baseline.
+    /// Whether the library was compiled with WAL support; actual stores verify their pragmas.
     pub sqlite_wal_supported: bool,
     /// Analyzer identifiers compiled into this build, in stable order.
     pub analyzers: Vec<String>,
@@ -254,14 +256,17 @@ impl VersionOutput {
     /// Report the current build, probing the runtime SQLite version.
     #[must_use]
     pub fn current() -> Self {
-        let (sqlite_version, sqlite_wal_supported) = match runtime_version_probe() {
-            Ok(version) => (version.to_string(), version.is_supported_for_wal()),
+        let readiness = runtime_readiness_probe();
+        let sqlite_available = readiness.is_ok();
+        let (sqlite_version, sqlite_wal_supported) = match readiness {
+            Ok(probe) => (probe.version, probe.wal_supported),
             Err(_) => (String::from(SQLITE_VERSION_UNAVAILABLE), false),
         };
         Self {
             report: VersionReport::current(),
             sqlite_version,
-            sqlite_wal_baseline: MIN_SQLITE_VERSION.to_string(),
+            sqlite_available,
+            sqlite_wal_baseline: "capability-based".to_string(),
             sqlite_wal_supported,
             analyzers: Vec::new(),
         }
@@ -305,8 +310,9 @@ mod tests {
         "update_status",
     ];
 
-    const RUNTIME_PROPERTIES: [&str; 4] = [
+    const RUNTIME_PROPERTIES: [&str; 5] = [
         "sqlite_version",
+        "sqlite_available",
         "sqlite_wal_baseline",
         "sqlite_wal_supported",
         "analyzers",
@@ -382,14 +388,11 @@ mod tests {
         expected.sort();
         assert_eq!(keys(&value), expected);
 
-        let probed = runtime_version_probe().expect("the linked runtime is usable");
-        assert_eq!(output.sqlite_version, probed.to_string());
-        assert_eq!(output.sqlite_wal_baseline, MIN_SQLITE_VERSION.to_string());
-        assert_eq!(
-            output.sqlite_wal_supported,
-            probed.is_supported_for_wal(),
-            "the reported baseline verdict must match the runtime"
-        );
+        let probed = runtime_readiness_probe().expect("the linked runtime is usable");
+        assert!(output.sqlite_available);
+        assert_eq!(output.sqlite_version, probed.version);
+        assert_eq!(output.sqlite_wal_baseline, "capability-based");
+        assert_eq!(output.sqlite_wal_supported, probed.wal_supported);
         assert!(output.analyzers.is_empty(), "no analyzer is compiled yet");
         assert!(output.text_line().contains(&output.sqlite_version));
         assert!(!output.text_line().contains('\\'));

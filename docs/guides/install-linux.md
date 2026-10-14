@@ -235,7 +235,7 @@ pre-uninstall state.
 | `CONFIG_INVALID` (exit 2) | Registry or config rejected | Fix the named field; do not delete the database to silence it. |
 | `WRITER_ALREADY_RUNNING` (exit 10) | Another owner holds `run/daemon.lock` | Find the owning process; never delete the lock by guess. |
 | `SQLITE_NETWORK_STORAGE_UNSUPPORTED` (exit 9) | State on NFS/SMB or a sync folder | Move state to a local volume. |
-| `SQLITE_UNSUPPORTED_VERSION` (exit 9) | Linked runtime below the WAL baseline | Use the bundled/pinned runtime rather than a system library. |
+| SQLite connection/query failure | The engine-linked driver is unusable | Repair the graph engine with `axm install`; a different SQLite version alone does not fail readiness. |
 | `NOT_READY` (exit 4) | A required prerequisite is unsatisfied or unknown, or the requested capability is not implemented in this build | Satisfy the named `(component, class)` row before writing; never bypass it. For an unbuilt capability, use the documented foreground/read-only path. |
 | Managed service unavailable | No `systemd --user` session | Stay in foreground mode; this is not a platform failure. |
 | Permission denied writing output | Source or output root not writable | Fix the real ownership/permission. Never redirect output elsewhere silently and never `chmod 777`. |

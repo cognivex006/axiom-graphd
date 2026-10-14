@@ -8,7 +8,7 @@ Owner: `axiom-graphd`. Spec baseline: `2.0.0-draft.1`. Implementation/release ev
 
 SQLite ใช้ WAL บน localdisk, foreign_keys=ON, busy_timeout bounded, synchronous=FULL สำหรับ durablestate baseline. หนึ่ง writerconnection ต่อ instance; worker threads ส่งผลให้ writeractor. SQLiteWAL อนุญาต reader/writerconcurrency แต่ยังมี writer ได้ครั้งละหนึ่ง และไม่เหมาะกับ networkfilesystem [S02]
 
-**Security/version baseline:** runtimeSQLite ต้องมี WAL-resetfix; baseline ยอมรับ 3.51.3 ขึ้นไปหรือ verifiedbackport ที่ระบุใน lock. ตรวจจริงด้วย sqlite_version()ไม่เดาจาก Rustcrateversion. SQLite ระบุ fix และ backports ในเอกสาร [S02]
+**Runtime readiness:** ตรวจจากการเปิด SQLite และใช้งาน SQL/pragmas ที่จำเป็นจริง ไม่ใช้เลขเวอร์ชันเป็นตัวกั้น โดยเลข `sqlite_version()` เป็นข้อมูลประกอบเท่านั้น การเปิด persistent store ต้องตรวจ journal mode ที่เลือกและความสมบูรณ์ของ schema ส่วน dependency/build pins ของ library ที่ bundle ยังใช้ตาม lock.
 
 ## 2. Tables
 

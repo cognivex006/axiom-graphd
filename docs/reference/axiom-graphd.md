@@ -140,7 +140,7 @@ axiom-graphd -V
   adds; **not a captured run** - no binary was built in this revision):
 
 ```json
-{"component":"axiom-graphd","version":"0.0.0-dev","spec_version":"2.0.0-draft.1","graph_schema":1,"control_api":1,"queue_schema":1,"build_revision":"unknown","update_status":"unconfigured","sqlite_version":"3.51.3","sqlite_wal_baseline":"3.51.3","sqlite_wal_supported":true,"analyzers":[]}
+{"component":"axiom-graphd","version":"0.0.0-dev","spec_version":"2.0.0-draft.1","graph_schema":1,"control_api":1,"queue_schema":1,"build_revision":"unknown","update_status":"unconfigured","sqlite_version":"3.51.3","sqlite_available":true,"sqlite_wal_baseline":"capability-based","sqlite_wal_supported":true,"analyzers":[]}
 ```
 
 | Property | Meaning |
@@ -152,8 +152,9 @@ axiom-graphd -V
 | `build_revision` | Injected 40-character build commit, or `unknown` when not injected. |
 | `update_status` | `not_checked`, `current`, `available`, `offline`, `unconfigured` or `blocked`. This build has no trusted update source and can only report `unconfigured`; claiming any other status is refused as a defect. |
 | `sqlite_version` | Actual runtime SQLite version, or `unavailable` if the probe fails. |
-| `sqlite_wal_baseline` | Minimum WAL-capable baseline this build requires. |
-| `sqlite_wal_supported` | Whether the linked runtime meets that baseline. |
+| `sqlite_available` | The linked driver passed a private create/write/read probe; no version comparison. |
+| `sqlite_wal_baseline` | Readiness policy (`capability-based`); retained as a legacy JSON key. |
+| `sqlite_wal_supported` | Whether WAL is compiled into the library. Each persistent store checks its actual selected journal mode. |
 | `analyzers` | Analyzer identifiers compiled into this build, in stable order. Empty in this revision. |
 
 - Exit codes: `0` on success; `8` (`INTERNAL`) if the report would violate the

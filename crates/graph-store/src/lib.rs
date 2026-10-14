@@ -48,8 +48,8 @@ mod test_support;
 
 pub use migrations::{CURRENT_SCHEMA_VERSION, SCHEMA_V1_SQL};
 pub use open::{
-    runtime_sqlite_version, runtime_version_probe, LexicalVolumeProbe, OpenOptions, SqliteVersion,
-    Store, VolumeProbe, MIN_SQLITE_VERSION, WAL_RESET_BACKPORTS,
+    runtime_readiness_probe, runtime_sqlite_version, runtime_version_probe, LexicalVolumeProbe,
+    OpenOptions, RuntimeReadiness, SqliteVersion, Store, VolumeProbe,
 };
 
 /// Open the store with the durable-state defaults (WAL on local storage).

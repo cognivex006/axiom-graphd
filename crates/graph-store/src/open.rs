@@ -7,9 +7,8 @@
 //! network filesystems, so mutable state on shared storage is refused unless the
 //! operator explicitly degrades to `journal_mode = DELETE`.
 //!
-//! The version gate is a *runtime* check. `SELECT sqlite_version()` is read back
-//! from the opened database instead of trusting the Rust crate version, because
-//! a bundled or system library can differ from the crate metadata.
+//! Readiness follows actual SQL operations and applied pragmas. Runtime versions
+//! are reported for diagnostics; bundled build security pins are maintained separately.
 
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -20,20 +19,6 @@ use graph_core::paths::{classify_storage_lexically, StorageClass};
 
 use crate::storage_error;
 use rusqlite::Connection;
-
-/// Lowest SQLite runtime accepted for WAL-backed mutable state.
-///
-/// docs/13-SQLITE-QUEUE-AND-RECONCILIATION.md section 1: the runtime must carry
-/// the WAL-reset fix; the accepted baseline is 3.51.3 or a verified backport
-/// that is listed in the lock.
-pub const MIN_SQLITE_VERSION: SqliteVersion = SqliteVersion::new(3, 51, 3);
-
-/// Verified backports accepted below [`MIN_SQLITE_VERSION`].
-///
-/// The list is empty in this build: no backport is pinned by a reviewed
-/// specification revision yet, so only the published 3.51.3 floor is accepted.
-/// Adding an entry requires a reviewed contract change, never a local edit.
-pub const WAL_RESET_BACKPORTS: &[SqliteVersion] = &[];
 
 /// A parsed SQLite runtime version.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -99,12 +84,6 @@ impl SqliteVersion {
             }
         };
         Ok(parsed)
-    }
-
-    /// Whether this runtime may carry the WAL-backed durable queue.
-    #[must_use]
-    pub fn is_supported_for_wal(self) -> bool {
-        self >= MIN_SQLITE_VERSION || WAL_RESET_BACKPORTS.contains(&self)
     }
 }
 
@@ -402,15 +381,6 @@ pub fn open(options: &OpenOptions, probe: &dyn VolumeProbe) -> Result<Store, Axi
     .map_err(|error| storage_error("open the SQLite database", &error))?;
 
     let version = runtime_sqlite_version(&connection)?;
-    if options.journal_mode() == JournalMode::Wal && !version.is_supported_for_wal() {
-        return Err(AxiomError::new(
-            ErrorCode::SqliteUnsupportedVersion,
-            format!("the SQLite runtime {version} is below the {MIN_SQLITE_VERSION} WAL baseline; pin a supported runtime or set journalMode to DELETE"),
-        )
-        .with_detail("sqlite_version", version.to_string())
-        .with_detail("required_version", MIN_SQLITE_VERSION.to_string())
-        .with_detail("rule", "sqlite-wal-reset-baseline"));
-    }
 
     let journal_mode = apply_pragmas(&connection, options)?;
 
@@ -442,6 +412,66 @@ pub fn runtime_version_probe() -> Result<SqliteVersion, AxiomError> {
     let connection = Connection::open_in_memory()
         .map_err(|error| storage_error("open a probe connection", &error))?;
     runtime_sqlite_version(&connection)
+}
+
+/// Functional readiness of the engine-linked SQLite library.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RuntimeReadiness {
+    /// Observed version, informational only.
+    pub version: String,
+    /// Whether this library was compiled with WAL support; each store still checks its pragmas.
+    pub wal_supported: bool,
+}
+
+/// Exercise a private in-memory connection without opening user state.
+///
+/// # Errors
+/// Returns a storage error when connection, create, write or read fails.
+pub fn runtime_readiness_probe() -> Result<RuntimeReadiness, AxiomError> {
+    let connection = Connection::open_in_memory()
+        .map_err(|error| storage_error("open a probe connection", &error))?;
+    probe_connection(&connection)
+}
+
+fn probe_connection(connection: &Connection) -> Result<RuntimeReadiness, AxiomError> {
+    let transaction = connection
+        .unchecked_transaction()
+        .map_err(|error| storage_error("start the SQLite readiness probe", &error))?;
+    transaction
+        .execute_batch(
+            "CREATE TEMP TABLE axiom_readiness(value INTEGER NOT NULL); \
+         INSERT INTO axiom_readiness VALUES (1);",
+        )
+        .map_err(|error| storage_error("write the SQLite readiness probe", &error))?;
+    let value: i64 = connection
+        .query_row("SELECT value FROM axiom_readiness", [], |row| row.get(0))
+        .map_err(|error| storage_error("read the SQLite readiness probe", &error))?;
+    if value != 1 {
+        return Err(AxiomError::new(
+            ErrorCode::Internal,
+            "SQLite readiness query returned an unexpected value",
+        ));
+    }
+    connection
+        .execute_batch("DROP TABLE axiom_readiness;")
+        .map_err(|error| storage_error("finish the SQLite readiness probe", &error))?;
+    transaction
+        .commit()
+        .map_err(|error| storage_error("commit the SQLite readiness probe", &error))?;
+    let version = connection
+        .query_row("SELECT sqlite_version()", [], |row| row.get::<_, String>(0))
+        .unwrap_or_else(|_| "unavailable".to_string());
+    let wal_supported = connection
+        .query_row(
+            "SELECT sqlite_compileoption_used('OMIT_WAL') = 0",
+            [],
+            |row| row.get::<_, bool>(0),
+        )
+        .unwrap_or(false);
+    Ok(RuntimeReadiness {
+        version,
+        wal_supported,
+    })
 }
 
 fn apply_pragmas(
@@ -537,14 +567,19 @@ mod tests {
     }
 
     #[test]
-    fn wal_gate_boundary_is_the_published_floor() {
-        assert_eq!(MIN_SQLITE_VERSION.to_string(), "3.51.3");
-        assert!(!SqliteVersion::new(3, 51, 2).is_supported_for_wal());
-        assert!(SqliteVersion::new(3, 51, 3).is_supported_for_wal());
-        assert!(SqliteVersion::new(3, 52, 0).is_supported_for_wal());
-        // No backport is pinned in this build, so nothing below the floor passes.
-        assert_eq!(WAL_RESET_BACKPORTS.len(), 0);
-        assert!(!SqliteVersion::new(3, 50, 2).is_supported_for_wal());
+    fn readiness_checks_sql_instead_of_a_version_floor() {
+        let probe = runtime_readiness_probe().expect("functional linked driver");
+        assert_eq!(probe.version, rusqlite::version());
+        let connection = Connection::open_in_memory().unwrap();
+        connection.execute_batch("PRAGMA query_only = ON;").unwrap();
+        assert!(
+            probe_connection(&connection).is_err(),
+            "a version query alone must not pass a read-only runtime"
+        );
+        connection
+            .execute_batch("PRAGMA query_only = OFF;")
+            .unwrap();
+        assert!(probe_connection(&connection).is_ok());
     }
 
     #[test]
@@ -563,19 +598,14 @@ mod tests {
     }
 
     #[test]
-    fn wal_decision_matches_the_actual_runtime_version() {
+    fn wal_and_delete_are_verified_from_actual_pragmas() {
         let directory = tempfile::tempdir().expect("temp dir");
         let path = directory.path().join("index.sqlite");
         let version = runtime_version_probe().expect("probe");
         let result = open(&OpenOptions::file(&path), &LexicalVolumeProbe);
-        if version.is_supported_for_wal() {
-            let store = result.expect("WAL must open on a supported runtime");
-            assert_eq!(store.journal_mode(), JournalMode::Wal);
-        } else {
-            let error = result.expect_err("WAL must fail below the baseline");
-            assert_eq!(error.code(), ErrorCode::SqliteUnsupportedVersion);
-            assert_eq!(error.exit_code(), graph_core::error::ExitCode::Incompatible);
-        }
+        let store = result.expect("WAL is verified through the actual journal pragma");
+        assert_eq!(store.journal_mode(), JournalMode::Wal);
+        drop(store);
         // The explicit degradation always opens, and reports the real pragmas.
         let degraded = open(
             &OpenOptions::file(&path)
