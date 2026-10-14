@@ -3,6 +3,8 @@ import argparse
 import hashlib
 import json
 import shutil
+import re
+import tomllib
 from pathlib import Path
 
 LANES = {"windows-x64", "linux-x64", "macos-x64"}
@@ -55,11 +57,18 @@ def collect(root, revision, output):
     for path, name in selected:
         shutil.copyfile(path, output / name)
     (output / "SOURCE-REVISION.txt").write_text(revision + "\n", encoding="utf-8", newline="\n")
+    repository = Path(__file__).resolve().parents[1]
+    version = tomllib.loads((repository / "Cargo.toml").read_text(encoding="utf-8"))["workspace"]["package"]["version"]
+    changelog = (repository / "Changelog.md").read_text(encoding="utf-8")
+    entries = re.findall(r"^## " + re.escape(version) + r"\s*\n(.*?)(?=^## |\Z)", changelog, re.M | re.S)
+    if len(entries) != 1:
+        raise ValueError("require exactly one release changelog entry")
+    changes = re.sub(r"^### ", "## ", entries[0].strip(), flags=re.M)
     (output / "RELEASE-NOTES.md").write_text(
-        "# Axiom core\n\nNative Windows x64, Linux x64 and Mac Intel assets verified by GitHub Actions. "
-        "Mac ARM is deferred. No certification, signing or attestation prerequisite. "
-        "Daemon and axiom share one core source/version. Host runtime claims remain separate; "
-        "MCP native adapter tests use a hermetic fixture peer. Existing update approvals and integrity checks remain.\n",
+        "# Axiom core " + version + "\n\n" + changes + "\n\n"
+        "Native Windows x64, Linux x64 and Mac Intel assets verified by GitHub Actions. "
+        "Use axge for the graph engine and axm engine for private installation operations. "
+        "Mac ARM and live AI-host verification remain outside this release's native evidence.\n",
         encoding="utf-8", newline="\n")
     (output / "SHA256SUMS").write_text("".join(sha(path) + "  " + path.name + "\n" for path in sorted(output.iterdir())), encoding="utf-8", newline="\n")
 

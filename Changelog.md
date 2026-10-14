@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.7
+
 ### Bug Fixes
 
 - Check SQLite by opening a private connection and exercising SQL. Runtime version numbers no longer block installation or WAL store opening; actual journal, schema and integrity checks remain enforced.
