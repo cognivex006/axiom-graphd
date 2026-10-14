@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### New Features
+
+- Add incremental build, instance watch and verified selected JSON/HTML export commands with measured engine-cycle diagnostics.
+
+### Bug Fixes
+
+- Publish removal of the last source symbol instead of retaining obsolete graph facts, and refuse malformed source without advancing the valid catalog.
+- Keep watching after transient source writes or malformed saves; verify inventory bytes before analysis and retry source work within a bounded cycle budget.
+- Detect source creation after an empty baseline or deletion of the last file instead of treating the next poll as a new baseline.
+- Emit repository-relative source locations for projects registered in subdirectories, so returned file ranges can be opened from the bound repository.
+
+### Known Limitations
+
+- Runtime analysis uses the declaration/containment profile; complete method callers remain unverified. Phase/queue/source-delay metrics are explicitly unavailable. This is unreleased work at version 0.1.7.
+
 ## 0.1.7
 
 ### Bug Fixes

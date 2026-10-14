@@ -40,6 +40,8 @@ pub mod serve;
 pub mod telemetry;
 pub mod update_guard;
 pub mod version;
+pub mod work_cycle;
+pub mod workflow;
 
 /// Durable local change hints consumed under the daemon writer claim.
 pub mod hint_runtime;

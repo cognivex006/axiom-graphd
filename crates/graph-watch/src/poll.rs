@@ -226,6 +226,7 @@ impl PollOutcome {
 #[derive(Debug, Clone, Default)]
 pub struct PollingWatcher {
     previous: BTreeMap<String, FileStamp>,
+    initialized: bool,
 }
 
 impl PollingWatcher {
@@ -264,7 +265,7 @@ impl PollingWatcher {
             }
         }
 
-        let first_scan = self.previous.is_empty();
+        let first_scan = !self.initialized;
         let mut hints = Vec::new();
         if !first_scan {
             for (path, stamp) in &current {
@@ -281,6 +282,7 @@ impl PollingWatcher {
             }
         }
         self.previous = current;
+        self.initialized = true;
         Ok(PollOutcome { hints, first_scan })
     }
 }
@@ -318,6 +320,29 @@ mod tests {
                         .collect(),
                 ),
             }
+        }
+    }
+
+    #[test]
+    fn empty_baseline_and_last_file_deletion_do_not_hide_later_creation() {
+        for snapshots in [
+            vec![vec![], vec![("new.cs", 10, 1)]],
+            vec![vec![("old.cs", 10, 1)], vec![], vec![("new.cs", 10, 2)]],
+        ] {
+            let count = snapshots.len();
+            let source = CannedSource::new(snapshots);
+            let mut watcher = PollingWatcher::new();
+            let root = Path::new("fixture");
+            assert!(watcher
+                .poll(&source, root)
+                .expect("initial baseline")
+                .is_first_scan());
+            for _ in 1..count - 1 {
+                watcher.poll(&source, root).expect("deletion observation");
+            }
+            let created = watcher.poll(&source, root).expect("later creation");
+            assert!(!created.is_first_scan());
+            assert_eq!(created.hints().len(), 1);
         }
     }
 

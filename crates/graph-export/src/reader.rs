@@ -187,6 +187,51 @@ pub fn load<G: LoadGuard>(root: &Path, guard: &G) -> Result<Snapshot> {
 }
 
 /// Load a generation and validate it while the guard is still held.
+/// Load an exact catalog-pinned generation without consulting a newer pointer.
+pub fn load_pinned_verified<G: LoadGuard>(
+    root: &Path,
+    generation_id: &str,
+    guard: &G,
+) -> Result<Snapshot> {
+    if !crate::manifest::is_sha256_hex(generation_id) || !guard.is_held() || !guard.is_shared() {
+        return Err(ExportError::new(
+            ERR_UNGUARDED,
+            "pinned snapshot requires a shared guard and SHA256 identity",
+        ));
+    }
+    let generation_dir = crate::staging::StagingLayout::new(root).generation_dir(generation_id);
+    let manifest = validate::read_manifest(&generation_dir)?;
+    if manifest.generation_id()? != generation_id {
+        return Err(ExportError::new(
+            crate::ERR_INTEGRITY,
+            "pinned manifest hash disagrees with catalog",
+        ));
+    }
+    let mut shards = Vec::new();
+    let mut files = Vec::new();
+    for entry in &manifest.files {
+        if !guard.is_held() {
+            return Err(ExportError::new(ERR_UNGUARDED, "snapshot guard lost"));
+        }
+        let bytes =
+            fs::read(generation_dir.join(&entry.path)).map_err(|error| ExportError::io(&error))?;
+        let records = crate::staging::count_records(&bytes)?;
+        files.push((entry.path.clone(), bytes.clone(), records));
+        shards.push(ShardBytes {
+            relative_path: entry.path.clone(),
+            bytes,
+        });
+    }
+    validate::validate_files(&files, &manifest)?;
+    Ok(Snapshot {
+        generation_id: generation_id.to_owned(),
+        manifest,
+        guarded_checks: shards.len() + 1,
+        shards,
+    })
+}
+
+/// Load a generation and validate it while the guard is still held.
 ///
 /// # Errors
 ///
@@ -238,6 +283,32 @@ mod tests {
             dependency_fingerprint: "d".repeat(64),
             coverage: Coverage::complete_for_profile(2, 2, 0),
         }
+    }
+
+    #[test]
+    fn pinned_read_ignores_a_newer_pointer_and_rejects_corrupt_member_bytes() {
+        let (dir, generation, _) = fixture();
+        let guard = ScriptedGuard {
+            held_for: 100,
+            checks: Cell::new(0),
+        };
+        pointer::replace(
+            dir.path(),
+            &CurrentPointer::new("a".repeat(64)),
+            PointerStrategy::AtomicReplace,
+        )
+        .expect("newer pointer");
+        let snapshot = load_pinned_verified(dir.path(), &generation, &guard)
+            .expect("exact earlier vector member");
+        assert_eq!(snapshot.generation_id(), generation);
+        let shard = dir
+            .path()
+            .join("generations")
+            .join(&generation)
+            .join("nodes/000000.json");
+        fs::write(shard, b"[]\n").expect("corrupt fixture member");
+        assert!(load_pinned_verified(dir.path(), &generation, &guard).is_err());
+        assert!(load_pinned_verified(dir.path(), "../escape", &guard).is_err());
     }
 
     fn fixture() -> (tempfile::TempDir, String, usize) {

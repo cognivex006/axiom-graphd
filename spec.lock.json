@@ -1,12 +1,12 @@
 {
   "spec_version": "2.0.0-draft.1",
   "spec_repository": "axiom-specs",
-  "spec_revision": "73aec1d1ed190bcd7066574853340fe15102ebbe",
-  "spec_content_sha256": "20a404c027213648c75261c387b0b4fd575611c916d92e44f54c28dc4fbb2abe",
+  "spec_revision": "10b5e190695c75058fb176f35425ad01d840a4e8",
+  "spec_content_sha256": "506e84d4cc5893a420705ed6a9590fdff114d516125cbd654903ed05ce5e4a8b",
   "owner_repository": "axiom-graphd",
   "workspace_layout": 2,
   "graph_payload_schema": 1,
-  "verification": "Verified immutable accepted runtime readiness and command contracts from committed Git bytes.",
+  "verification": "Verified immutable owner-approved draft workflow contract from committed feature bytes. No release compatibility or 0.1.8 publication claim.",
   "contract_digests": {
     "Development.md": "e82c268677b6574928819bfc5753eb881fb175e9adf6e9652af94ee44f5264bb",
     "adrs/ADR-0015.md": "22699c8518263fb5f21c7a9cda48b27da2229b19bf6c336d7dec72a980139716",
@@ -37,7 +37,12 @@
     "specs/v2/K-release-readiness.md": "a5c94280d0f6be8403c6bd000d6534e16b9f86d4f2e3d8dd78128e8c2d517d44",
     "tasks/K/K-310.md": "04383daf249200f4a851aec4790318ff9b01d8b7258563b6954386f417222f81",
     "tasks/K/scope-map.json": "5690a2f5b8b5d95f68120ab97e165826e3c734758e08c9d0e8efeb4f7c071fc7",
-    "tasks/tasks.json": "37cf96a138ab604e65dfb2505cbe1585639a2bababe24bc857ded395e26e65c7",
-    "tools/specctl.py": "1aa9a09021d3d5f070f29de86d5410b89cfeccd938ef15e44ddc828fe8ebca1d"
+    "tasks/tasks.json": "4a2a22816a16b62c92be690bbf07a096e351cd56123e9a22050505f9bf9dd9ec",
+    "tools/specctl.py": "1aa9a09021d3d5f070f29de86d5410b89cfeccd938ef15e44ddc828fe8ebca1d",
+    "adrs/ADR-0040.md": "f1f9c155e4a0bc266776435cfa24e4731d31bb4c80b10ed71bf2b26aabc8fe15",
+    "contracts/graph-workflows.md": "04cb6040f2d1022e600b9ba107d40df8ca2e324307620b60ffc0440f6a6b8470",
+    "contracts/graph-workflows.json": "053fdd613bfa510af6de57f8982540ac60b65951d7b0371552017db1e4f08704",
+    "contracts/schemas/work-cycle.schema.json": "533d0f5629e1ee68d8f9d7df11008af7d5d86263322fc47c5aa255e267eba340",
+    "contracts/schemas/graph-export.schema.json": "9ecf88549f892104bf9f4527bef7a857e5a3dd292b42eebb84f4df1bc3a53ec7"
   }
 }

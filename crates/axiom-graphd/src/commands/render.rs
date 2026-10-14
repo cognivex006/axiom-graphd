@@ -1748,6 +1748,77 @@ svg.chart{border:1px solid #cccccc;background:#fcfcfc;width:100%;height:auto;}
 /// dashes and the placeholder shape, and the inventory counts. Nothing in it
 /// depends on the host, on a clock or on map iteration order, so rendering the
 /// same summary twice is byte identical.
+/// Keep a selected induced projection and regenerate HTML from that exact summary.
+pub fn select_nodes(diagram: &mut Diagram, selected: &BTreeSet<String>) {
+    let summary = &mut diagram.summary;
+    summary.nodes.retain(|node| selected.contains(&node.id));
+    summary
+        .edges
+        .retain(|edge| selected.contains(&edge.source_id) && selected.contains(&edge.target));
+    summary
+        .unresolved_targets
+        .retain(|id| selected.contains(id));
+    summary.counts.nodes = summary.nodes.len();
+    summary.counts.edges = summary.edges.len();
+    summary.counts.placeholders = summary.nodes.iter().filter(|n| n.placeholder).count();
+    summary.counts.placeholder_edges = summary
+        .edges
+        .iter()
+        .filter(|e| e.target_kind == "placeholder")
+        .count();
+    summary.counts.absent_targets = 0;
+    summary.counts.node_kinds = summary
+        .nodes
+        .iter()
+        .map(|n| &n.kind)
+        .collect::<BTreeSet<_>>()
+        .len();
+    summary.counts.edge_kinds = summary
+        .edges
+        .iter()
+        .map(|e| &e.kind)
+        .collect::<BTreeSet<_>>()
+        .len();
+    summary.counts.resolutions = summary
+        .edges
+        .iter()
+        .map(|e| &e.resolution)
+        .collect::<BTreeSet<_>>()
+        .len();
+    summary.banner.notice.push_str(" Filtered node selection; coverage describes the source profile, not this selection's completeness.");
+    diagram.result_html = render_html(summary);
+}
+
+/// Apply an exact edge filter while retaining the already selected node scope.
+pub fn select_edges(diagram: &mut Diagram, selected: &BTreeSet<String>) {
+    diagram
+        .summary
+        .edges
+        .retain(|edge| selected.contains(&edge.id));
+    diagram.summary.counts.edges = diagram.summary.edges.len();
+    diagram.summary.counts.placeholder_edges = diagram
+        .summary
+        .edges
+        .iter()
+        .filter(|e| e.target_kind == "placeholder")
+        .count();
+    diagram.summary.counts.edge_kinds = diagram
+        .summary
+        .edges
+        .iter()
+        .map(|e| &e.kind)
+        .collect::<BTreeSet<_>>()
+        .len();
+    diagram.summary.counts.resolutions = diagram
+        .summary
+        .edges
+        .iter()
+        .map(|e| &e.resolution)
+        .collect::<BTreeSet<_>>()
+        .len();
+    diagram.result_html = render_html(&diagram.summary);
+}
+
 fn render_html(summary: &DiagramSummary) -> String {
     let mut html = String::new();
     html.push_str("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n");

@@ -22,6 +22,9 @@ rejects or cannot complete it.
 <!-- BEGIN COMMAND STATUS -->
 | Command | State | Evidence |
 | ------- | ----- | -------- |
+| build | available | Incremental selected build; --full explicitly invalidates source facts. |
+| watch | available | Instance-wide serve loop with measured work_cycle stderr events. |
+| export | available | Verified pinned catalog vector, selected projects/nodes, JSON default and optional HTML, new destination only. |
 | help | available | Accepted positional; also `--help` and `-h`. |
 | version | available | Accepted positional; also `--version` and `-V`. |
 | doctor | available | `doctor [--solution <id>]` executes against the open store and prints a diagnostic report. |
@@ -478,6 +481,10 @@ axge render --solution <id> [--project <id>]... --out <dir>
 
 ## 13. `update`
 
+- Arguments: `update check` or `update apply --plan <plan.json> [--approve-digest <sha256>]`, with optional `--json`.
+- Exit code: delegated success is 0; invalid arguments are 2; delegated failures retain their typed exit status.
+- Failure recovery: inspect the installed `axm` orchestrator and the exact plan; do not bypass stale-plan or rollback safeguards.
+
 The persistent daemon's `axge update check` remains a status check. The
 local installation transaction is provided by the trusted `axiom` CLI:
 
@@ -564,3 +571,25 @@ section 1 stays `proposed` for this binary.
 - [install-windows](../guides/install-windows.md),
   [install-linux](../guides/install-linux.md),
   [install-macos](../guides/install-macos.md) - platform runbooks.
+
+## 17. `build`
+
+- Arguments: `build --solution <id> [--project <id>] [--full] [--json]`.
+- Exit code: 0 for completed work, 2 for invalid arguments/malformed source, and the typed writer/prerequisite error otherwise.
+- Behaviour: existing inventory and writer pipeline; unchanged source is a no-op. Full invalidation is explicit. A running writer is refused, never replaced.
+
+## 18. `watch`
+
+- Arguments: `watch [--registry <path>] [--json]`; no project/solution isolation flag.
+- Exit code: 0 after cooperative drain; typed writer/config/source failure otherwise.
+- Behaviour: instance-wide polling through the existing serve loop. Changed-source work cycles emit measured stderr records; idle scans are not change events. Stop only owned foreground work.
+
+## 19. `export`
+
+- Arguments: `export --solution <id> [--project <id>]... [--node-id <id>]... --out <new-dir> [--format json|html] [--json]`.
+- Exit code: 0 for completed artifacts, 2 for selection/validation/overwrite refusal, and a typed missing/corrupt snapshot or I/O failure otherwise.
+- Failure recovery: preserve existing outputs and source. Inspect exact pinned-generation integrity; do not rebuild implicitly or rewrite graph data. A failed new artifact write is not success.
+
+See [workflow commands](../workflow-commands.md) for selected exports, timing and compatibility. These commands are implemented on the feature branch; no release/publication is implied.
+
+Use --edge-id <id>, --exact-projection and --catalog-generation <sha256> to retain an observed edge set and conversation snapshot. An empty exact edge set stays empty; unavailable retained generations are refused. Default node selections remain induced projections.

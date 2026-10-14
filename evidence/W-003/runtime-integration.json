@@ -1,0 +1,646 @@
+{
+  "scope": "native-source-build-integration",
+  "platform": "Windows",
+  "machine": "AMD64",
+  "engine_sha256": "34c552480e059a8bbcfae8c0962c7ab27a9eb285d19cda279bce3e4662d9138d",
+  "build": {
+    "schema_version": 1,
+    "cycle_id": "19920-2026-10-14T10:13:11Z-2",
+    "operation": "build",
+    "status": "success",
+    "started_at": "2026-10-14T10:13:11Z",
+    "finished_at": "2026-10-14T10:13:11Z",
+    "processing_ms": 135,
+    "scan_ms": null,
+    "analyze_ms": null,
+    "validate_ms": null,
+    "publish_ms": null,
+    "queue_wait_ms": null,
+    "change_observed_to_publish_ms": null,
+    "unavailable_reason": "Phase, queue and source observation clocks are not instrumented; failure counts are unknown",
+    "files_changed": 2,
+    "files_analyzed": 2,
+    "nodes": 7,
+    "edges": 5,
+    "generation_before": {
+      "workflow/app": null
+    },
+    "generation_after": {
+      "workflow/app": "ca65f18879c8aa946833e69dda5a283f1b3ae0c262c0d0a3c44bb3751eb47c66"
+    }
+  },
+  "noop": {
+    "schema_version": 1,
+    "cycle_id": "10088-2026-10-14T10:13:11Z-2",
+    "operation": "build",
+    "status": "success",
+    "started_at": "2026-10-14T10:13:11Z",
+    "finished_at": "2026-10-14T10:13:11Z",
+    "processing_ms": 24,
+    "scan_ms": null,
+    "analyze_ms": null,
+    "validate_ms": null,
+    "publish_ms": null,
+    "queue_wait_ms": null,
+    "change_observed_to_publish_ms": null,
+    "unavailable_reason": "Phase, queue and source observation clocks are not instrumented; failure counts are unknown",
+    "files_changed": 0,
+    "files_analyzed": 0,
+    "nodes": 7,
+    "edges": 5,
+    "generation_before": {
+      "workflow/app": "ca65f18879c8aa946833e69dda5a283f1b3ae0c262c0d0a3c44bb3751eb47c66"
+    },
+    "generation_after": {
+      "workflow/app": "ca65f18879c8aa946833e69dda5a283f1b3ae0c262c0d0a3c44bb3751eb47c66"
+    }
+  },
+  "full": {
+    "schema_version": 1,
+    "cycle_id": "25528-2026-10-14T10:13:11Z-2",
+    "operation": "build",
+    "status": "success",
+    "started_at": "2026-10-14T10:13:11Z",
+    "finished_at": "2026-10-14T10:13:11Z",
+    "processing_ms": 143,
+    "scan_ms": null,
+    "analyze_ms": null,
+    "validate_ms": null,
+    "publish_ms": null,
+    "queue_wait_ms": null,
+    "change_observed_to_publish_ms": null,
+    "unavailable_reason": "Phase, queue and source observation clocks are not instrumented; failure counts are unknown",
+    "files_changed": 0,
+    "files_analyzed": 2,
+    "nodes": 7,
+    "edges": 5,
+    "generation_before": {
+      "workflow/app": "ca65f18879c8aa946833e69dda5a283f1b3ae0c262c0d0a3c44bb3751eb47c66"
+    },
+    "generation_after": {
+      "workflow/app": "ca65f18879c8aa946833e69dda5a283f1b3ae0c262c0d0a3c44bb3751eb47c66"
+    }
+  },
+  "mcp": {
+    "transport": "real-sdk-stdio",
+    "discovered_tools": [
+      "graph_job",
+      "graph_query",
+      "graph_reconcile",
+      "graph_status",
+      "graph_verify",
+      "graph_version"
+    ],
+    "candidate_count": 2,
+    "catalog_generation_id": "71836fb1007cddf40afd27b671261fe0502513c23385a17277cfeb64e2d3dc02",
+    "project_generations": [
+      {
+        "project_id": "app",
+        "generation_id": "ca65f18879c8aa946833e69dda5a283f1b3ae0c262c0d0a3c44bb3751eb47c66"
+      }
+    ],
+    "resolved_target": "ff7897ec6994082e5d1f34034d21bb6f15b5ed9401d05d0829d25e09da818491",
+    "removal_target": "790820dfcb4aa8b84fb4b5d33f1eb655870ba65313047df4d7b20e7b97edaaac",
+    "source_ranges_returned": true,
+    "source_ranges_validated_against_repository": true,
+    "read_only_escalation_refused": true,
+    "status_observed": true,
+    "impact_nodes": 0,
+    "empty_impact_is_safe_to_delete": false,
+    "trace": [
+      {
+        "tool": "graph_status",
+        "arguments": {
+          "solution_id": "workflow"
+        },
+        "is_error": false,
+        "nodes": 0,
+        "generation": "71836fb1007cddf40afd27b671261fe0502513c23385a17277cfeb64e2d3dc02",
+        "error": null
+      },
+      {
+        "tool": "graph_query",
+        "arguments": {
+          "solution_id": "workflow",
+          "operation": "search",
+          "query": "PingPong",
+          "max_nodes": 20,
+          "max_bytes": 8192,
+          "consistency": "allow_stale"
+        },
+        "is_error": false,
+        "nodes": 2,
+        "generation": "71836fb1007cddf40afd27b671261fe0502513c23385a17277cfeb64e2d3dc02",
+        "error": null
+      },
+      {
+        "tool": "graph_query",
+        "arguments": {
+          "solution_id": "workflow",
+          "operation": "context",
+          "target": "ff7897ec6994082e5d1f34034d21bb6f15b5ed9401d05d0829d25e09da818491",
+          "projection": [
+            "identity",
+            "relations",
+            "source_locations",
+            "coverage"
+          ],
+          "depth": 1,
+          "max_nodes": 20,
+          "max_edges": 40,
+          "max_bytes": 8192,
+          "consistency": "allow_stale"
+        },
+        "is_error": false,
+        "nodes": 2,
+        "generation": "71836fb1007cddf40afd27b671261fe0502513c23385a17277cfeb64e2d3dc02",
+        "error": null
+      },
+      {
+        "tool": "graph_query",
+        "arguments": {
+          "solution_id": "workflow",
+          "operation": "search",
+          "query": "RemoveFilesAsync",
+          "max_nodes": 20,
+          "max_bytes": 8192,
+          "consistency": "allow_stale"
+        },
+        "is_error": false,
+        "nodes": 1,
+        "generation": "71836fb1007cddf40afd27b671261fe0502513c23385a17277cfeb64e2d3dc02",
+        "error": null
+      },
+      {
+        "tool": "graph_query",
+        "arguments": {
+          "solution_id": "workflow",
+          "operation": "impact",
+          "target": "790820dfcb4aa8b84fb4b5d33f1eb655870ba65313047df4d7b20e7b97edaaac",
+          "projection": [
+            "identity",
+            "relations",
+            "source_locations",
+            "coverage"
+          ],
+          "depth": 1,
+          "max_nodes": 20,
+          "max_edges": 40,
+          "max_bytes": 8192,
+          "consistency": "allow_stale"
+        },
+        "is_error": false,
+        "nodes": 0,
+        "generation": "71836fb1007cddf40afd27b671261fe0502513c23385a17277cfeb64e2d3dc02",
+        "error": null
+      },
+      {
+        "tool": "graph_query",
+        "arguments": {
+          "solution_id": "workflow",
+          "operation": "search",
+          "query": "PingPong",
+          "consistency": "require_fresh"
+        },
+        "is_error": true,
+        "nodes": 0,
+        "generation": null,
+        "error": "FORBIDDEN"
+      },
+      {
+        "tool": "graph_job",
+        "arguments": {
+          "job_id": "fixture-job"
+        },
+        "is_error": true,
+        "nodes": 0,
+        "generation": null,
+        "error": "DAEMON_UNAVAILABLE"
+      }
+    ]
+  },
+  "denied_mcp": {
+    "discovered_without_read_auth": true,
+    "auth_refused": true,
+    "trace": [
+      {
+        "tool": "graph_status",
+        "arguments": {
+          "solution_id": "workflow"
+        },
+        "is_error": true,
+        "nodes": 0,
+        "generation": null,
+        "error": "UNAUTHENTICATED"
+      }
+    ]
+  },
+  "selected_export": {
+    "artifacts": [
+      {
+        "bytes": 2932,
+        "name": "graph.json",
+        "sha256": "d063c09d366cf3b5476fad08df955cf323705ba1d2999d9398051b4a5765aa63"
+      }
+    ],
+    "catalog_generation_id": "7440442335d367253ae1a0f5319d28edb8b9f6a367cca11f32d73c9af5d9c9b4",
+    "completeness": "filtered_projection",
+    "format": "json",
+    "generation_vector": {
+      "app": "ca65f18879c8aa946833e69dda5a283f1b3ae0c262c0d0a3c44bb3751eb47c66"
+    },
+    "schema_version": 1,
+    "solution_id": "workflow"
+  },
+  "failed_cycles": [
+    {
+      "analyze_ms": null,
+      "change_observed_to_publish_ms": null,
+      "cycle_id": "35472-2026-10-14T10:13:21Z-2",
+      "edges": null,
+      "files_analyzed": null,
+      "files_changed": null,
+      "finished_at": "2026-10-14T10:13:21Z",
+      "generation_after": {},
+      "generation_before": {},
+      "nodes": null,
+      "operation": "build",
+      "processing_ms": 28,
+      "publish_ms": null,
+      "queue_wait_ms": null,
+      "scan_ms": null,
+      "schema_version": 1,
+      "started_at": "2026-10-14T10:13:21Z",
+      "status": "failed",
+      "unavailable_reason": "Phase, queue and source observation clocks are not instrumented; failure counts are unknown",
+      "validate_ms": null
+    }
+  ],
+  "unsupported_cycle": {
+    "schema_version": 1,
+    "cycle_id": "31212-2026-10-14T10:13:21Z-2",
+    "operation": "build",
+    "status": "partial",
+    "started_at": "2026-10-14T10:13:21Z",
+    "finished_at": "2026-10-14T10:13:22Z",
+    "processing_ms": 142,
+    "scan_ms": null,
+    "analyze_ms": null,
+    "validate_ms": null,
+    "publish_ms": null,
+    "queue_wait_ms": null,
+    "change_observed_to_publish_ms": null,
+    "unavailable_reason": "Phase, queue and source observation clocks are not instrumented; failure counts are unknown",
+    "files_changed": 2,
+    "files_analyzed": 0,
+    "nodes": 0,
+    "edges": 0,
+    "generation_before": {
+      "workflow/app": "cf57197847ba04dae1756734a731c1ee4b484805e75f6a2ea14f7f7d817000fe"
+    },
+    "generation_after": {
+      "workflow/app": "4e21b363329f67bb7307164bfad70df1f4e2a87e90b7ce9c8d8ff1981b801d62"
+    }
+  },
+  "watch_changes": [
+    {
+      "operation": "save",
+      "before": "7440442335d367253ae1a0f5319d28edb8b9f6a367cca11f32d73c9af5d9c9b4",
+      "after": "8442759fd0f7e39d89a48ee081d7ebc52f61a5b85ffdd8a5fa5816ecbcac5d86",
+      "client_observed_seconds": 0.7655802000081167,
+      "export_catalog": "8442759fd0f7e39d89a48ee081d7ebc52f61a5b85ffdd8a5fa5816ecbcac5d86"
+    },
+    {
+      "operation": "rename",
+      "before": "8442759fd0f7e39d89a48ee081d7ebc52f61a5b85ffdd8a5fa5816ecbcac5d86",
+      "after": "9dcfe972c31bb830b62dc113592b11e2b96e622aa62ebdc37de2084832f9ba39",
+      "client_observed_seconds": 1.047872399969492,
+      "export_catalog": "9dcfe972c31bb830b62dc113592b11e2b96e622aa62ebdc37de2084832f9ba39"
+    },
+    {
+      "operation": "delete",
+      "before": "9dcfe972c31bb830b62dc113592b11e2b96e622aa62ebdc37de2084832f9ba39",
+      "after": "dabebff43cc9ee0d8d4b18bfec758b5529bf4629320e5f32c7a90afca8c26805",
+      "client_observed_seconds": 0.9569607999874279,
+      "export_catalog": "dabebff43cc9ee0d8d4b18bfec758b5529bf4629320e5f32c7a90afca8c26805"
+    },
+    {
+      "operation": "delete_last",
+      "before": "dabebff43cc9ee0d8d4b18bfec758b5529bf4629320e5f32c7a90afca8c26805",
+      "after": "fa20ff169601f867a275cde1728a154f4bf9c96152a461fe7dc2828f14603402",
+      "client_observed_seconds": 0.9540771000320092,
+      "export_catalog": "fa20ff169601f867a275cde1728a154f4bf9c96152a461fe7dc2828f14603402"
+    },
+    {
+      "operation": "malformed_save_recovery",
+      "before": "fa20ff169601f867a275cde1728a154f4bf9c96152a461fe7dc2828f14603402",
+      "after": "bfbd3434eaa364daa244776ccc1c041435df332c7311349077d143c091ff4c66",
+      "writer_preserved": true
+    }
+  ],
+  "watch_cycles": [
+    {
+      "analyze_ms": null,
+      "change_observed_to_publish_ms": null,
+      "cycle_id": "19348-2026-10-14T10:13:15Z-2",
+      "edges": 6,
+      "files_analyzed": 1,
+      "files_changed": 1,
+      "finished_at": "2026-10-14T10:13:16Z",
+      "generation_after": {
+        "workflow/app": "99f7772bae71b856a8d540426acff8c98a697a3bd99fe483b25e17c75a4cedeb"
+      },
+      "generation_before": {
+        "workflow/app": "ca65f18879c8aa946833e69dda5a283f1b3ae0c262c0d0a3c44bb3751eb47c66"
+      },
+      "nodes": 8,
+      "operation": "watch",
+      "processing_ms": 153,
+      "publish_ms": null,
+      "queue_wait_ms": null,
+      "scan_ms": null,
+      "schema_version": 1,
+      "started_at": "2026-10-14T10:13:15Z",
+      "status": "success",
+      "unavailable_reason": "Phase, queue and source observation clocks are not instrumented; failure counts are unknown",
+      "validate_ms": null
+    },
+    {
+      "analyze_ms": null,
+      "change_observed_to_publish_ms": null,
+      "cycle_id": "19348-2026-10-14T10:13:16Z-3",
+      "edges": 6,
+      "files_analyzed": 1,
+      "files_changed": 2,
+      "finished_at": "2026-10-14T10:13:16Z",
+      "generation_after": {
+        "workflow/app": "b7f875efcdc6eeeb2cb44504c2fb204c63a915c980bbd1223184c88aa7aca7ea"
+      },
+      "generation_before": {
+        "workflow/app": "99f7772bae71b856a8d540426acff8c98a697a3bd99fe483b25e17c75a4cedeb"
+      },
+      "nodes": 8,
+      "operation": "watch",
+      "processing_ms": 139,
+      "publish_ms": null,
+      "queue_wait_ms": null,
+      "scan_ms": null,
+      "schema_version": 1,
+      "started_at": "2026-10-14T10:13:16Z",
+      "status": "success",
+      "unavailable_reason": "Phase, queue and source observation clocks are not instrumented; failure counts are unknown",
+      "validate_ms": null
+    },
+    {
+      "analyze_ms": null,
+      "change_observed_to_publish_ms": null,
+      "cycle_id": "19348-2026-10-14T10:13:17Z-4",
+      "edges": 2,
+      "files_analyzed": 0,
+      "files_changed": 1,
+      "finished_at": "2026-10-14T10:13:18Z",
+      "generation_after": {
+        "workflow/app": "8fe7c90364bc88764e49064e61158b39a13abbb543484779dfaa9ad5c8fa9803"
+      },
+      "generation_before": {
+        "workflow/app": "b7f875efcdc6eeeb2cb44504c2fb204c63a915c980bbd1223184c88aa7aca7ea"
+      },
+      "nodes": 3,
+      "operation": "watch",
+      "processing_ms": 273,
+      "publish_ms": null,
+      "queue_wait_ms": null,
+      "scan_ms": null,
+      "schema_version": 1,
+      "started_at": "2026-10-14T10:13:17Z",
+      "status": "success",
+      "unavailable_reason": "Phase, queue and source observation clocks are not instrumented; failure counts are unknown",
+      "validate_ms": null
+    },
+    {
+      "analyze_ms": null,
+      "change_observed_to_publish_ms": null,
+      "cycle_id": "19348-2026-10-14T10:13:18Z-5",
+      "edges": 0,
+      "files_analyzed": 0,
+      "files_changed": 1,
+      "finished_at": "2026-10-14T10:13:19Z",
+      "generation_after": {
+        "workflow/app": "e226a33e66d6015a34ac5f06bbc0e8c3504399a3a004a1d8a0d9b740d54696a5"
+      },
+      "generation_before": {
+        "workflow/app": "8fe7c90364bc88764e49064e61158b39a13abbb543484779dfaa9ad5c8fa9803"
+      },
+      "nodes": 0,
+      "operation": "watch",
+      "processing_ms": 237,
+      "publish_ms": null,
+      "queue_wait_ms": null,
+      "scan_ms": null,
+      "schema_version": 1,
+      "started_at": "2026-10-14T10:13:18Z",
+      "status": "success",
+      "unavailable_reason": "Phase, queue and source observation clocks are not instrumented; failure counts are unknown",
+      "validate_ms": null
+    },
+    {
+      "analyze_ms": null,
+      "change_observed_to_publish_ms": null,
+      "cycle_id": "19348-2026-10-14T10:13:19Z-6",
+      "edges": null,
+      "files_analyzed": null,
+      "files_changed": null,
+      "finished_at": "2026-10-14T10:13:19Z",
+      "generation_after": {},
+      "generation_before": {},
+      "nodes": null,
+      "operation": "watch",
+      "processing_ms": 38,
+      "publish_ms": null,
+      "queue_wait_ms": null,
+      "scan_ms": null,
+      "schema_version": 1,
+      "started_at": "2026-10-14T10:13:19Z",
+      "status": "failed",
+      "unavailable_reason": "Phase, queue and source observation clocks are not instrumented; failure counts are unknown",
+      "validate_ms": null
+    },
+    {
+      "analyze_ms": null,
+      "change_observed_to_publish_ms": null,
+      "cycle_id": "19348-2026-10-14T10:13:20Z-7",
+      "edges": 1,
+      "files_analyzed": 1,
+      "files_changed": 1,
+      "finished_at": "2026-10-14T10:13:20Z",
+      "generation_after": {
+        "workflow/app": "cf57197847ba04dae1756734a731c1ee4b484805e75f6a2ea14f7f7d817000fe"
+      },
+      "generation_before": {
+        "workflow/app": "e226a33e66d6015a34ac5f06bbc0e8c3504399a3a004a1d8a0d9b740d54696a5"
+      },
+      "nodes": 2,
+      "operation": "watch",
+      "processing_ms": 249,
+      "publish_ms": null,
+      "queue_wait_ms": null,
+      "scan_ms": null,
+      "schema_version": 1,
+      "started_at": "2026-10-14T10:13:20Z",
+      "status": "success",
+      "unavailable_reason": "Phase, queue and source observation clocks are not instrumented; failure counts are unknown",
+      "validate_ms": null
+    }
+  ],
+  "manual_reconcile_after_change": false,
+  "require_fresh_during_watch": false,
+  "writer_collision_refused": true,
+  "source_impact_preserved": true,
+  "human_file_preserved": true,
+  "malformed_source_refused": true,
+  "watcher_recovers_after_malformed_save": true,
+  "unsupported_language_partial": true,
+  "native_host_selection": "separate_evaluation",
+  "calls": [
+    {
+      "argv": [
+        "solution",
+        "register",
+        "--config",
+        "<fixture-input>",
+        "--bindings",
+        "<fixture-input>",
+        "--dry-run"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "solution",
+        "register",
+        "--config",
+        "<fixture-input>",
+        "--bindings",
+        "<fixture-input>",
+        "--apply"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "build",
+        "--solution",
+        "workflow"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "build",
+        "--solution",
+        "workflow"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "build",
+        "--solution",
+        "workflow",
+        "--full"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "export",
+        "--solution",
+        "workflow",
+        "--project",
+        "app",
+        "--node-id",
+        "ff7897ec6994082e5d1f34034d21bb6f15b5ed9401d05d0829d25e09da818491",
+        "--exact-projection",
+        "--project-generation",
+        "app=ca65f18879c8aa946833e69dda5a283f1b3ae0c262c0d0a3c44bb3751eb47c66",
+        "--out",
+        "<fixture-input>"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "export",
+        "--solution",
+        "workflow",
+        "--out",
+        "<fixture-input>"
+      ],
+      "exit_code": 2
+    },
+    {
+      "argv": [
+        "build",
+        "--solution",
+        "workflow"
+      ],
+      "exit_code": 10
+    },
+    {
+      "argv": [
+        "export",
+        "--solution",
+        "workflow",
+        "--out",
+        "<fixture-input>"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "export",
+        "--solution",
+        "workflow",
+        "--out",
+        "<fixture-input>"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "export",
+        "--solution",
+        "workflow",
+        "--out",
+        "<fixture-input>"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "export",
+        "--solution",
+        "workflow",
+        "--out",
+        "<fixture-input>"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "build",
+        "--solution",
+        "workflow"
+      ],
+      "exit_code": 2
+    },
+    {
+      "argv": [
+        "build",
+        "--solution",
+        "workflow"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

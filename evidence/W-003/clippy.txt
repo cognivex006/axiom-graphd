@@ -1,0 +1,4 @@
+    Checking axiom-graphd v0.1.7 (<owner-repo>\crates\axiom-graphd)
+    Checking axiom v0.1.7 (<owner-repo>\crates\axiom)
+    Checking axiom-cli v0.1.7 (<owner-repo>\crates\axiom-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 11.36s

@@ -20,3 +20,5 @@ Platform install runbooks and the command reference:
 - [axiom-graphd command reference](reference/axiom-graphd.md)
 
 Shared storage/wire/layout contracts are canonical in axiom-specs. Do not create a local editable copy of them. A published site can aggregate documentation from immutable revisions without an extra repository.
+
+- [Workflow commands](workflow-commands.md) — unreleased build/watch/export and measured cycles.

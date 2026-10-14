@@ -1,0 +1,13 @@
+{
+  "tool_versions": {
+    "python": "Python 3.13.14",
+    "cargo": "cargo 1.85.0 (d73d2caf9 2024-12-31)",
+    "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+    "codex": "codex-cli 0.162.1"
+  },
+  "spec_revision": "10b5e190695c75058fb176f35425ad01d840a4e8",
+  "committed_contract_digests_verified": true,
+  "contract_count": 36,
+  "release_authorized": false,
+  "main_integration_authorized": false
+}

@@ -109,6 +109,16 @@ impl std::fmt::Debug for Telemetry {
 }
 
 impl Telemetry {
+    /// Emit every work event without suppressing distinct completed cycles.
+    /// The typed record contains logical scope only; stdout remains untouched.
+    pub fn work_cycle(&mut self, cycle: &crate::work_cycle::WorkCycle) -> std::io::Result<()> {
+        writeln!(
+            self.writer,
+            "{}",
+            serde_json::json!({"level":"info", "target":"work_cycle", "cycle":cycle})
+        )?;
+        self.writer.flush()
+    }
     /// A sink writing to an arbitrary writer.
     pub fn new(
         writer: Box<dyn Write + Send>,

@@ -138,6 +138,9 @@ pub const OPERATOR_SLICES: &[OperatorSlice] = &[
 pub const ACCEPTED_VERBS: &[&str] = &[
     "help",
     "version",
+    "build",
+    "watch",
+    "export",
     "serve",
     "doctor",
     "status",
@@ -175,6 +178,9 @@ axge - Axiom Graph Engine
 Usage: axge <command> [options]
 
 Commands:
+  build --solution <id> [--project <id>] [--full] [--json]  refresh selected source; --full explicitly rebuilds
+  watch [--registry <path>] [--json]   foreground instance watcher; work_cycle events on stderr
+  export --solution <id> [--project <id>]... [--node-id <id>]... [--edge-id <id>]... [--exact-projection] [--catalog-generation <sha256>] [--project-generation <id=sha256>]... --out <new-dir> [--format json|html] [--json]
   serve [--registry <path>] [--json]   run the foreground daemon
   version [--json]                     print component, build and runtime versions
   doctor [--solution <id>] [--json]    print diagnostics (never repairs automatically)
@@ -418,6 +424,16 @@ pub enum UpdateCommand {
 /// A parsed command.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Command {
+    /// Incremental graph build, with explicit full invalidation.
+    Build {
+        solution: String,
+        project: Option<String>,
+        full: bool,
+    },
+    /// Instance-wide foreground watcher, reusing serve.
+    Watch { registry: Option<PathBuf> },
+    /// Verified selected published graph serialization.
+    Export(crate::workflow::ExportCommand),
     /// Run the foreground daemon.
     Serve {
         /// Explicit `--registry <path>` value.
@@ -487,6 +503,8 @@ impl Invocation {
 
 /// Value-less switches accepted anywhere on the command line.
 const FLAGS: &[&str] = &[
+    "--exact-projection",
+    "--full",
     "--json",
     "--help",
     "-h",
@@ -502,6 +520,10 @@ const FLAGS: &[&str] = &[
 /// An option outside this table is rejected as an unrecognised flag instead of
 /// being silently ignored, which is the section 1 contract.
 const KNOWN_OPTIONS: &[&str] = &[
+    "--project-generation",
+    "--edge-id",
+    "--catalog-generation",
+    "--format",
     "--registry",
     "--solution",
     "--project",
@@ -753,6 +775,93 @@ fn parse_verb(verb: &str, tokens: &mut Tokens) -> Result<Command, AxiomError> {
         "version" => {
             tokens.finish("the version command")?;
             Ok(Command::Version)
+        }
+        "watch" => {
+            let registry = tokens.take("--registry").map(PathBuf::from);
+            tokens.finish("the instance watch command")?;
+            Ok(Command::Watch { registry })
+        }
+        "build" => {
+            let solution = tokens.required("--solution", "build")?;
+            validate_identifier(&solution, "--solution", "build")?;
+            let project = tokens.take("--project");
+            if let Some(id) = &project {
+                validate_identifier(id, "--project", "build")?;
+            }
+            let full = tokens.flag("--full");
+            tokens.finish("build")?;
+            Ok(Command::Build {
+                solution,
+                project,
+                full,
+            })
+        }
+        "export" => {
+            let solution = tokens.required("--solution", "export")?;
+            validate_identifier(&solution, "--solution", "export")?;
+            let projects = tokens.take_all("--project");
+            for id in &projects {
+                validate_identifier(id, "--project", "export")?;
+            }
+            let nodes = tokens.take_all("--node-id");
+            for id in &nodes {
+                validate_identifier(id, "--node-id", "export")?;
+            }
+            let edges = tokens.take_all("--edge-id");
+            for id in &edges {
+                validate_identifier(id, "--edge-id", "export")?;
+            }
+            let exact_projection = tokens.flag("--exact-projection");
+            let catalog_generation = tokens.take("--catalog-generation");
+            if let Some(id) = &catalog_generation {
+                validate_digest(id, "export catalog generation")?;
+            }
+            let mut project_generations = std::collections::BTreeMap::new();
+            for entry in tokens.take_all("--project-generation") {
+                let (project, generation) = entry.split_once('=').ok_or_else(|| {
+                    AxiomError::new(
+                        ErrorCode::ValidationError,
+                        "project generation must be project-id=sha256",
+                    )
+                })?;
+                validate_identifier(project, "--project-generation", "export")?;
+                validate_digest(generation, "export project generation")?;
+                if project_generations
+                    .insert(project.to_owned(), generation.to_owned())
+                    .is_some()
+                {
+                    return Err(AxiomError::new(
+                        ErrorCode::ValidationError,
+                        "duplicate project generation selection",
+                    ));
+                }
+            }
+            let out = PathBuf::from(tokens.required("--out", "export")?);
+            if out.as_os_str().is_empty() {
+                return Err(AxiomError::new(
+                    ErrorCode::ValidationError,
+                    "export needs a new output directory",
+                ));
+            }
+            let format = tokens.take("--format").unwrap_or_else(|| "json".to_owned());
+            if !matches!(format.as_str(), "json" | "html") {
+                return Err(AxiomError::new(
+                    ErrorCode::ValidationError,
+                    "export format must be json or html",
+                ));
+            }
+            tokens.finish("export")?;
+            Ok(Command::Export(crate::workflow::ExportCommand {
+                solution,
+                projects,
+                nodes,
+                edges,
+                exact_projection,
+                catalog_generation,
+                project_generations,
+                out,
+                format,
+            }))
         }
         "serve" => {
             let registry = tokens.take("--registry").map(PathBuf::from);
@@ -1571,6 +1680,20 @@ fn render_command(command: &RenderCommand) -> Result<String, AxiomError> {
 
 fn execute(command: &Command, telemetry: &mut Telemetry) -> Result<String, AxiomError> {
     match command {
+        Command::Build {
+            solution,
+            project,
+            full,
+        } => report_json(&serve::build(
+            &ServiceConfig::load(None)?,
+            solution,
+            project.as_deref(),
+            *full,
+            "build",
+            telemetry,
+        )?),
+        Command::Watch { registry } => serve_command(registry.as_deref(), telemetry),
+        Command::Export(command) => report_json(&crate::workflow::export(command)?),
         Command::Help => Ok(usage()),
         Command::Rejected { error } => Err(error.clone()),
         Command::Version => {

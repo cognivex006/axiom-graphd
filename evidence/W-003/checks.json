@@ -1,0 +1,58 @@
+[
+  {
+    "id": "format",
+    "command": "cargo fmt --all -- --check",
+    "exit_code": 0,
+    "artifact": {
+      "path": "evidence/W-003/format.txt"
+    }
+  },
+  {
+    "id": "clippy",
+    "command": "cargo clippy --locked --all-targets -- -D warnings",
+    "exit_code": 0,
+    "artifact": {
+      "path": "evidence/W-003/clippy.txt"
+    }
+  },
+  {
+    "id": "graphd-tests",
+    "command": "cargo test --locked -p axiom-graphd --lib --test workflow_facade",
+    "exit_code": 0,
+    "artifact": {
+      "path": "evidence/W-003/graphd-tests.txt"
+    }
+  },
+  {
+    "id": "reader-tests",
+    "command": "cargo test --locked -p graph-export --lib",
+    "exit_code": 0,
+    "artifact": {
+      "path": "evidence/W-003/reader-tests.txt"
+    }
+  },
+  {
+    "id": "watcher-tests",
+    "command": "cargo test --locked -p graph-watch --lib",
+    "exit_code": 0,
+    "artifact": {
+      "path": "evidence/W-003/watcher-tests.txt"
+    }
+  },
+  {
+    "id": "build",
+    "command": "cargo build --locked -p axiom-graphd",
+    "exit_code": 0,
+    "artifact": {
+      "path": "evidence/W-003/build.txt"
+    }
+  },
+  {
+    "id": "doc-status",
+    "command": "python tools/check-doc-status.py",
+    "exit_code": 0,
+    "artifact": {
+      "path": "evidence/W-003/doc-status.txt"
+    }
+  }
+]

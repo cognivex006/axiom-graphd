@@ -87,3 +87,7 @@ K-310 composes the public four migration forms for immutable graph import with e
 ADR-0030 and the immutable owner pin govern the complete public composition. Native Windows/Linux/Mac Intel GitHub Actions must pass source-bound owner tests, executable command cases and current immutable graph migration. Mac ARM and certification/signing/attestation are not prerequisites. Existing updater integrity/approval rules are unchanged. Current audit tooling is cargo-deny 0.20.2 built separately from the product's pinned Rust 1.85.0; audit parser failures are failures, not ignored advisories.
 
 The operator adapters consume canonical skills-owned bootstrap content; they do not carry a forked policy. Host configurations preview by default, apply only an exact approved project plan and preserve unrelated settings. Gateway verification reports its actual scope rather than inventing installed-host verification.
+
+## Unreleased workflow runtime
+
+W-003 owns build/watch/export, catalog-pinned reader loading and operational cycle records. Use cargo format/clippy gates and graphd/graph-export tests plus the native skills-owner integration harness. Invalid syntax fails without advancing publication; unsupported input coverage is partial. Runtime remains the existing declaration/containment profile, not a complete method call graph. Versions remain 0.1.7. User authorizes feature commit/push only; no main integration or 0.1.8 publication.

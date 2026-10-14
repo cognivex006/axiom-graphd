@@ -1,0 +1,63 @@
+
+running 56 tests
+test checkpoint_inputs::tests::a_path_in_both_buckets_is_partial_staging ... ok
+test checkpoint_inputs::tests::a_rename_record_is_distinguished_and_an_unrelated_pair_is_not ... ok
+test checkpoint_inputs::tests::merge_parent_count_reads_the_commit_object_headers ... ok
+test config_invalidation::tests::ignored_build_outputs_never_invalidate_anything ... ok
+test checkpoint_inputs::tests::two_or_more_parents_are_a_merge_and_untracked_is_reported ... ok
+test config_invalidation::tests::fingerprints_are_stable_and_detect_real_changes ... ok
+test config_invalidation::tests::project_configuration_invalidates_only_its_project ... ok
+test config_invalidation::tests::solution_and_shared_build_configuration_invalidate_the_solution ... ok
+test dirty::tests::a_second_edit_during_processing_raises_the_desired_generation ... ok
+test debounce::tests::invalid_bounds_and_non_portable_paths_are_refused ... ok
+test debounce::tests::repeated_saves_coalesce_into_one_batch ... ok
+test debounce::tests::continuous_writes_cannot_postpone_reconciliation_forever ... ok
+test dirty::tests::acknowledging_an_old_generation_never_clears_new_work ... ok
+test dirty::tests::generations_are_monotonic_and_unguessable ... ok
+test git_observer::tests::a_branch_change_is_reported_and_never_acted_on ... ok
+test git_observer::tests::explicit_revisions_produce_changed_paths_without_executing_git_mutations ... ok
+test git_observer::tests::staged_unstaged_and_untracked_inputs_are_distinguished ... ok
+test git_observer::tests::destructive_and_configuration_overriding_requests_are_refused ... ok
+test ignore::tests::an_operator_configured_root_and_invalid_paths_are_handled ... ok
+test ignore::tests::bin_obj_and_node_modules_bursts_are_excluded_at_any_depth ... ok
+test ignore::tests::writing_generated_graph_data_never_requeues_itself ... ok
+test input_policy::tests::escaping_and_unresolved_symlinks_are_not_parsed ... ok
+test input_policy::tests::root_containment_is_exact_and_rejects_sibling_prefixes ... ok
+test input_policy::tests::secret_files_are_not_parsed_while_safe_sources_stay_visible ... ok
+test inventory::tests::a_truncated_or_unreadable_walk_never_claims_a_complete_inventory ... ok
+test inventory::tests::offline_additions_changes_and_deletions_are_discovered ... ok
+test native::tests::a_recursive_directory_save_emits_a_normalized_hint ... ok
+test native::tests::an_editor_atomic_replace_is_detected_without_losing_the_target ... ok
+test native::tests::events_outside_the_root_are_dropped_and_the_flush_is_bounded ... ok
+test normalize::tests::a_case_only_rename_keeps_the_tombstone_and_the_new_state ... ok
+test normalize::tests::a_lone_destination_is_a_creation_and_a_lone_origin_is_a_removal ... ok
+test normalize::tests::create_write_and_delete_map_to_one_action_each ... ok
+test normalize::tests::a_rename_covers_the_old_and_the_new_path ... ok
+test poll::tests::backend_switches_only_follow_the_declared_policy ... ok
+test poll::tests::a_snapshot_is_never_allowed_to_exceed_the_hint_bound_or_escape_the_root ... ok
+test poll::tests::empty_baseline_and_last_file_deletion_do_not_hide_later_creation ... ok
+test poll::tests::polling_finds_changes_without_any_native_event ... ok
+test reconcile::tests::a_case_only_rename_is_re_observed_on_a_case_insensitive_host ... ok
+test reconcile::tests::a_persisted_scan_requirement_outlives_the_batch_that_raised_it ... ok
+test reconcile::tests::a_first_poll_establishes_a_baseline_instead_of_reporting_changes ... ok
+test reconcile::tests::a_symlink_boundary_is_re_observed_rather_than_followed ... ok
+test reconcile::tests::a_withheld_secret_does_not_force_a_rescan_and_known_tombstones_still_apply ... ok
+test reconcile::tests::an_invalid_hint_path_is_refused_rather_than_repaired ... ok
+test reconcile::tests::a_save_all_burst_beyond_one_bounded_batch_requires_a_complete_scan ... ok
+test normalize::tests::non_portable_paths_and_oversized_flushes_are_refused ... ok
+test reconcile::tests::an_untracked_upsert_is_confirmed_by_a_bounded_rescan_while_output_is_never_replayed ... ok
+test reconcile::tests::an_unpaired_rename_widens_the_scan_instead_of_losing_the_origin ... ok
+test reconcile::tests::an_overflow_and_an_unavailable_backend_both_recover_instead_of_failing ... ok
+test recovery::tests::lost_events_persist_a_rescan_that_hints_cannot_clear ... ok
+test recovery::tests::reconnect_and_branch_change_require_the_same_treatment ... ok
+test recovery::tests::an_overflow_reason_is_not_downgraded_and_hints_remain_validated ... ok
+test tests::absolute_traversal_and_empty_paths_are_refused ... ok
+test tests::canonical_paths_are_accepted_and_unified ... ok
+test tests::case_comparison_follows_the_host_filesystem ... ok
+test native::tests::starting_a_watch_on_a_missing_root_is_an_explicit_failure ... ok
+test inventory::tests::the_host_walk_reports_a_real_offline_edit ... ok
+
+test result: ok. 56 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s
+     Running unittests src\lib.rs (target\debug\deps\graph_watch-eb60423be4ca9506.exe)

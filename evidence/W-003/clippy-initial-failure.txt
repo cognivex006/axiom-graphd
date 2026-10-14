@@ -1,0 +1,14 @@
+    Checking axiom-graphd v0.1.7 (<owner-repo>\crates\axiom-graphd)
+error: unnecessary use of `to_owned`
+    --> crates\axiom-graphd\src\serve.rs:1372:33
+     |
+1372 |     .with_detail("source_path", path.to_owned())
+     |                                 ^^^^^^^^^^^^^^^ help: use: `path`
+     |
+     = help: for further information visit http<host-path>
+     = note: `-D clippy::unnecessary-to-owned` implied by `-D warnings`
+     = help: to override `-D warnings` add `#[allow(clippy::unnecessary_to_owned)]`
+
+error: could not compile `axiom-graphd` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `axiom-graphd` (lib test) due to 1 previous error

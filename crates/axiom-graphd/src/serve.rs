@@ -111,11 +111,17 @@ pub struct ProjectOutcome {
     pub sealed_manifest_path: Option<PathBuf>,
     /// The generation `current.json` points at after this pass.
     pub current_generation: Option<String>,
+    /// The published generation before this execution touched the project.
+    pub generation_before: Option<String>,
+    /// Coverage of the actual declaration profile, not a complete call graph.
+    pub coverage: String,
 }
 
 /// The report one bounded foreground pass produced.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct ServeReport {
+    /// Operational timing and source counts, excluded from graph content.
+    pub cycle: Option<crate::work_cycle::WorkCycle>,
     /// Instance id the lock was taken for.
     pub instance_id: String,
     /// Registered solutions considered.
@@ -141,6 +147,7 @@ pub struct ServeReport {
 struct Selection {
     solution: Option<String>,
     project: Option<String>,
+    force_full: bool,
 }
 
 /// Run one bounded reconcile pass over every registered solution.
@@ -171,7 +178,14 @@ pub fn serve(config: &ServiceConfig, telemetry: &mut Telemetry) -> Result<ServeR
     // bounded so a quiet daemon never spins or repeatedly inventories a tree.
     const FULL_RECONCILE_FALLBACK: Duration = Duration::from_secs(30);
     let result = (|| -> Result<ServeReport, AxiomError> {
-        let mut report = run_bounded(config, &home, &token, &Selection::default())?;
+        let mut report = run_observed(
+            config,
+            &home,
+            &token,
+            &Selection::default(),
+            "watch",
+            telemetry,
+        )?;
         let mut polls = BTreeMap::new();
         // Establish watcher baselines after startup inventory.  A first poll
         // deliberately reports no changes, so it must not be mistaken for an
@@ -183,6 +197,7 @@ pub fn serve(config: &ServiceConfig, telemetry: &mut Telemetry) -> Result<ServeR
                 .poll(&FilesystemSnapshot, &root)?;
         }
         let mut last_full_pass = std::time::Instant::now();
+        let mut source_retries = 0_u8;
         while !token.is_shutting_down() {
             std::thread::sleep(interval);
             if token.is_shutting_down() {
@@ -198,8 +213,39 @@ pub fn serve(config: &ServiceConfig, telemetry: &mut Telemetry) -> Result<ServeR
                 changed |= !outcome.is_empty();
             }
             let fallback_due = last_full_pass.elapsed() >= FULL_RECONCILE_FALLBACK;
-            if changed || fallback_due {
-                report = run_bounded(config, &home, &token, &Selection::default())?;
+            if changed || fallback_due || source_retries > 0 {
+                let pass = run_observed(
+                    config,
+                    &home,
+                    &token,
+                    &Selection::default(),
+                    "watch",
+                    telemetry,
+                );
+                match pass {
+                    Ok(next) => {
+                        report = next;
+                        source_retries = 0;
+                    }
+                    Err(error)
+                        if error.code() == ErrorCode::WorktreeBusy
+                            || (error.code() == ErrorCode::ValidationError
+                                && error
+                                    .details()
+                                    .get("rule")
+                                    .is_some_and(|r| r == "source-analysis-invalid")) =>
+                    {
+                        // Editor writes/renames can be transient. Retain the valid
+                        // publication and the writer; retry at most three cycles
+                        // before waiting for a new hint or the inventory fallback.
+                        source_retries = if source_retries >= 3 {
+                            0
+                        } else {
+                            source_retries + 1
+                        };
+                    }
+                    Err(error) => return Err(error),
+                }
                 last_full_pass = std::time::Instant::now();
             }
         }
@@ -414,9 +460,29 @@ pub fn reconcile(
     project: Option<&str>,
     telemetry: &mut Telemetry,
 ) -> Result<ServeReport, AxiomError> {
+    build(config, solution_id, project, false, "reconcile", telemetry)
+}
+
+/// Build through the existing writer, explicitly invalidating only for full mode.
+pub fn build(
+    config: &ServiceConfig,
+    solution_id: &str,
+    project: Option<&str>,
+    full: bool,
+    operation: &str,
+    telemetry: &mut Telemetry,
+) -> Result<ServeReport, AxiomError> {
+    let (mut admission_cycle, admission_start) = crate::work_cycle::WorkCycle::start(operation);
     let home = AxiomHome::resolve(&graph_core::paths::PathEnvironment::for_current_process())?;
     home.verify_destination()?;
-    let lock = DaemonLock::acquire(&home, config.daemon().instance_id())?;
+    let lock = match DaemonLock::acquire(&home, config.daemon().instance_id()) {
+        Ok(lock) => lock,
+        Err(error) => {
+            admission_cycle.finish(admission_start, "failed");
+            let _ = telemetry.work_cycle(&admission_cycle);
+            return Err(error);
+        }
+    };
     let _ = telemetry.record(
         LogLevel::Info,
         "daemon",
@@ -428,10 +494,78 @@ pub fn reconcile(
     let selection = Selection {
         solution: Some(solution_id.to_owned()),
         project: project.map(str::to_owned),
+        force_full: full,
     };
-    let report = run_bounded(config, &home, &token, &selection)?;
+    let report = run_observed(config, &home, &token, &selection, operation, telemetry)?;
     drop(lock);
     Ok(report)
+}
+
+fn run_observed(
+    config: &ServiceConfig,
+    home: &AxiomHome,
+    token: &ShutdownToken,
+    selection: &Selection,
+    operation: &str,
+    telemetry: &mut Telemetry,
+) -> Result<ServeReport, AxiomError> {
+    let (mut cycle, start) = crate::work_cycle::WorkCycle::start(operation);
+    match run_bounded(config, home, token, selection) {
+        Ok(mut report) => {
+            cycle.finish(
+                start,
+                if report
+                    .outcomes
+                    .iter()
+                    .any(|o| o.coverage != "complete_for_profile" || o.current_generation.is_none())
+                {
+                    "partial"
+                } else {
+                    "success"
+                },
+            );
+            cycle.files_changed = Some(
+                report
+                    .outcomes
+                    .iter()
+                    .map(|o| o.inventory_added + o.inventory_changed + o.inventory_deleted)
+                    .sum(),
+            );
+            cycle.files_analyzed = Some(report.outcomes.iter().map(|o| o.analyzed_files).sum());
+            cycle.nodes = Some(report.outcomes.iter().map(|o| o.nodes).sum());
+            cycle.edges = Some(report.outcomes.iter().map(|o| o.edges).sum());
+            for outcome in &report.outcomes {
+                let key = format!("{}/{}", outcome.solution_id, outcome.project_id);
+                cycle
+                    .generation_before
+                    .insert(key.clone(), outcome.generation_before.clone());
+                cycle
+                    .generation_after
+                    .insert(key, outcome.current_generation.clone());
+            }
+            if operation != "watch"
+                || cycle.files_changed != Some(0)
+                || cycle.files_analyzed != Some(0)
+                || report.published_generations > 0
+            {
+                let _ = telemetry.work_cycle(&cycle);
+            }
+            report.cycle = Some(cycle);
+            Ok(report)
+        }
+        Err(error) => {
+            cycle.finish(
+                start,
+                if token.is_shutting_down() {
+                    "cancelled"
+                } else {
+                    "failed"
+                },
+            );
+            let _ = telemetry.work_cycle(&cycle);
+            Err(error)
+        }
+    }
 }
 
 fn run_bounded(
@@ -475,6 +609,10 @@ fn run_bounded(
                 }
             }
             let _claim = token.claim()?;
+            if selection.force_full {
+                store.connection().execute("UPDATE files SET desired_generation = MAX(desired_generation, indexed_generation) + 1 WHERE project_id = ?1 AND observed_hash IS NOT NULL", [&project.id])
+                    .map_err(|error| runtime::storage_error("explicit full rebuild", &error))?;
+            }
             let outcome = reconcile_project(
                 config,
                 store.connection_mut(),
@@ -504,6 +642,7 @@ fn run_bounded(
     let dirty_after = runtime::dirty_count(store.connection())?;
     let drain = token.drain_state(std::time::Instant::now());
     Ok(ServeReport {
+        cycle: None,
         instance_id: config.daemon().instance_id().to_owned(),
         solutions: solutions.len(),
         projects: outcomes.len(),
@@ -567,6 +706,7 @@ fn reconcile_project(
     let checkpoint_lane =
         runtime::checkpoint_root(resolved.resolved_root(), &solution.id, &project.id);
     let lane_display = live_lane.to_string_lossy().to_string();
+    let generation_before = current_generation(&live_lane)?;
 
     // Recovery runs before anything else writes, so a crashed publication is
     // completed or discarded rather than mistaken for a clean lane. Every lane
@@ -613,15 +753,41 @@ fn reconcile_project(
             let absolute = Path::new(&project_root)
                 .join(file.path.replace('/', std::path::MAIN_SEPARATOR_STR));
             let bytes = std::fs::read(&absolute).map_err(|error| {
-                runtime::storage_error(
-                    "analysis input",
-                    &format!("{}: {error}", absolute.display()),
-                )
+                if error.kind() == std::io::ErrorKind::NotFound {
+                    AxiomError::new(
+                        ErrorCode::WorktreeBusy,
+                        "source changed after inventory; publication preserved",
+                    )
+                    .with_detail("rule", "source-changed-during-analysis")
+                } else {
+                    runtime::storage_error("analysis input", &error)
+                }
             })?;
-            let source = String::from_utf8_lossy(&bytes);
-            let facts = analyze_file(&file.path, &source, &project.id);
+            if graph_export::sha256_hex(&bytes) != hash {
+                return Err(AxiomError::new(
+                    ErrorCode::WorktreeBusy,
+                    "source bytes changed after inventory; publication preserved",
+                )
+                .with_detail("rule", "source-changed-during-analysis"));
+            }
+            let source = if Language::from_path(&file.path).is_some() {
+                std::str::from_utf8(&bytes).map_err(|_| source_analysis_error(&file.path))?
+            } else {
+                ""
+            };
+            // Inventory paths are project-relative; public source locations are
+            // repository-relative, including a registered membership subdirectory.
+            let prefix = portable_path(&project.relative_path);
+            let source_path = if prefix.is_empty() || prefix == "." {
+                file.path.clone()
+            } else {
+                format!("{}/{}", prefix.trim_end_matches('/'), file.path)
+            };
+            let facts = analyze_file(&source_path, source, &project.id)?;
             graph_store::graph_rows::replace_file_facts(connection, &project.id, file.id, &facts)?;
-            analyzed += 1;
+            if Language::from_path(&file.path).is_some() {
+                analyzed += 1;
+            }
             ack_generation(connection, file.id, file.desired_generation, Some(hash))?;
         } else {
             // A tombstone: the file is gone, so its facts must go too.
@@ -637,7 +803,16 @@ fn reconcile_project(
 
     // The published payload is rendered from the same store rows the analyzers
     // wrote, in the frozen contract's own document shape.
-    let payload = payload::render(connection, &project.id)?;
+    let mut payload = payload::render(connection, &project.id)?;
+    let unsupported: Vec<String> = observed
+        .iter()
+        .filter(|file| Language::from_path(file.path()).is_none())
+        .map(|file| format!("unsupported-input:{}", file.path()))
+        .collect();
+    if !unsupported.is_empty() {
+        payload.coverage.status = "partial".to_owned();
+        payload.coverage.unsupported_patterns = unsupported;
+    }
     let nodes = payload.nodes.len();
     let edges = payload.edges.len();
 
@@ -659,9 +834,11 @@ fn reconcile_project(
         source_fingerprint: None,
         sealed_manifest_path: None,
         current_generation: None,
+        generation_before,
+        coverage: payload.coverage.status.clone(),
     };
 
-    if payload.is_empty() {
+    if payload.is_empty() && outcome.generation_before.is_none() {
         outcome.current_generation = current_generation(&live_lane)?;
         return Ok(outcome);
     }
@@ -779,7 +956,15 @@ fn publish_solution_catalog(
     catalog_runtime::publish_catalog(&CatalogPublication {
         solution_id: solution.id.clone(),
         analysis_profile: solution.profile.clone(),
-        coverage: "complete_for_profile".to_owned(),
+        coverage: if outcomes
+            .iter()
+            .any(|o| o.solution_id == solution.id && o.coverage != "complete_for_profile")
+        {
+            "partial"
+        } else {
+            "complete_for_profile"
+        }
+        .to_owned(),
         members,
         lane_root,
         guard_root,
@@ -1225,10 +1410,22 @@ fn leaf_name(qualified_name: &str) -> &str {
 /// Only the pinned C# and TypeScript declaration analyzers run here. A path in a
 /// language this build does not pin yields no facts and no false claim: the file
 /// is acknowledged as observed, with nothing asserted about its contents.
-fn analyze_file(path: &str, source: &str, project_id: &str) -> GraphFactSet {
-    match Language::from_path(path) {
+fn source_analysis_error(path: &str) -> AxiomError {
+    AxiomError::new(
+        ErrorCode::ValidationError,
+        "source declaration analysis failed; previous publication preserved",
+    )
+    .with_detail("rule", "source-analysis-invalid")
+    .with_detail("path", path)
+}
+
+fn analyze_file(path: &str, source: &str, project_id: &str) -> Result<GraphFactSet, AxiomError> {
+    Ok(match Language::from_path(path) {
         Some(Language::CSharp) => {
             let analysis = graph_analyze::csharp::declarations::analyze(path, source);
+            if analysis.has_errors() {
+                return Err(source_analysis_error(path));
+            }
             let declarations: Vec<Declaration> = analysis
                 .declarations
                 .iter()
@@ -1255,6 +1452,9 @@ fn analyze_file(path: &str, source: &str, project_id: &str) -> GraphFactSet {
         }
         Some(Language::TypeScript) => {
             let analysis = graph_analyze::typescript::declarations::analyze(path, source);
+            if analysis.has_errors() {
+                return Err(source_analysis_error(path));
+            }
             let declarations: Vec<Declaration> = analysis
                 .declarations
                 .iter()
@@ -1283,7 +1483,7 @@ fn analyze_file(path: &str, source: &str, project_id: &str) -> GraphFactSet {
             )
         }
         None => GraphFactSet::new(Vec::new(), Vec::new()),
-    }
+    })
 }
 
 /// Turn one file's declarations into the node and containment-edge facts the store holds.
@@ -1521,7 +1721,8 @@ namespace Demo
     }
 }
 ";
-        let facts = analyze_file("src/Service.cs", source, "demo-project");
+        let facts = analyze_file("src/Service.cs", source, "demo-project")
+            .expect("valid declaration fixture");
         assert_eq!(
             facts.nodes.len(),
             3,
@@ -1566,7 +1767,8 @@ namespace Demo
 
     #[test]
     fn an_unsupported_language_asserts_nothing() {
-        let facts = analyze_file("data/table.json", "{}", "demo-project");
+        let facts = analyze_file("data/table.json", "{}", "demo-project")
+            .expect("valid declaration fixture");
         assert!(facts.nodes.is_empty());
         assert!(facts.edges.is_empty());
     }
@@ -1637,7 +1839,8 @@ namespace Demo
         // publishes exactly what the pinned analyzer asserts; this test records the
         // limitation instead of hiding it.
         let source = "namespace Demo\n{\n    class Service\n    {\n    }\n}\n";
-        let facts = analyze_file("src/Bare.cs", source, "demo-project");
+        let facts =
+            analyze_file("src/Bare.cs", source, "demo-project").expect("valid declaration fixture");
         assert_eq!(facts.nodes.len(), 1, "only the namespace is asserted");
         assert_eq!(facts.nodes[0].kind(), "namespace");
     }
