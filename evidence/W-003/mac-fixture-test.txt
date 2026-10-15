@@ -7,4 +7,3 @@ test strict_facade_arguments_and_no_natural_language_shell ... ok
 test build_noop_full_export_and_refuse_overwrite ... ok
 
 test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.93s
-

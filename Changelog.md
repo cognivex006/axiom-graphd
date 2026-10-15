@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.8
+
 ### New Features
 
 - Add incremental build, instance watch and verified selected JSON/HTML export commands with measured engine-cycle diagnostics.
@@ -16,7 +18,7 @@
 
 ### Known Limitations
 
-- Runtime analysis uses the declaration/containment profile; complete method callers remain unverified. Phase/queue/source-delay metrics are explicitly unavailable. This is unreleased work at version 0.1.7.
+- Runtime analysis uses the declaration/containment profile; complete method callers remain unverified. Phase/queue/source-delay metrics are explicitly unavailable. Project-only builds may leave the full solution catalog pending.
 
 ## 0.1.7
 

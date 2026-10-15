@@ -91,3 +91,7 @@ The operator adapters consume canonical skills-owned bootstrap content; they do 
 ## Unreleased workflow runtime
 
 W-003 owns build/watch/export, catalog-pinned reader loading and operational cycle records. Use cargo format/clippy gates and graphd/graph-export tests plus the native skills-owner integration harness. Invalid syntax fails without advancing publication; unsupported input coverage is partial. Runtime remains the existing declaration/containment profile, not a complete method call graph. Versions remain 0.1.7. User authorizes feature commit/push only; no main integration or 0.1.8 publication.
+
+## Authorized 0.1.8 release
+
+The user request on 2026-10-15 supersedes the prior W-003 feature-only delivery restriction for this release. W-005 prepares version 0.1.8; required native CI, immutable source/assets and independent shared contract review remain gates.
