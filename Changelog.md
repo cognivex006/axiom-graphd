@@ -8,6 +8,7 @@
 
 ### Bug Fixes
 
+- Resolve the owned native workflow test fixture root on macOS while retaining runtime refusal of linked managed paths.
 - Publish removal of the last source symbol instead of retaining obsolete graph facts, and refuse malformed source without advancing the valid catalog.
 - Keep watching after transient source writes or malformed saves; verify inventory bytes before analysis and retry source work within a bounded cycle budget.
 - Detect source creation after an empty baseline or deletion of the last file instead of treating the next poll as a new baseline.

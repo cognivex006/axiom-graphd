@@ -51,22 +51,28 @@ fn strict_facade_arguments_and_no_natural_language_shell() {
 #[test]
 fn build_noop_full_export_and_refuse_overwrite() {
     let dir = tempfile::tempdir().expect("temporary fixture");
-    let repo = dir.path().join("repo");
+    // macOS temporary roots can start at /var, a symlink to /private/var.
+    // Resolve the owned fixture root without weakening runtime link refusal.
+    #[cfg(not(windows))]
+    let root = std::fs::canonicalize(dir.path()).expect("canonical fixture root");
+    #[cfg(windows)]
+    let root = dir.path().to_path_buf();
+    let repo = root.join("repo");
     std::fs::create_dir_all(repo.join("src")).expect("source root");
     std::fs::write(
         repo.join("src/Example.cs"),
         "namespace Example;\npublic class PingPong {\n public void RemoveFilesAsync() {}\n}\n",
     )
     .expect("source");
-    let config = dir.path().join("solution.json");
+    let config = root.join("solution.json");
     std::fs::write(&config, r#"{"id":"demo","profile":"default","catalog_host_repo":"primary","projects":[{"id":"app","repo_id":"primary","path":"src"}]}"#).expect("config");
-    let bindings = dir.path().join("bindings.json");
+    let bindings = root.join("bindings.json");
     std::fs::write(
         &bindings,
         serde_json::to_vec(&serde_json::json!({"bindings":{"primary":repo}})).expect("JSON"),
     )
     .expect("bindings");
-    let home = dir.path().join("home");
+    let home = root.join("home");
     call(
         &home,
         &[
@@ -90,7 +96,7 @@ fn build_noop_full_export_and_refuse_overwrite() {
     );
     let full = call(&home, &["build", "--solution", "demo", "--full"]);
     assert!(full["cycle"]["files_analyzed"].as_u64().expect("count") > 0);
-    let out = dir.path().join("export");
+    let out = root.join("export");
     let exported = call(
         &home,
         &[
@@ -137,7 +143,7 @@ fn build_noop_full_export_and_refuse_overwrite() {
     let node = artifact["projects"][0]["nodes"][0]["id"]
         .as_str()
         .expect("observed node");
-    let selected = dir.path().join("selected");
+    let selected = root.join("selected");
     call(
         &home,
         &[
@@ -179,7 +185,7 @@ fn build_noop_full_export_and_refuse_overwrite() {
     )
     .expect("new source");
     call(&home, &["build", "--solution", "demo"]);
-    let pinned = dir.path().join("pinned-selection");
+    let pinned = root.join("pinned-selection");
     let old = call(
         &home,
         &[
@@ -213,7 +219,7 @@ fn build_noop_full_export_and_refuse_overwrite() {
             .as_str()
             .expect("observed member")
     );
-    let vector_out = dir.path().join("vector-selected");
+    let vector_out = root.join("vector-selected");
     let vector_receipt = call(
         &home,
         &[
@@ -238,7 +244,7 @@ fn build_noop_full_export_and_refuse_overwrite() {
         .join(generation)
         .join("nodes/000000.json");
     std::fs::write(shard, b"[]\n").expect("corrupt member fixture");
-    let rejected = dir.path().join("corrupt-export");
+    let rejected = root.join("corrupt-export");
     let result = Command::new(env!("CARGO_BIN_EXE_axiom-graphd"))
         .env("AXIOM_HOME", &home)
         .args([
