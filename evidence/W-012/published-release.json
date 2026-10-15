@@ -1,0 +1,68 @@
+{
+  "repository": "axiom-graphd",
+  "version": "0.1.9",
+  "release_id": 413454147,
+  "release_url": "https://github.com/orchex006/axiom-graphd/releases/tag/v0.1.9",
+  "source_revision": "58b054775de56f55f4d0f4407e33e334ebb63a5d",
+  "tag_verified": true,
+  "latest_verified": true,
+  "all_listed_sha256_verified": true,
+  "assets": {
+    "RELEASE-NOTES.md": {
+      "sha256": "0a70fc6bda9af21396c8c54b3b94722e494ce47f5f5012045c6e94d154445f68",
+      "bytes": 456
+    },
+    "SOURCE-REVISION.txt": {
+      "sha256": "260e653f6e6b9bbacbfe4d1f9cddf9493668875143ac55964cad74d9d5a618d2",
+      "bytes": 41
+    },
+    "axiom-0.1.9-linux-x64.sbom.json": {
+      "sha256": "e157aedf444d37f1393083687f0c4e0afa4b5fbe37d9c4e82c12dad7d6dfe1b9",
+      "bytes": 12401
+    },
+    "axiom-0.1.9-linux-x64.tar.gz": {
+      "sha256": "d1b99990d9530affe3d1d9325df6d3a637aa801a84cf5862303cd8d4ae11fb98",
+      "bytes": 4787636
+    },
+    "axiom-0.1.9-macos-x64.sbom.json": {
+      "sha256": "e157aedf444d37f1393083687f0c4e0afa4b5fbe37d9c4e82c12dad7d6dfe1b9",
+      "bytes": 12401
+    },
+    "axiom-0.1.9-macos-x64.tar.gz": {
+      "sha256": "d324b2dfbc864d5b741d4c5ceda6cd58a6bc5fd09dcc66db5cc7e558cdcdded9",
+      "bytes": 4535617
+    },
+    "axiom-0.1.9-windows-x64.sbom.json": {
+      "sha256": "e157aedf444d37f1393083687f0c4e0afa4b5fbe37d9c4e82c12dad7d6dfe1b9",
+      "bytes": 12401
+    },
+    "axiom-0.1.9-windows-x64.zip": {
+      "sha256": "6a813f4da37b2c15c6f1492a0948a4b5befdbbe566e0024ee61ea1e6758723b2",
+      "bytes": 9767749
+    },
+    "linux-x64-manifest.json": {
+      "sha256": "e6e45a3fe5e3e17726eeab776052a9b1005ebfd5af1eea7bb476cd39e3d145bf",
+      "bytes": 2502
+    },
+    "linux-x64-native-report.json": {
+      "sha256": "63ecf38ed69652124bf67ba45df78c5ee00290c72e5d8ed0af2c88576b29cbb6",
+      "bytes": 11489
+    },
+    "macos-x64-manifest.json": {
+      "sha256": "7c3a3e5a774f2597ebc66b543f91ea3f98ab62d107251c9766d1731f50b291a5",
+      "bytes": 2494
+    },
+    "macos-x64-native-report.json": {
+      "sha256": "86ca14eef53308d5c3fd94bf2a60a326aa1bf963c6ec7bcd4d91b894b96b19fa",
+      "bytes": 11489
+    },
+    "windows-x64-manifest.json": {
+      "sha256": "32c9ec9f66cd08cd91fcd585d2324ac6b0272c339a454e8b621b354277c520d9",
+      "bytes": 2581
+    },
+    "windows-x64-native-report.json": {
+      "sha256": "dc366fda95292ecb43bda75067472d9e098c52549a7c77fd313732c558139bb3",
+      "bytes": 11490
+    }
+  }
+}
