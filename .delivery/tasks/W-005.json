@@ -1,0 +1,24 @@
+{
+  "task_id": "W-005",
+  "source_repo": "axiom-graphd",
+  "branch": "feature/w-005-release-018",
+  "source_revision": "06bab9c396bffe3d48363ff7f86c79f802feb5a7",
+  "local_commit_sha": "06bab9c396bffe3d48363ff7f86c79f802feb5a7",
+  "verified_remote_branch_sha": "06bab9c396bffe3d48363ff7f86c79f802feb5a7",
+  "push_remote": "https://github.com/orchex006/axiom-graphd.git",
+  "release_source_revision": "06bab9c396bffe3d48363ff7f86c79f802feb5a7",
+  "component_version": "0.1.8",
+  "delivery_state": "integrated",
+  "main_integration": "verified release source integrated",
+  "primary_checkout": ".",
+  "release": "published",
+  "release_url": "https://github.com/orchex006/axiom-graphd/releases/tag/v0.1.8",
+  "all_downloaded_checksums_verified": true,
+  "source_ci": {
+    "conclusion": "success",
+    "headSha": "06bab9c396bffe3d48363ff7f86c79f802feb5a7",
+    "status": "completed",
+    "url": "https://github.com/orchex006/axiom-graphd/actions/runs/38671868083"
+  },
+  "note": "This is an evidence-only follow-up. Immutable release tags/assets are unchanged; the canonical publication receipt records the final delivery commit."
+}
