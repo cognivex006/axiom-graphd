@@ -1,0 +1,71 @@
+[
+  {
+    "id": "format",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--",
+      "--check"
+    ],
+    "exit_code": 0,
+    "environment": "native Windows",
+    "redaction": "Machine-local path prefixes replaced"
+  },
+  {
+    "id": "clippy",
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "environment": "native Windows",
+    "redaction": "Machine-local path prefixes replaced"
+  },
+  {
+    "id": "tests",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "axiom-graphd",
+      "--lib",
+      "--test",
+      "workflow_facade"
+    ],
+    "exit_code": 0,
+    "environment": "native Windows",
+    "redaction": "Machine-local path prefixes replaced"
+  },
+  {
+    "id": "manifest",
+    "command": [
+      "python",
+      "tests/core_manifest.py"
+    ],
+    "exit_code": 0,
+    "environment": "native Windows",
+    "redaction": "Machine-local path prefixes replaced"
+  },
+  {
+    "id": "build",
+    "command": [
+      "cargo",
+      "build",
+      "--locked",
+      "-p",
+      "axiom-graphd",
+      "-p",
+      "axiom-cli"
+    ],
+    "exit_code": 0,
+    "environment": "native Windows",
+    "redaction": "Machine-local path prefixes replaced"
+  }
+]

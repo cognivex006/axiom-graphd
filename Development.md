@@ -95,3 +95,7 @@ W-003 owns build/watch/export, catalog-pinned reader loading and operational cyc
 ## Authorized 0.1.8 release
 
 The user request on 2026-10-15 supersedes the prior W-003 feature-only delivery restriction for this release. W-005 prepares version 0.1.8; required native CI, immutable source/assets and independent shared contract review remain gates.
+
+## Authorized 0.1.9 patch release
+
+The user request on 2026-10-15 authorizes the 0.1.9 patch set. W-012 changes version and packaging metadata only; CLI owns the legacy-store adoption fix. Existing immutable pins, required owner/native checks and review/publication gates remain in force.

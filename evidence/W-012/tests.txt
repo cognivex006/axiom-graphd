@@ -1,0 +1,172 @@
+
+running 149 tests
+test checkpoint::export::tests::generated_outputs_are_excluded_from_the_input_fingerprint ... ok
+test checkpoint::staged::tests::a_path_absent_from_the_index_is_refused_and_never_falls_back ... ok
+test checkpoint::staged::tests::a_partially_staged_file_exports_the_index_bytes_not_the_worktree ... ok
+test checkpoint::staged::tests::an_absolute_or_traversing_path_is_refused_before_the_index_is_read ... ok
+test checkpoint::export::tests::an_output_outside_the_checkpoint_lane_is_refused ... ok
+test checkpoint::export::tests::an_explicit_checkpoint_command_writes_only_into_the_checkpoint_lane ... ok
+test checkpoint::export::tests::the_live_lane_and_an_implicit_write_are_both_refused ... ok
+test checkpoint::verify::tests::a_conflicted_merge_is_never_reported_as_usable ... ok
+test checkpoint::verify::tests::a_clean_textual_merge_with_a_different_graph_is_stale ... ok
+test checkpoint::verify::tests::a_regenerated_payload_matching_the_checkpoint_is_current ... ok
+test checkpoint::verify::tests::a_differing_payload_digest_or_generation_is_stale_even_with_equal_fingerprints ... ok
+test checkpoint::verify::tests::a_project_only_present_in_the_regeneration_is_a_mismatch ... ok
+test checkpoint::verify::tests::a_missing_tracked_checkpoint_is_not_found ... ok
+test checkpoint::worktree::tests::a_change_on_the_second_attempt_still_certifies_within_budget ... ok
+test checkpoint::worktree::tests::an_out_of_range_attempt_budget_is_refused_before_probing ... ok
+test cli::tests::commands_are_parsed_from_argv ... ok
+test checkpoint::worktree::tests::inventory_differences_and_boundaries_are_explicit ... ok
+test checkpoint::worktree::tests::a_changing_worktree_retries_then_reports_worktree_busy ... ok
+test cli::tests::boundary_values_are_accepted ... ok
+test cli::tests::every_wired_verb_accepts_help ... ok
+test checkpoint::worktree::tests::matching_before_and_after_inventories_produce_a_certificate ... ok
+test cli::tests::accepted_verbs_match_the_parser_in_both_directions ... ok
+test cli::tests::cli_exit_code_doc_matches_the_frozen_contract ... ok
+test cli::tests::json_mode_error_output_has_no_diagnostic_prose ... ok
+test cli::tests::help_documents_the_frozen_exit_code_table ... ok
+test cli::tests::text_mode_errors_keep_stdout_empty ... ok
+test cli::tests::invalid_arguments_are_rejected_with_the_validation_exit_code ... ok
+test cli::tests::operator_slices_are_listed_in_help ... ok
+test cli::tests::text_mode_unwired_slices_keep_stdout_empty ... ok
+test cli::tests::unwired_slices_answer_not_ready_instead_of_empty_success ... ok
+test cli::tests::slice_wiring_matches_commands_mod ... ok
+test cli::tests::wired_slices_declare_no_reason_and_unwired_slices_still_do ... ok
+test cli::tests::wired_options_land_in_the_parsed_command ... ok
+test cli::tests::wired_and_unwired_argv_match_the_declared_wiring ... ok
+test commands::changed::tests::a_hint_for_a_missing_file_is_not_reported_as_observed ... ok
+test commands::changed::tests::a_path_outside_the_registered_project_root_is_refused ... ok
+test commands::changed::tests::an_accepted_hint_reports_the_digest_read_from_disk ... ok
+test commands::changed::tests::an_unreadable_path_is_reported_apart_from_a_missing_one ... ok
+test cli::tests::machine_readable_stdout_is_exactly_one_json_object ... ok
+test commands::changed::tests::an_unregistered_solution_or_project_is_never_guessed ... ok
+test commands::changed::tests::the_bindings_document_refuses_relative_roots_and_duplicates ... ok
+test commands::changed::tests::unknown_reasons_duplicates_roots_and_absolute_paths_are_refused ... ok
+test commands::changed::tests::a_batch_document_must_agree_with_the_caller_selection ... ok
+test commands::query::tests::a_role_sharded_payload_is_read_as_one_graph ... ok
+test commands::query::tests::an_out_of_range_limit_is_refused_rather_than_clamped ... ok
+test commands::query::tests::an_unknown_symbol_is_not_found_in_the_pinned_snapshot ... ok
+test commands::query::tests::an_unresolved_edge_is_incident_to_its_source ... ok
+test commands::query::tests::context_returns_the_symbol_and_its_incident_edges_within_budget ... ok
+test commands::query::tests::impact_is_a_bounded_reverse_walk_that_reports_a_depth_cut ... ok
+test commands::changed::tests::the_store_registry_reads_registration_rows_and_trusted_bindings ... ok
+test commands::doctor::tests::a_healthy_solution_reports_healthy ... ok
+test commands::doctor::tests::an_unregistered_solution_is_a_not_found_with_a_stable_reason ... ok
+test commands::doctor::tests::status_reports_freshness_and_generations ... ok
+test commands::doctor::tests::a_missing_catalog_generation_is_reported_as_degraded ... ok
+test commands::queue::tests::cancel_is_cooperative_and_preserves_unprocessed_state ... ok
+test commands::doctor::tests::a_degraded_component_is_never_rendered_as_a_healthy_daemon ... ok
+test commands::queue::tests::retry_refuses_states_that_are_not_retryable ... ok
+test commands::reconcile::tests::an_expired_bounded_wait_is_a_retryable_timeout_with_exit_seven ... ok
+test commands::queue::tests::list_refuses_a_solution_the_caller_is_not_authorized_for ... ok
+test commands::queue::tests::list_refuses_a_limit_outside_the_bounded_range ... ok
+test commands::reconcile::tests::an_unsupported_scope_is_a_validation_failure_with_the_documented_exit_code ... ok
+test commands::queue::tests::retry_returns_a_failed_job_to_pending_with_a_new_attempt ... ok
+test commands::queue::tests::cancel_refuses_terminal_jobs_and_reports_the_running_state ... ok
+test commands::queue::tests::list_reports_stable_ids_and_states_in_a_deterministic_order ... ok
+test commands::changed::tests::the_real_reader_hashes_the_bytes_that_are_there_now ... ok
+test commands::render::tests::a_diagram_needs_at_least_one_published_project ... ok
+test commands::reconcile::tests::an_oversized_dirty_batch_and_an_unregistered_solution_are_refused ... ok
+test commands::reconcile::tests::the_three_contract_scopes_plan_jobs_with_their_documented_shape ... ok
+test commands::reconcile::tests::project_and_timeout_misuse_are_refused_before_anything_is_enqueued ... ok
+test catalog_runtime::tests::refuses_a_missing_or_corrupt_member_manifest_before_catalog_publication ... ok
+test catalog_runtime::tests::refuses_invalid_member_without_replacing_the_previous_pointer ... ok
+test commands::render::tests::a_manifest_that_disagrees_with_a_shard_is_a_failure ... ok
+test commands::render::tests::a_generation_with_no_records_still_carries_its_banner ... ok
+test commands::render::tests::a_generation_without_a_coverage_document_is_unknown_and_never_complete ... ok
+test commands::render::tests::a_canonical_coverage_document_keeps_the_banner_honest ... ok
+test catalog_runtime::tests::publishes_the_mcp_catalog_shape_and_pointer_after_installing_generation ... ok
+test commands::render::tests::the_derived_ids_and_the_frozen_vocabularies_are_stable ... ok
+test commands::render::tests::a_pretty_printed_coverage_document_is_read_from_its_bytes ... ok
+test commands::render::tests::a_stale_generation_is_reported_stale_rather_than_fresh ... ok
+test commands::render::tests::a_resolution_outside_the_frozen_vocabulary_is_drawn_as_unknown ... ok
+test commands::solution::tests::a_duplicate_solution_id_is_a_conflict_not_an_overwrite ... ok
+test commands::solution::tests::a_scoped_list_hides_solutions_outside_the_allowlist ... ok
+test commands::solution::tests::a_url_or_unbound_repository_id_never_becomes_a_source_path ... ok
+test commands::solution::tests::register_validates_against_trusted_bindings_then_persists ... ok
+test commands::solution::tests::remove_plans_a_drain_and_never_deletes_source ... ok
+test commands::update::tests::an_approved_plan_delegates_to_axiom_as_argv_without_a_shell_string ... ok
+test commands::update::tests::an_unconfigured_trust_root_fails_closed ... ok
+test commands::update::tests::an_untrusted_component_or_a_shell_metacharacter_is_refused ... ok
+test commands::render::tests::an_edge_from_an_absent_source_is_still_drawn ... ok
+test commands::update::tests::check_reports_availability_without_contacting_a_release ... ok
+test commands::update::tests::approval_must_bind_to_the_exact_plan_digest ... ok
+test control::auth::tests::a_duplicate_token_id_under_a_new_secret_is_a_conflict ... ok
+test control::auth::tests::a_narrowed_token_is_refused_for_another_solution ... ok
+test commands::render::tests::an_edge_to_an_absent_id_is_a_placeholder_rather_than_a_missing_line ... ok
+test control::auth::tests::boundary_unknown_empty_and_oversized_tokens_are_unauthenticated ... ok
+test control::auth::tests::an_mcp_reader_token_cannot_become_a_daemon_administration_token ... ok
+test commands::render::tests::the_summary_is_json_and_mirrors_the_document_inventory ... ok
+test control::auth::tests::an_administrator_token_reaches_the_administration_surface ... ok
+test control::auth::tests::digests_are_stable_and_comparison_never_short_circuits_on_length ... ok
+test commands::render::tests::an_unresolved_edge_is_a_placeholder_next_to_its_banner ... ok
+test lifecycle::tests::clone_shares_one_state ... ok
+test lifecycle::tests::default_grace_period_is_ninety_seconds ... ok
+test lifecycle::tests::drain_reports_progress_and_deadline_expiry ... ok
+test lifecycle::tests::explicit_release_is_equivalent_to_drop ... ok
+test lifecycle::tests::generate_overrides_the_grace_period ... ok
+test lifecycle::tests::new_claims_are_rejected_after_shutdown ... ok
+test lifecycle::tests::shutdown_is_idempotent_and_keeps_the_first_deadline ... ok
+test payload::tests::a_repeated_qualified_name_is_disambiguated_deterministically ... ok
+test commands::render::tests::a_cross_project_edge_only_in_a_later_shard_is_drawn_to_its_real_node ... ok
+test commands::render::tests::every_resolution_is_visually_distinguishable ... ok
+test payload::tests::every_published_kind_is_in_the_contract_allowlist ... ok
+test payload::tests::identity_bytes_agree_with_the_specs_side_evaluator ... ok
+test release::tests::a_signed_artifact_at_a_pinned_commit_publishes ... ok
+test release::tests::an_unsupported_target_is_outside_the_matrix ... ok
+test release::tests::checked_unsigned_artifact_can_publish ... ok
+test release::tests::placeholder_metadata_and_an_unpinned_commit_cannot_publish ... ok
+test release::tests::the_matrix_covers_every_supported_family_at_one_pinned_commit ... ok
+test serve::tests::a_type_declaration_without_a_modifier_is_not_yet_analysed ... ok
+test serve::tests::an_unsupported_language_asserts_nothing ... ok
+test serve::tests::csharp_declarations_become_nodes_and_containment_edges ... ok
+test commands::render::tests::every_named_shard_is_concatenated_and_a_later_shard_edge_resolves ... ok
+test serve::tests::an_unsealed_staging_directory_never_advances_the_pointer ... ok
+test instance_lock::tests::the_lock_lives_under_the_home_that_owns_it ... ok
+test telemetry::tests::error_records_carry_the_stable_code ... ok
+test telemetry::tests::a_zero_limit_suppresses_everything_but_still_reports_once ... ok
+test instance_lock::tests::foreign_or_unreadable_records_are_not_claimed_as_locks ... ok
+test telemetry::tests::level_filter_drops_lower_levels ... ok
+test telemetry::tests::records_are_single_line_json_with_exactly_three_keys ... ok
+test telemetry::tests::repeated_errors_are_rate_limited_with_one_notice ... ok
+test instance_lock::tests::an_abandoned_record_is_recovered_without_killing_anything ... ok
+test telemetry::tests::secrets_and_paths_never_reach_the_sink ... ok
+test telemetry::tests::the_rate_limit_window_resets_after_one_minute ... ok
+test update_guard::tests::a_plausible_plan_is_admitted_with_an_argv_delegation ... ok
+test update_guard::tests::an_unsupported_approval_is_refused_rather_than_admitted ... ok
+test update_guard::tests::every_declared_hazard_is_refused_with_its_own_reason ... ok
+test update_guard::tests::the_declared_reason_vocabulary_is_unique ... ok
+test update_guard::tests::the_expiry_boundary_is_not_after_creation ... ok
+test version::tests::an_unconfigured_update_source_never_claims_a_checked_status ... ok
+test version::tests::every_enum_value_matches_the_frozen_schema ... ok
+test version::tests::the_frozen_core_has_exactly_the_schema_properties ... ok
+test version::tests::the_cli_output_adds_exactly_the_runtime_facts ... ok
+test commands::render::tests::two_renders_of_the_same_generation_are_byte_identical ... ok
+test commands::query::tests::a_default_query_never_returns_the_whole_solution ... ok
+test serve::tests::a_lane_that_cannot_be_sealed_leaves_every_pointer_unmoved ... ok
+test instance_lock::tests::a_second_owner_of_the_same_home_is_refused ... ok
+test commands::render::tests::the_emitted_artifacts_carry_no_machine_local_absolute_path ... ok
+test commands::render::tests::the_frozen_kinds_are_drawn_distinctly_and_an_unknown_kind_is_an_extension ... ok
+test serve::tests::sealed_manifest_makes_the_generation_readable ... ok
+test serve::tests::one_publication_publishes_both_lanes_with_the_same_generation ... ok
+
+test result: ok. 149 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s
+
+
+running 2 tests
+test strict_facade_arguments_and_no_natural_language_shell ... ok
+test build_noop_full_export_and_refuse_overwrite ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.64s
+
+   Compiling graph-core v0.1.9 (<workspace>\axiom-graphd\crates\graph-core)
+   Compiling graph-queue v0.1.9 (<workspace>\axiom-graphd\crates\graph-queue)
+   Compiling graph-watch v0.1.9 (<workspace>\axiom-graphd\crates\graph-watch)
+   Compiling graph-analyze v0.1.9 (<workspace>\axiom-graphd\crates\graph-analyze)
+   Compiling graph-store v0.1.9 (<workspace>\axiom-graphd\crates\graph-store)
+   Compiling axiom-platform v0.1.9 (<workspace>\axiom-graphd\crates\platform)
+   Compiling graph-export v0.1.9 (<workspace>\axiom-graphd\crates\graph-export)
+   Compiling axiom-graphd v0.1.9 (<workspace>\axiom-graphd\crates\axiom-graphd)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 28.87s
+     Running unittests src\lib.rs (target\debug\deps\axiom_graphd-2a9ad8cbbe277dda.exe)
+     Running tests\workflow_facade.rs (target\debug\deps\workflow_facade-c34e35e3b44186af.exe)
