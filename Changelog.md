@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.11
+
+### Chores
+
+- Align the paired core package and release metadata with the 0.1.11 ecosystem patch; graph analysis and publication behavior are unchanged.
+
 ## 0.1.10
 
 ### Bug Fixes

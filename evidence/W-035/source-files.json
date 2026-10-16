@@ -1,0 +1,9 @@
+{
+  "Cargo.lock": "c29dff94d4cd1703390cffbae29cff9cd0b2c16dc3649fb8c4be469452334cb1",
+  "Cargo.toml": "0b53ca51e8a2f3864ff2260f21e97a6d617d1f00a8ef2428463a7eab10109651",
+  "Changelog.md": "9cf683ccbb070852145702769b1d41ffba405d286491c54e87601f39425ddcfa",
+  "Development.md": "4b00b9d55b2457d439c38e3c7d9912963f239abfa73d34b35aa063e89ed166ad",
+  "VERSION": "66d60356172ccafdd334fca9bf33243c8409216a733dcde0d66a24fd70ee8132",
+  "release/core-manifest.json": "7ddd5f2c358f4b953df85655b3e283fe5b6766a54f1ee717ccbdadea172eb5a2",
+  "spec.lock.json": "a886b5ff2ca16ab48ccec78e3c8f1a4a9b86371504018cdf6c79d280ca2c79a6"
+}
