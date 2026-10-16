@@ -596,6 +596,16 @@ fn run_bounded(
 
     for solution in &solutions {
         let projects = runtime::projects(store.connection(), &solution.id)?;
+        if selection
+            .project
+            .as_deref()
+            .is_some_and(|id| !projects.iter().any(|p| p.id == id))
+        {
+            return Err(AxiomError::new(
+                ErrorCode::NotFound,
+                "selected project is not registered in the solution",
+            ));
+        }
         let catalog: Vec<CatalogRepoReference> = projects
             .iter()
             .map(|project| CatalogRepoReference::new(project.repo_id.clone()))
@@ -630,10 +640,12 @@ fn run_bounded(
             }
             outcomes.push(outcome);
         }
+        // A scoped build commits a full member vector too, retaining verified
+        // generations of unselected projects without re-analyzing their source.
+        publish_solution_catalog(
+            config, home, solution, &projects, &bindings, &catalog, &outcomes,
+        )?;
         if scanned_every_project {
-            publish_solution_catalog(
-                config, home, solution, &projects, &bindings, &catalog, &outcomes,
-            )?;
             runtime::clear_full_scan(store.connection(), &solution.id)?;
         }
         mark_solution_jobs_succeeded(store.connection_mut(), &solution.id)?;
@@ -914,35 +926,78 @@ fn publish_solution_catalog(
     catalog: &[CatalogRepoReference],
     outcomes: &[ProjectOutcome],
 ) -> Result<(), AxiomError> {
-    let members: Vec<CatalogMember> = outcomes
-        .iter()
-        .filter(|outcome| outcome.solution_id == solution.id)
-        .map(|outcome| {
-            Ok(CatalogMember {
-                project_id: outcome.project_id.clone(),
-                generation_id: outcome.generation_id.clone().ok_or_else(|| {
-                    AxiomError::new(
-                        ErrorCode::NotReady,
-                        "a complete solution batch has an unpublished project",
-                    )
-                })?,
-                source_fingerprint: outcome.source_fingerprint.clone().ok_or_else(|| {
-                    AxiomError::new(
-                        ErrorCode::NotReady,
-                        "a published project has no sealed source fingerprint",
-                    )
-                })?,
-                manifest_path: outcome.sealed_manifest_path.clone().ok_or_else(|| {
-                    AxiomError::new(
-                        ErrorCode::NotReady,
-                        "a published project has no sealed manifest",
-                    )
-                })?,
-            })
-        })
-        .collect::<Result<_, AxiomError>>()?;
-    if members.len() != projects.len() {
+    if projects.is_empty() {
         return Ok(());
+    }
+    let mut members = Vec::with_capacity(projects.len());
+    let mut complete = true;
+    for project in projects {
+        let selected = outcomes
+            .iter()
+            .find(|o| o.solution_id == solution.id && o.project_id == project.id);
+        let (generation_id, manifest_path) = if let Some(outcome) = selected {
+            (
+                outcome.generation_id.clone().ok_or_else(|| {
+                    AxiomError::new(
+                        ErrorCode::NotReady,
+                        "selected project has no published generation",
+                    )
+                })?,
+                outcome.sealed_manifest_path.clone().ok_or_else(|| {
+                    AxiomError::new(
+                        ErrorCode::NotReady,
+                        "selected project has no sealed manifest",
+                    )
+                })?,
+            )
+        } else {
+            let binding = resolve_binding(
+                bindings,
+                catalog,
+                &project.repo_id,
+                &runtime::symlink_probe(),
+            )?;
+            let lane = runtime::live_root(binding.resolved_root(), &solution.id, &project.id);
+            let current = pointer::read(&lane).map_err(runtime::export_error)?.ok_or_else(|| {
+                AxiomError::new(ErrorCode::NotReady, "selected project may be published, but the solution catalog needs all registered project graphs")
+            })?;
+            let path = lane
+                .join("generations")
+                .join(&current.generation_id)
+                .join(MANIFEST_NAME);
+            (current.generation_id, path)
+        };
+        let bytes = std::fs::read(&manifest_path)
+            .map_err(|e| runtime::storage_error("catalog member manifest", &e))?;
+        let manifest: serde_json::Value = serde_json::from_slice(&bytes)
+            .map_err(|e| runtime::storage_error("catalog member manifest", &e))?;
+        if graph_export::sha256_hex(&bytes) != generation_id
+            || manifest["solution_id"].as_str() != Some(solution.id.as_str())
+            || manifest["project_id"].as_str() != Some(project.id.as_str())
+            || manifest["analysis_profile"].as_str() != Some(solution.profile.as_str())
+            || manifest["schema_version"].as_u64() != Some(1)
+        {
+            return Err(AxiomError::new(ErrorCode::ValidationError, "catalog member identity, schema or sealed digest differs; previous catalog preserved"));
+        }
+        let coverage = manifest.get("coverage").and_then(|v| {
+            v.as_str()
+                .or_else(|| v.get("status").and_then(serde_json::Value::as_str))
+        });
+        complete &= coverage == Some("complete_for_profile");
+        members.push(CatalogMember {
+            project_id: project.id.clone(),
+            generation_id,
+            source_fingerprint: manifest["source_fingerprint"]
+                .as_str()
+                .ok_or_else(|| {
+                    AxiomError::new(
+                        ErrorCode::NotReady,
+                        "catalog member has no source fingerprint",
+                    )
+                })?
+                .to_owned(),
+            manifest_path,
+        });
     }
     let host_repo = runtime::catalog_host_repo(home, solution, projects)?;
     let binding = resolve_binding(bindings, catalog, &host_repo, &runtime::symlink_probe())?;
@@ -956,13 +1011,10 @@ fn publish_solution_catalog(
     catalog_runtime::publish_catalog(&CatalogPublication {
         solution_id: solution.id.clone(),
         analysis_profile: solution.profile.clone(),
-        coverage: if outcomes
-            .iter()
-            .any(|o| o.solution_id == solution.id && o.coverage != "complete_for_profile")
-        {
-            "partial"
-        } else {
+        coverage: if complete {
             "complete_for_profile"
+        } else {
+            "partial"
         }
         .to_owned(),
         members,

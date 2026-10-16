@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Bug Fixes
+
+- Keep a complete solution catalog current after building one project, retaining verified generations for unselected projects and preserving the previous catalog when a member is corrupt or unavailable.
+
+### New Features
+
+- Lead the engine guide with installation, update and the first graph workflow before component and crate details.
+
 ## 0.1.9
 
 ### Chores

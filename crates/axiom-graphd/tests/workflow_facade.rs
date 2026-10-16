@@ -49,6 +49,104 @@ fn strict_facade_arguments_and_no_natural_language_shell() {
 }
 
 #[test]
+fn scoped_build_advances_complete_catalog_and_preserves_unselected_generations() {
+    let dir = tempfile::tempdir().expect("fixture");
+    #[cfg(not(windows))]
+    let root = std::fs::canonicalize(dir.path()).expect("canonical fixture");
+    #[cfg(windows)]
+    let root = dir.path().to_path_buf();
+    let repo = root.join("repo");
+    for project in ["a", "b", "c"] {
+        let folder = repo.join("src").join(project);
+        std::fs::create_dir_all(&folder).unwrap();
+        std::fs::write(folder.join("Example.cs"), format!("namespace Multi;\npublic class Project{project}Needle {{\n public void Run() {{}}\n}}\n")).unwrap();
+    }
+    let config = root.join("solution.json");
+    std::fs::write(&config, serde_json::to_vec(&serde_json::json!({"id":"multi", "profile":"default", "catalog_host_repo":"primary", "projects":[
+        {"id":"a","repo_id":"primary","path":"src/a"},
+        {"id":"b","repo_id":"primary","path":"src/b"},
+        {"id":"c","repo_id":"primary","path":"src/c"}]})).unwrap()).unwrap();
+    let bindings = root.join("bindings.json");
+    std::fs::write(
+        &bindings,
+        serde_json::to_vec(&serde_json::json!({"bindings":{"primary":repo}})).unwrap(),
+    )
+    .unwrap();
+    let home = root.join("home");
+    call(
+        &home,
+        &[
+            "solution",
+            "register",
+            "--config",
+            config.to_str().unwrap(),
+            "--bindings",
+            bindings.to_str().unwrap(),
+            "--apply",
+        ],
+    );
+    call(&home, &["build", "--solution", "multi"]);
+    let catalog = repo.join(".axiom/graph/multi/_catalog/live");
+    let vector = || {
+        let pointer: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(catalog.join("current.json")).unwrap()).unwrap();
+        let manifest: serde_json::Value = serde_json::from_slice(
+            &std::fs::read(
+                catalog
+                    .join("generations")
+                    .join(pointer["generation_id"].as_str().unwrap())
+                    .join("manifest.json"),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        manifest["projects"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|p| {
+                (
+                    p["project_id"].as_str().unwrap().to_string(),
+                    p["generation_id"].as_str().unwrap().to_string(),
+                )
+            })
+            .collect::<std::collections::BTreeMap<_, _>>()
+    };
+    let before = vector();
+    assert_eq!(before.len(), 3);
+    std::fs::write(
+        repo.join("src/c/Example.cs"),
+        "namespace Multi;\npublic class ChangedNeedle {\n public void Run() {}\n}\n",
+    )
+    .unwrap();
+    let result = call(&home, &["build", "--solution", "multi", "--project", "c"]);
+    assert_eq!(result["projects"], 1);
+    let after = vector();
+    assert_eq!(after.len(), 3);
+    assert_eq!(before["a"], after["a"]);
+    assert_eq!(before["b"], after["b"]);
+    assert_ne!(before["c"], after["c"]);
+    let pointer_before = std::fs::read(catalog.join("current.json")).unwrap();
+    let unselected = repo
+        .join(".axiom/graph/multi/b/live/generations")
+        .join(&after["b"])
+        .join("manifest.json");
+    let mut bytes = std::fs::read(&unselected).unwrap();
+    bytes.push(b' ');
+    std::fs::write(unselected, bytes).unwrap();
+    let failed = Command::new(env!("CARGO_BIN_EXE_axiom-graphd"))
+        .env("AXIOM_HOME", &home)
+        .args(["build", "--solution", "multi", "--project", "c", "--json"])
+        .output()
+        .unwrap();
+    assert!(!failed.status.success());
+    assert_eq!(
+        std::fs::read(catalog.join("current.json")).unwrap(),
+        pointer_before
+    );
+}
+
+#[test]
 fn build_noop_full_export_and_refuse_overwrite() {
     let dir = tempfile::tempdir().expect("temporary fixture");
     // macOS temporary roots can start at /var, a symlink to /private/var.

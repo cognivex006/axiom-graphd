@@ -1,0 +1,10 @@
+
+running 3 tests
+test strict_facade_arguments_and_no_natural_language_shell ... ok
+test scoped_build_advances_complete_catalog_and_preserves_unselected_generations ... ok
+test build_noop_full_export_and_refuse_overwrite ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.35s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.41s
+     Running tests\workflow_facade.rs (target\debug\deps\workflow_facade-c34e35e3b44186af.exe)

@@ -1,0 +1,9 @@
+   Compiling graph-core v0.1.9 (<workspace>\axiom-graphd\crates\graph-core)
+   Compiling graph-watch v0.1.9 (<workspace>\axiom-graphd\crates\graph-watch)
+   Compiling graph-export v0.1.9 (<workspace>\axiom-graphd\crates\graph-export)
+   Compiling axiom-platform v0.1.9 (<workspace>\axiom-graphd\crates\platform)
+   Compiling graph-store v0.1.9 (<workspace>\axiom-graphd\crates\graph-store)
+   Compiling graph-queue v0.1.9 (<workspace>\axiom-graphd\crates\graph-queue)
+   Compiling graph-analyze v0.1.9 (<workspace>\axiom-graphd\crates\graph-analyze)
+   Compiling axiom-graphd v0.1.9 (<workspace>\axiom-graphd\crates\axiom-graphd)
+    Finished `release` profile [optimized] target(s) in 2m 11s

@@ -1,11 +1,4 @@
-# axiom-graphd
-
-| Component | CLI Command | คำอ่าน | Responsibility |
-|---|---|---|---|
-| Axiom CLI | `axm` | แอ็กซ์-เอ็ม | Main CLI / Orchestrator |
-| Axiom Skills | `axsk` | แอ็กซ์-สกิล | Skills Manager |
-| Axiom Graph Engine | `axge` | แอ็กซ์-จี | Graph Engine |
-| Axiom MCP | `axmp` | แอ็กซ์-เอ็ม-พี | MCP Server / Gateway |
+# Axiom Graph Engine
 
 Rust daemon, durable queue, SQLite index, static analyzers, immutable
 publication engine and the `axiom` installation/operations CLI for the Axiom
@@ -15,33 +8,31 @@ Graph Ecosystem. Specification baseline: `2.0.0-draft.1`.
 immutable publication, CLI, bootstrap engine, installation, native lifecycle and
 safe updates. Bootstrap/CLI/daemon modules share one core release.
 
-## Workspace layout
+## Install and update
 
-```text
-Cargo.toml              workspace, shared dependency and lint policy
-rust-toolchain.toml     pinned toolchain (provisional - see the file header)
-deny.toml               dependency audit policy for `cargo deny check`
-crates/graph-core/      pure domain logic: errors/exit codes, path resolution, config,
-                        solution membership, trusted repository bindings
-crates/graph-store/     SQLite: patched-runtime gate, pragmas, ordered migrations,
-                        single writer actor, solution registration, inventory,
-                        graph rows, reverse index, backup, repair, unregister
-crates/graph-watch/     hint source: notify adapter, polling fallback, normalization,
-                        ignore/secret policy, debounce, dirty generations, inventory,
-                        recovery, config invalidation, read-only Git observation
-crates/graph-queue/     durable job queue: enqueue, claim, heartbeat, ack, scheduling,
-                        budget, retry, cancel, recovery, pressure, freshness barrier
-crates/graph-analyze/   static analysis: parser adapter and grammar registry, project
-                        manifests, C#/TypeScript declarations, stable symbol ids
-crates/axiom-graphd/    daemon/CLI: instance lock, lifecycle, diagnostics, version,
-                        changed-file hints and queue inspection commands
-docs/                   engine, CLI, installation and operations documentation
+Use the [Axiom installer](https://github.com/orchex006/axiom-cli#install-and-update)
+for a complete prebuilt runtime. After installation:
+
+```powershell
+axm version
+axm doctor
+axm update
 ```
 
-`graph-core` is platform- and I/O-independent so it can be unit tested anywhere;
-native adapters (`UserDirs`, `CrossProcessGuard`, `AtomicPublisher`,
-`WatchBackend`, `PathIdentity`, `ExecutableLocator`) stay behind narrow
-interfaces inside these crates (CP-02).
+## Create and query a graph
+
+Register your solution/projects using the [command reference](docs/reference/axiom-graphd.md),
+then build and watch using `axge`. In an agent with the development workflow plugin,
+use `$axsk build`, `$axsk watch` and `$axsk ask ...`; earlier plugin versions retain
+their original skill names. The [getting started guide](https://github.com/orchex006/axiom-skills/blob/main/docs/GETTING-STARTED.md)
+covers host onboarding and authenticated MCP access. Multiple registered projects
+can be queried through the same gateway, with separate provenance across solutions.
+
+Scoped builds in this development branch also advance the complete solution catalog, retaining verified unselected project generations. This corrects stale cross-project queries after a single-project build; published 0.1.9 is unchanged.
+
+The engine analyzes source and publishes graph datasets. `axmp` serves those
+datasets through the local API/MCP service. The gateway's bounded cache does not
+create a second graph writer. See [local gateway lifecycle](https://github.com/orchex006/axiom-mcp/blob/main/docs/local-gateway.md).
 
 ## Public command readiness
 
@@ -75,3 +66,31 @@ toolchain (`cargo generate-lockfile`) and commit it; every other command uses
 ## Native scope
 
 Windows x64, Linux x64 and Mac Intel are the required READY lanes. Mac ARM is deferred. Existing older native/candidate evidence remains historical; fresh GitHub source-bound reports govern current READY.
+
+## Workspace layout
+
+```text
+Cargo.toml              workspace, shared dependency and lint policy
+rust-toolchain.toml     pinned toolchain (provisional - see the file header)
+deny.toml               dependency audit policy for `cargo deny check`
+crates/graph-core/      pure domain logic: errors/exit codes, path resolution, config,
+                        solution membership, trusted repository bindings
+crates/graph-store/     SQLite: patched-runtime gate, pragmas, ordered migrations,
+                        single writer actor, solution registration, inventory,
+                        graph rows, reverse index, backup, repair, unregister
+crates/graph-watch/     hint source: notify adapter, polling fallback, normalization,
+                        ignore/secret policy, debounce, dirty generations, inventory,
+                        recovery, config invalidation, read-only Git observation
+crates/graph-queue/     durable job queue: enqueue, claim, heartbeat, ack, scheduling,
+                        budget, retry, cancel, recovery, pressure, freshness barrier
+crates/graph-analyze/   static analysis: parser adapter and grammar registry, project
+                        manifests, C#/TypeScript declarations, stable symbol ids
+crates/axiom-graphd/    daemon/CLI: instance lock, lifecycle, diagnostics, version,
+                        changed-file hints and queue inspection commands
+docs/                   engine, CLI, installation and operations documentation
+```
+
+`graph-core` is platform- and I/O-independent so it can be unit tested anywhere;
+native adapters (`UserDirs`, `CrossProcessGuard`, `AtomicPublisher`,
+`WatchBackend`, `PathIdentity`, `ExecutableLocator`) stay behind narrow
+interfaces inside these crates (CP-02).

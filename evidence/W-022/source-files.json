@@ -1,0 +1,8 @@
+{
+  "Changelog.md": "4a34dba7f764db498fb4245c96365c7e6d45d408a18f3ec8f5dc6192ffda0000",
+  "Development.md": "81a04b586a5866f6e0b423f694816a6ec691877ecd4954c46aa7422e9a2fc4f7",
+  "README.md": "d3f7680caba39f7416e8a244f1c9e4907719dc6f77eab8c9d0da66b73bb88323",
+  "crates/axiom-graphd/src/serve.rs": "6fc1a5e99851cdc150c5b6111d652f2b3efe035c3eab978c7d6d2f4692cb04f5",
+  "crates/axiom-graphd/tests/workflow_facade.rs": "bd75b2a25a75e18d5872247b702b25428565625d891ed0e3eb3b7e6bc2c54087",
+  "spec.lock.json": "b21d77e0b41f0c0db9bb512bcaa88dbaefbc555566a8e35854d35e84a57c4a9f"
+}
