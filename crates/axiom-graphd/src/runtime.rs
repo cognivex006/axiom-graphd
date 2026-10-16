@@ -209,7 +209,7 @@ pub fn load_bindings(home: &AxiomHome) -> Result<Vec<LocalBinding>, AxiomError> 
     let document = std::fs::read_to_string(&path).map_err(|error| {
         AxiomError::new(
             ErrorCode::ConfigInvalid,
-            "project roots cannot be resolved: the machine-local bindings document is required",
+            "project roots cannot be resolved: the machine-local bindings document is required. Register the project folders first: `axge solution register --config solution.json --bindings bindings.json --dry-run`, review the plan, then repeat with --apply. Registration saves config/bindings.json in the selected Axiom home. See the native setup guide in `axge --help`.",
         )
         .with_detail("rule", "bindings-document-missing")
         .with_detail("path", path.to_string_lossy())

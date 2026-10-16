@@ -1,8 +1,9 @@
 # Multiple-project Solutions
 
 Owner: `axiom-graphd`. Spec baseline: `2.0.0-draft.1`. This guide describes the
-intended V2 behavior of the engine and CLI. It is documentation, not evidence
-that a compiled daemon, installer or service exists.
+portable solution concepts. For the current native registration document and
+installed commands, use the [native quick start](../21-INSTALLATION-QUICKSTART.md).
+The fuller portable model below is separate from that concise CLI input.
 
 ## 1. What a Solution is
 
@@ -115,13 +116,13 @@ Rules:
   binding; the portable config and every published generation digest are
   unchanged.
 
-## 5. Operator flow (target interface)
+## 5. Registration and inspection
 
 ```bash
 axge solution register --config .axiom/config/solutions/demo-solution.json --bindings <machine-local-bindings> --dry-run
 axge solution register --config .axiom/config/solutions/demo-solution.json --bindings <machine-local-bindings> --apply
 axge solution list --json
-axge reconcile --solution demo-solution --scope full --wait --timeout 30s --json
+axge build --solution demo-solution --json
 axge status --solution demo-solution --json
 ```
 
@@ -163,7 +164,7 @@ and no file, so an accepted document is the only source of the cross-service
 join. The L3 HTTP join consumes that map through
 `SolutionMapping::from_registered_aliases(registered.l3_aliases())`; its alias
 table is private and has no mutator, so a host cannot be resolved by a table a
-caller built by hand. The registration CLI, the installer and the service lifecycle are separate
-graphd tasks; until they ship, this guide documents the intended interface and
-the invariants the engine already enforces. See `docs/13-SQLITE-QUEUE-AND-RECONCILIATION.md` for the
+caller built by hand. Native registration is available through `axge solution`;
+installation is managed by the distribution owner through `axm`.
+See `docs/13-SQLITE-QUEUE-AND-RECONCILIATION.md` for the
 durable-state contract and `docs/21-INSTALLATION.md` for the install runbook.

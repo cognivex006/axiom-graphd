@@ -2,11 +2,11 @@
 
 Owner: `axiom-graphd`. Spec baseline: `2.0.0-draft.1`. Implementation/release evidence is not implied.
 
-This reference documents the `axiom-graphd` foreground command line as it is
-implemented in this revision, and labels every command and flag that belongs to a
-later work package as **proposed / not implemented**. The generating source is
-`crates/axiom-graphd/src/cli.rs` (`parse`, `usage`, `exit_code_table`) and
-`crates/axiom-graphd/src/version.rs`.
+This reference covers the installed `axge` foreground commands. Start with the
+[native quick start](../21-INSTALLATION-QUICKSTART.md) for registration, local
+folder bindings and the first graph. `axm` owns installation and runtime updates.
+Older captured example responses below retain their original development versions;
+run `axge version --json` for the actual installed component identity.
 
 The frozen process exit table and the error-code-to-exit-code table are **single
 sourced** in [CLI-EXIT-CODES](../CLI-EXIT-CODES.md) and are not copied here, so
@@ -31,12 +31,12 @@ rejects or cannot complete it.
 | serve | available | Takes the instance lock, reconciles registered solutions, then polls for source changes until cooperative signal drain. |
 | status | available | `status --solution <id>` executes against the open store and prints queue, freshness and coverage state. |
 | solution | available | `solution register\|list\|remove` executes against the registry in the open store. |
-| changed | available | Wired in task H-001: accepts the explicit-hint and `--from-json` forms and answers `NOT_READY`. |
+| changed | available | Validates registered source hints and records durable work for the native writer. |
 | queue | available | `queue list\|retry\|cancel` executes against the operational queue in the open store. |
 | reconcile | available | Runs the same bounded pass as `serve` for one solution (or one project) and returns its report. |
 | query | available | `query context\|impact` executes against a pinned published generation. |
 | render | available | `render --solution <id> [--project <id>]... --out <dir>` writes a deterministic `result.html` and `summary.json` for a published generation (task H-005). |
-| update | available | Wired in task H-001: accepts `update check\|apply` and answers `NOT_READY`. |
+| update | available | Delegates to the trusted same-release orchestrator, with actual missing-peer and approval refusals. |
 | install | proposed | Not accepted by `parse`; belongs to the installation work package. |
 | service | proposed | Not accepted by `parse`; belongs to the native lifecycle work package. |
 | bootstrap | proposed | Not accepted by `parse`; belongs to the bootstrap work package. |
@@ -47,11 +47,10 @@ rejects or cannot complete it.
 binding; it does not mean every verb is complete. Task H-002 bound `serve`,
 `solution`, `status`, `doctor`, `reconcile`, `queue` and `query` to the store,
 registry, queue and pinned-generation pipeline, and task H-005 bound `render` to
-that same pinned-generation reader. Two verbs remain wired but not implemented:
-`changed` and `update` accept their full documented argument surface and then
-answer `NOT_READY` (exit 4) with one stable reason that names the binding they
-still need. Sections 8 and 13 describe those two; the remaining sections describe
-the implemented verbs, their accepted forms and their behaviour.
+that same pinned-generation reader. `changed` records durable pending hints;
+`update` delegates to the trusted runtime orchestrator. Missing registration,
+bindings, source, published data or a required peer remain explicit errors.
+Sections 8 and 13 describe those boundaries.
 
 Global arguments:
 
@@ -149,7 +148,7 @@ axiom-graphd -V
 | Property | Meaning |
 | -------- | ------- |
 | `component` | Reporting component. Only the seven frozen component names are accepted. |
-| `version` | Workspace core version; currently `0.0.0-dev`, never a placeholder. |
+| `version` | Installed core version reported by the binary; older captured examples may show a development version. |
 | `spec_version` | Specification baseline this build implements. |
 | `graph_schema`, `control_api`, `queue_schema` | Independent contract versions. |
 | `build_revision` | Injected 40-character build commit, or `unknown` when not injected. |
@@ -348,17 +347,13 @@ axge changed --solution <id> --from-json <changes.json>
   or `--from-json <changes.json>`. Omitting both forms is a rejection, as is an
   unknown `--reason` value or a path that is not a repository-relative path
   (`--path a\b.cs` is rejected).
-- Behaviour: accepts both documented forms, then answers `NOT_READY`. The verb
-  validates the hint without recording it, because the verified change-hint path
-  has no open store binding in this build. It is a wired slice (task H-001), not
-  an implemented one.
-- Exit codes: `4` (`NOT_READY`) with the reason that the verified change-hint
-  path has no open store binding. A malformed hint is `2` (`VALIDATION_ERROR`).
-  With `--json`, stdout is exactly the error envelope; in text mode stdout stays
-  empty and the reason goes to stderr.
-- Failure recovery: the change-hint binding is owned by a later work package.
-  Until it lands, treat a file change as a full reconcile scope rather than a
-  targeted hint. Never re-send a rejected hint unchanged; fix the named flag.
+- Behaviour: validates registered scope and source bytes, then records a durable
+  changed-file intent. The native writer consumes it on its next pass. Acceptance
+  means pending work, rather than proof of a fresh published generation.
+- Invalid paths, unknown projects, unavailable source or stale state report their
+  actual refusal. A malformed hint is `2` (`VALIDATION_ERROR`).
+- Use `axge status --solution <id>` to inspect progress. Correct the named scope or
+  path before resubmitting a rejected hint.
 
 ## 9. `reconcile`
 

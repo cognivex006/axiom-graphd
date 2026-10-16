@@ -197,6 +197,16 @@ Commands:
 Options:
   --json    write exactly one JSON object to stdout; diagnostics go to stderr
 
+First graph:
+  Create a solution configuration and local repository bindings, then run:
+  axge solution register --config solution.json --bindings bindings.json --dry-run
+  axge solution register --config solution.json --bindings bindings.json --apply
+  axge solution list
+  axge build --solution <id>
+  axge watch
+  Native setup guide (no compiler required):
+  https://github.com/orchex006/axiom-graphd/blob/main/docs/21-INSTALLATION-QUICKSTART.md
+
 ";
 
 /// The frozen exit-code table, rendered from [`ExitCode`] itself.
@@ -232,7 +242,7 @@ pub fn exit_code_summary() -> String {
 #[must_use]
 pub fn usage() -> String {
     let mut text = String::from(USAGE);
-    text.push_str("Operator slices (task H-001):\n");
+    text.push_str("Operator commands:\n");
     for slice in OPERATOR_SLICES {
         text.push_str(&format!("  {}\n", slice.verb));
         for form in slice.forms {
@@ -782,7 +792,12 @@ fn parse_verb(verb: &str, tokens: &mut Tokens) -> Result<Command, AxiomError> {
             Ok(Command::Watch { registry })
         }
         "build" => {
-            let solution = tokens.required("--solution", "build")?;
+            let solution = tokens.take("--solution").ok_or_else(|| {
+                AxiomError::new(
+                    ErrorCode::ValidationError,
+                    "build requires --solution <id>; run `axge solution list` to find registered IDs. For a new project, first run `axge solution register --config solution.json --bindings bindings.json --dry-run`, review it, then repeat with --apply. See the native setup guide in `axge --help`.",
+                )
+            })?;
             validate_identifier(&solution, "--solution", "build")?;
             let project = tokens.take("--project");
             if let Some(id) = &project {

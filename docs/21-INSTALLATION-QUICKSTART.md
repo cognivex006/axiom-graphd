@@ -1,43 +1,109 @@
-# Native installation and quick start — V2
+# First graph with the installed runtime
 
-Owner: axiom-graphd. **Intended command contract; no downloadable runtime release is included in this specification.**
+Install the [prebuilt Axiom runtime](https://github.com/orchex006/axiom-cli#install-and-update),
+then run `axm version` and `axm doctor`. The following steps use `axge` directly;
+you do not need Cargo, Rust, Docker or a source build of Axiom.
 
-## Distribution
+## 1. Name the solution and select source folders
 
-Publish an archive per required platform containing the `axiom` CLI and `axiom-graphd` daemon from the same core version. Windows uses `.exe`; Linux/macOS executable permissions are preserved. Verify trusted release provenance/signature and artifact hash before unpacking to a user-writable install directory. Do not suggest `curl | sh`, root installation, Gatekeeper bypass, or a global PATH change as a prerequisite. Python MCP uses a separate locked environment and official SDK; a user may use direct JSON without installing MCP.
+Open a terminal in your code repository. Save this native registration document
+as `solution.json` if that file does not already exist; otherwise choose a new
+filename and use it in the commands below. Use your own solution, repository and
+project IDs when a registration already exists.
 
-## Foreground first
+<!-- BEGIN NATIVE QUICKSTART CONFIG -->
+```json
+{
+  "id": "my-app",
+  "profile": "default",
+  "catalog_host_repo": "my-app-repo",
+  "projects": [
+    { "id": "app", "repo_id": "my-app-repo", "path": "." }
+  ]
+}
+```
+<!-- END NATIVE QUICKSTART CONFIG -->
 
-Invoke the program directly from its installation directory. On PowerShell the call operator supports a quoted executable path:
+`my-app` is the Axiom solution ID used by later commands. A `.sln` or `.csproj`
+filename is not automatically an Axiom solution registration. Here `path: "."`
+selects source beneath this repository; use a relative subfolder such as `src`
+to narrow the project. For multiple projects, declare disjoint source folders.
+Build outputs and generated graph files are excluded by the engine.
 
-```powershell
-& "C:\Users\Example\Apps\Axiom\axiom.exe" version
-& "C:\Users\Example\Apps\Axiom\axiom-graphd.exe" serve
+If an older installed binary rejects the whole-repository path `.`, select an
+existing source subfolder before registering, or use a runtime containing the
+whole-repository root correction described in the changelog.
+
+## 2. Bind the repository ID to this machine's folder
+
+Save `bindings.json` in a private local folder, using the absolute path to your
+repository. This example path must be changed to your own existing folder:
+
+```json
+{
+  "bindings": {
+    "my-app-repo": "D:/projects/my-app"
+  }
+}
 ```
 
-On Linux/macOS invoke the native program using an absolute or `./` path:
+Use an absolute local path on Windows, Linux or macOS. Windows paths can use `/`
+as shown. Keep this file out of Git: it contains local
+machine paths. The key must match `repo_id` in `solution.json`.
 
-```sh
-./axiom version
-./axiom-graphd serve
+## 3. Preview and register
+
+Run these commands with the actual paths to the two files you created:
+
+```text
+axge solution register --config solution.json --bindings bindings.json --dry-run
+axge solution register --config solution.json --bindings bindings.json --apply
+axge solution list
 ```
 
-Shell snippets illustrate invocation only. Internally use an executable path plus argv; do not require Bash to execute core operations. Ctrl+C requests bounded graceful shutdown, not queue deletion. `axm engine doctor` reports native target, effective state root, bundled SQLite version, filesystem capabilities, service availability and missing release evidence.
+Review the dry-run output before applying. Registration persists the folder
+bindings in `config/bindings.json` under your Axiom home, so subsequent commands
+use the same folders. Default Windows home is `%LOCALAPPDATA%\Axiom`;
+`AXIOM_HOME` selects a different private home when explicitly set. Use the same
+home for register, build and watch. Registration preserves other bindings and
+refuses a conflicting rebind.
 
-## Workspace setup
+## 4. Build, inspect and query
 
-Create the portable solution definition from the pinned config schema; `axge solution register --config <file> --bindings <file> --dry-run` previews registration, followed by explicitly approved `--apply`. Bind each logical repo ID to a native absolute checkout path through local bindings. `axm bootstrap plan` presents all managed-file changes; `axm bootstrap apply --plan <file> --approve-digest <sha256>` verifies the approved plan, ownership hashes and unchanged baseline before writing. Re-running must be idempotent. Preserve existing AGENTS.md text and fail on stale plans or human modifications inside a managed block. Exact argv/options are governed by the CLI/control contract in the pinned spec.
+```text
+axge build --solution my-app
+axge status --solution my-app --json
+axge query context --solution my-app --symbol MyNamespace.MyClass --json
+axge export --solution my-app --out graph-export --format html --json
+```
 
-`AXIOM_HOME` overrides private per-user state. Default local paths: Windows `%LOCALAPPDATA%\Axiom`, Linux `${XDG_STATE_HOME:-$HOME/.local/state}/axiom`, macOS `$HOME/Library/Application Support/Axiom`. Do not put SQLite, credentials or native absolute bindings into committed `.axiom` files. Use separate state per OS user/installation context; refuse a live store on a network/sync filesystem.
+Replace `MyNamespace.MyClass` with a symbol in your source. Build finishes after
+publishing the graph. The generated data is under
+`.axiom/graph/my-app/` in the bound repository. Export requires a new destination;
+choose another name if `graph-export` already exists.
 
-## Opt-in startup
+The current analysis profile reports declarations and containment. It does not
+claim complete method-call relationships or runtime behavior.
 
-Windows: a current-user scheduled task at logon. Linux: a user systemd unit when available; foreground mode remains supported without systemd. macOS: a current-user LaunchAgent. No startup registration happens merely because graph indexing is enabled. All wrappers call the same foreground daemon entrypoint, use absolute executable paths, protect token locations and have native start/stop/status/unregister tests. A Windows machine-wide Service is an optional later adapter, not the baseline.
+## 5. Keep watching when wanted
 
-## Upgrade and uninstall
+```text
+axge watch
+```
 
-Preview verified component updates, stop affected writers, preserve durable queue/state and recover a transactional update journal. Core executable replacement occurs only after the relevant processes stop. Validate compatibility and install health before removing rollback artifacts. Uninstall removes only owned executables/startup entries by default; workspace data, checkpoints and private state require separate explicit deletion approval. Never recursively delete `.axiom` or `.agrimap-agent`.
+Watch stays in the foreground and processes registered projects as source changes.
+Ctrl+C requests shutdown. `axge serve` is the lower-level foreground daemon entry;
+it also requires registration and folder bindings first. Run one writer for the
+selected Axiom home; stop an existing watcher before running a separate build.
 
-## Evidence gate
+## If setup is missing
 
-Run install, native foreground, bootstrap repeat/stale-plan, watcher fallback, snapshot-reader race, crash recovery, migration and update/rollback tests on each required OS/architecture. Cross-compiling and spec unit tests are insufficient. No platform is certified by this guide.
+| Message | Next step |
+|---|---|
+| `build requires --solution` | Run `axge solution list`, then pass the ID with `--solution`; register first if the list is empty. |
+| `machine-local bindings document is required` | Complete steps 2 and 3 in the same Axiom home before build/watch/serve. |
+| Repository root does not exist | Correct the absolute folder in the local bindings file and preview registration again. |
+| Existing binding conflicts | Check the existing registration and selected Axiom home; do not overwrite another project's binding. |
+
+See the [command reference](reference/axiom-graphd.md) for additional flags and
+the [workflow guide](workflow-commands.md) for graph publication details.

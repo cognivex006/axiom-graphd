@@ -1,6 +1,10 @@
 # axiom-graphd documentation
 
-These guides are owned and released with `axiom-graphd`. They describe intended behavior, not a completed runtime. Resolve cross-component normative references through the pinned `axiom-specs` revision; pack-relative references are conveniences inside the distribution only.
+These guides are owned and released with `axiom-graphd`. Start with the
+[native quick start](21-INSTALLATION-QUICKSTART.md) for the installed commands,
+solution registration, local folder bindings and first graph. Source build and
+engineering contracts are separate from that user workflow. Resolve shared
+normative references through the pinned `axiom-specs` revision.
 
 - [13-SQLITE-QUEUE-AND-RECONCILIATION](13-SQLITE-QUEUE-AND-RECONCILIATION.md)
 - [15-STATIC-ANALYSIS-COVERAGE](15-STATIC-ANALYSIS-COVERAGE.md)
@@ -21,4 +25,4 @@ Platform install runbooks and the command reference:
 
 Shared storage/wire/layout contracts are canonical in axiom-specs. Do not create a local editable copy of them. A published site can aggregate documentation from immutable revisions without an extra repository.
 
-- [Workflow commands](workflow-commands.md) — unreleased build/watch/export and measured cycles.
+- [Workflow commands](workflow-commands.md) — build/watch/export and measured cycles.

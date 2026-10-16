@@ -13,7 +13,7 @@
 use std::collections::BTreeMap;
 
 use crate::error::{AxiomError, ErrorCode};
-use crate::paths::{is_absolute_host_path, is_portable_id, validate_portable_relative_path};
+use crate::paths::{is_absolute_host_path, is_portable_id, validate_project_root_binding};
 
 /// Upper bound on configured local bindings.
 pub const MAX_BINDINGS: usize = 1024;
@@ -231,7 +231,7 @@ pub fn resolve_project_root(
     relative: &str,
     probe: &dyn SymlinkProbe,
 ) -> Result<String, AxiomError> {
-    validate_portable_relative_path(relative)?;
+    validate_project_root_binding(relative)?;
     match probe.resolve(binding.resolved_root(), relative) {
         ProbeOutcome::Inside(resolved) => Ok(resolved),
         ProbeOutcome::Escape(resolved) => Err(AxiomError::new(
@@ -323,6 +323,13 @@ mod tests {
             "/srv/axiom/repo-a/src/App"
         );
         assert_eq!(
+            resolve_project_root(&resolved, ".", &NoSymlinkProbe).expect("whole repository"),
+            "/srv/axiom/repo-a"
+        );
+        for unsafe_path in ["..", "../outside", "./src", "src/.."] {
+            assert!(resolve_project_root(&resolved, unsafe_path, &NoSymlinkProbe).is_err());
+        }
+        assert_eq!(
             resolve_binding(&bindings, &catalog, "repo-b", &NoSymlinkProbe)
                 .expect_err("unbound id is never guessed")
                 .code(),
@@ -340,6 +347,14 @@ mod tests {
 
         let bindings = vec![LocalBinding::new("repo-a", "/srv/axiom/link")];
         let catalog = vec![CatalogRepoReference::new("repo-a")];
+        let resolved = resolve_binding(&bindings, &catalog, "repo-a", &NoSymlinkProbe)
+            .expect("trusted lexical fixture");
+        assert_eq!(
+            resolve_project_root(&resolved, ".", &EscapingProbe)
+                .expect_err("whole-repository roots still require containment")
+                .code(),
+            ErrorCode::Forbidden
+        );
         assert_eq!(
             resolve_binding(&bindings, &catalog, "repo-a", &EscapingProbe)
                 .expect_err("symlink escape")

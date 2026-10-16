@@ -2,14 +2,26 @@
 
 Owner: `axiom-graphd`. Spec baseline: `2.0.0-draft.1`. Implementation/release evidence is not implied.
 
-This runbook is the Windows x64 first-install procedure for the Axiom Graph
-Ecosystem core release (`axiom-graphd` daemon plus `axiom` operations CLI). It is
-a target contract with per-step availability, not a record of a completed
-install: this repository currently contains no released artifact (`VERSION` is
-`0.0.0-dev`), no installer, no installer CLI crate and no Windows
-install/run/uninstall evidence. Commands and per-command exit codes are
-single-sourced in [reference/axiom-graphd](../reference/axiom-graphd.md); the frozen
-process exit table is single-sourced in [CLI-EXIT-CODES](../CLI-EXIT-CODES.md).
+For the installed Windows runtime, use the
+[Axiom installer guide](https://github.com/orchex006/axiom-cli/blob/main/docs/INSTALL.md)
+from a normal user terminal. Open a new terminal after installation, then run:
+
+```text
+axm version
+axm doctor
+axge --help
+```
+
+Continue with the [native quick start](../21-INSTALLATION-QUICKSTART.md) for the
+solution and local bindings documents, registration, build, query and watch.
+End users do not need Cargo, Rust, WSL, Docker or a separately installed Python.
+`axge serve` starts the daemon; register the source folders before starting it.
+
+## Historical development runbook
+
+The availability rows and target procedures below preserve the earlier
+development milestone. Their pending states and version numbers are historical;
+use the current installer and native quick start above for normal operation.
 
 Do not read a `pending` row below as "runs with a warning"; it means the step has
 no implementation in the pinned revision and cannot be executed at all.

@@ -21,6 +21,11 @@ axm update
 
 ## Create and query a graph
 
+Start with the [native quick start](docs/21-INSTALLATION-QUICKSTART.md). It shows
+the exact solution and local bindings files, registration, first build, status,
+query and watch commands using the installed `axge` binary. No source checkout
+or Rust compiler is needed to use the engine.
+
 Register your solution/projects using the [command reference](docs/reference/axiom-graphd.md),
 then build and watch using `axge`. In an agent with the development workflow plugin,
 use `$axsk build`, `$axsk watch` and `$axsk ask ...`; earlier plugin versions retain
@@ -44,7 +49,7 @@ Native READY requires actual Windows x64, Linux x64 and Mac Intel executable and
 
 Host round-trip tests use a hermetic native MCP fixture peer and do not claim an installed licensed AI host was exercised. The adapter retains that distinction in its reports.
 
-## Build and verify
+## Developer source build and verification
 
 ```bash
 cargo fmt --all -- --check

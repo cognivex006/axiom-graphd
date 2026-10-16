@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Bug Fixes
+
+- Accept the documented whole-repository project root `.` during solution registration while retaining traversal-path refusals.
+- Explain how to register a solution and local folder bindings when build or daemon startup lacks setup, and include the first-graph commands in help.
+
+### Documentation
+
+- Replace the obsolete installation quick start with a tested installed-binary workflow for registration, build, query, export and watch. Separate developer Cargo checks from user setup.
+
 ## 0.1.11
 
 ### Chores

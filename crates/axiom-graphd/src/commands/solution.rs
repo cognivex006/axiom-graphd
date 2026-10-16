@@ -23,7 +23,8 @@ use std::collections::BTreeSet;
 use graph_core::bindings::{validate_bindings, LocalBinding};
 use graph_core::error::{AxiomError, ErrorCode};
 use graph_core::paths::{
-    is_absolute_host_path, is_portable_id, validate_portable_relative_path, WHOLE_REPO_BINDING,
+    is_absolute_host_path, is_portable_id, validate_portable_relative_path,
+    validate_project_root_binding, WHOLE_REPO_BINDING,
 };
 use rusqlite::{Connection, OptionalExtension};
 use serde::Serialize;
@@ -277,7 +278,7 @@ pub fn parse_config(document: &serde_json::Value) -> Result<SolutionDeclaration,
             .with_detail("rule", REASON_ABSOLUTE_SOURCE_PATH)
             .with_detail("project_id", &project_id));
         }
-        validate_portable_relative_path(&relative_path)?;
+        validate_project_root_binding(&relative_path)?;
         let generated = raw
             .get("generated_output_root")
             .and_then(serde_json::Value::as_str)

@@ -2,9 +2,29 @@
 
 Owner: `axiom-graphd`. Spec baseline: `2.0.0-draft.1`. Implementation/release evidence is not implied.
 
-## 0. สถานะปัจจุบัน
+## Installed runtime
 
-แพ็กนี้เป็น spec พร้อม referenceutilities **ไม่มี axiom-graphd.exe,productionaxiom,MCPwheel หรือ GitHubrelease ให้ติดตั้งตอนนี้** ขั้นตอน A รันได้กับแพ็ก ขั้นตอน B–F เป็น runbook เป้าหมายที่ SpecE/D ต้องทำให้จริงและทดสอบก่อน release
+Start with the [native quick start](21-INSTALLATION-QUICKSTART.md) and
+[Windows guide](guides/install-windows.md). Axiom ships prebuilt packages through
+the [distribution repository](https://github.com/orchex006/axiom-cli).
+
+```text
+axm version
+axm doctor
+axge solution register --config solution.json --bindings bindings.json --dry-run
+axge solution register --config solution.json --bindings bindings.json --apply
+axge build --solution <id>
+```
+
+The quick start supplies the two input documents. Graph use does not require
+Cargo or an Axiom source build. `axm` manages installation and runtime updates;
+`axge` analyzes registered source and publishes graphs.
+
+## Historical design and developer material
+
+Sections A onward preserve earlier specification-pack and implementation notes.
+Their development versions, reference utilities and readiness statements are
+historical. Use the current user procedures linked above for the installed runtime.
 
 ## A. ใช้ specification pack วันนี้
 

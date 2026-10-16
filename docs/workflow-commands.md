@@ -1,7 +1,8 @@
 # Graph workflow commands
 
-Unreleased feature-branch implementation; version remains 0.1.7. Inspect the
-installed `axge --help` before relying on commands absent from earlier releases.
+Build, watch and export are available in the 0.1.11 installed runtime. Start with
+the [native quick start](21-INSTALLATION-QUICKSTART.md) to register a solution and
+its local folders. Inspect `axge --help` when using an older installed release.
 
 ```text
 axge build --solution ID [--project ID] [--full] --json

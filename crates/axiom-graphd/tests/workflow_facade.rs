@@ -19,6 +19,121 @@ fn call(home: &Path, words: &[&str]) -> serde_json::Value {
 }
 
 #[test]
+fn native_quickstart_configuration_registers_builds_and_queries() {
+    let guide = include_str!("../../../docs/21-INSTALLATION-QUICKSTART.md").replace("\r\n", "\n");
+    let region = guide
+        .split("<!-- BEGIN NATIVE QUICKSTART CONFIG -->")
+        .nth(1)
+        .unwrap();
+    let json = region
+        .split("```json\n")
+        .nth(1)
+        .unwrap()
+        .split("```")
+        .next()
+        .unwrap();
+    let document: serde_json::Value = serde_json::from_str(json).unwrap();
+    for unsafe_path in ["..", "../outside", "./src", "src/.."] {
+        let mut invalid = document.clone();
+        invalid["projects"][0]["path"] = serde_json::json!(unsafe_path);
+        assert!(axiom_graphd::commands::solution::parse_config(&invalid).is_err());
+    }
+    let dir = tempfile::tempdir().unwrap();
+    #[cfg(not(windows))]
+    let root = std::fs::canonicalize(dir.path()).unwrap();
+    #[cfg(windows)]
+    let root = dir.path().to_path_buf();
+    let repo = root.join("repo");
+    std::fs::create_dir_all(&repo).unwrap();
+    let source = "namespace Quickstart;\npublic class NativeExample {\n public void Run() {}\n}\n";
+    std::fs::write(repo.join("Example.cs"), source).unwrap();
+    let config = root.join("solution.json");
+    std::fs::write(&config, serde_json::to_vec(&document).unwrap()).unwrap();
+    let bindings = root.join("bindings.json");
+    std::fs::write(
+        &bindings,
+        serde_json::to_vec(&serde_json::json!({"bindings":{"my-app-repo":repo}})).unwrap(),
+    )
+    .unwrap();
+    let home = root.join("home");
+    for mode in ["--dry-run", "--apply"] {
+        call(
+            &home,
+            &[
+                "solution",
+                "register",
+                "--config",
+                config.to_str().unwrap(),
+                "--bindings",
+                bindings.to_str().unwrap(),
+                mode,
+            ],
+        );
+        assert_eq!(
+            home.join("config/bindings.json").exists(),
+            mode == "--apply"
+        );
+    }
+    let built = call(&home, &["build", "--solution", "my-app"]);
+    assert!(built["published_generations"].as_u64().unwrap() > 0);
+    call(&home, &["status", "--solution", "my-app"]);
+    let context = call(
+        &home,
+        &[
+            "query",
+            "context",
+            "--solution",
+            "my-app",
+            "--symbol",
+            "Quickstart.NativeExample",
+        ],
+    );
+    assert!(context["records"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|record| { record["body"].to_string().contains("NativeExample") }));
+    let export = root.join("html-export");
+    let exported = call(
+        &home,
+        &[
+            "export",
+            "--solution",
+            "my-app",
+            "--out",
+            export.to_str().unwrap(),
+            "--format",
+            "html",
+        ],
+    );
+    assert_eq!(exported["format"], "html");
+    assert!(repo
+        .join(".axiom/graph/my-app/_catalog/live/current.json")
+        .is_file());
+    assert_eq!(
+        std::fs::read_to_string(repo.join("Example.cs")).unwrap(),
+        source
+    );
+}
+
+#[test]
+fn missing_setup_gives_native_registration_steps() {
+    let dir = tempfile::tempdir().unwrap();
+    for args in [vec!["build"], vec!["serve"]] {
+        let result = Command::new(env!("CARGO_BIN_EXE_axiom-graphd"))
+            .env("AXIOM_HOME", dir.path().join("empty-home"))
+            .args(args)
+            .arg("--json")
+            .output()
+            .unwrap();
+        assert!(!result.status.success());
+        let body: serde_json::Value = serde_json::from_slice(&result.stdout).unwrap();
+        assert!(body["message"].as_str().unwrap().contains("--bindings"));
+        assert!(body["message"].as_str().unwrap().contains("--apply"));
+    }
+}
+
+#[test]
 fn strict_facade_arguments_and_no_natural_language_shell() {
     use axiom_graphd::cli::{parse, Command as Parsed};
     for words in [
