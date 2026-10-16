@@ -28,7 +28,7 @@ their original skill names. The [getting started guide](https://github.com/orche
 covers host onboarding and authenticated MCP access. Multiple registered projects
 can be queried through the same gateway, with separate provenance across solutions.
 
-Scoped builds in this development branch also advance the complete solution catalog, retaining verified unselected project generations. This corrects stale cross-project queries after a single-project build; published 0.1.9 is unchanged.
+Version 0.1.10 scoped builds also advance the complete solution catalog, retaining verified unselected project generations. This corrects stale cross-project queries after a single-project build; immutable older releases retain their original behavior.
 
 The engine analyzes source and publishes graph datasets. `axmp` serves those
 datasets through the local API/MCP service. The gateway's bounded cache does not

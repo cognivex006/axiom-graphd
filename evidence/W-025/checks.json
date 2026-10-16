@@ -1,0 +1,85 @@
+[
+  {
+    "id": "format",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--",
+      "--check"
+    ],
+    "exit_code": 0,
+    "artifact": "evidence/W-025/format.txt",
+    "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  {
+    "id": "clippy",
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "artifact": "evidence/W-025/clippy.txt",
+    "sha256": "585f668fab2a8e8fdb500a02c29eefa0e0b517b481d9fbafb4badb67b6c4b4fa"
+  },
+  {
+    "id": "library-tests",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "axiom-graphd",
+      "--lib"
+    ],
+    "exit_code": 0,
+    "artifact": "evidence/W-025/library-tests.txt",
+    "sha256": "428a5ff957777094ed81e69721145fc34970d5c85d97c6c3d6a2b3ac6aaecaa9"
+  },
+  {
+    "id": "workflow-tests",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "axiom-graphd",
+      "--test",
+      "workflow_facade"
+    ],
+    "exit_code": 0,
+    "artifact": "evidence/W-025/workflow-tests.txt",
+    "sha256": "39cade85d990bb2e38c76a86f6d1cadfcd54e7c9dd4239da4e57e59f0dc07a76"
+  },
+  {
+    "id": "manifest-tests",
+    "command": [
+      "python",
+      "tests/core_manifest.py"
+    ],
+    "exit_code": 0,
+    "artifact": "evidence/W-025/manifest-tests.txt",
+    "sha256": "5af9cf190618408fbf46d049522f238891816b768ee71de88a5e1162173a75a8"
+  },
+  {
+    "id": "build",
+    "command": [
+      "cargo",
+      "build",
+      "--locked",
+      "--release",
+      "-p",
+      "axiom-graphd",
+      "-p",
+      "axiom-cli"
+    ],
+    "exit_code": 0,
+    "artifact": "evidence/W-025/build.txt",
+    "sha256": "e6e8c28e89bbbfaa5a9d1adb470d5ea5cbd0915bd077a6183db45ee0d389f77e"
+  }
+]
