@@ -119,9 +119,13 @@ fn native_quickstart_configuration_registers_builds_and_queries() {
 #[test]
 fn missing_setup_gives_native_registration_steps() {
     let dir = tempfile::tempdir().unwrap();
+    #[cfg(not(windows))]
+    let root = std::fs::canonicalize(dir.path()).unwrap();
+    #[cfg(windows)]
+    let root = dir.path().to_path_buf();
     for args in [vec!["build"], vec!["serve"]] {
         let result = Command::new(env!("CARGO_BIN_EXE_axiom-graphd"))
-            .env("AXIOM_HOME", dir.path().join("empty-home"))
+            .env("AXIOM_HOME", root.join("empty-home"))
             .args(args)
             .arg("--json")
             .output()
