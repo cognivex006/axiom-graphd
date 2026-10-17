@@ -84,6 +84,12 @@ jobs:
       - name: Build the exact core pair
         shell: bash
         run: cargo +1.85.0 build --locked --release -p axiom-cli -p axiom-graphd
+      - name: Product documentation and native example
+        shell: bash
+        run: |
+          python tools/check-doc-status.py
+          python tools/check-doc-status.py --self-test
+          python examples/first-graph/run_demo.py --engine target/release/axiom-graphd${{ matrix.extension }} --out "${{ runner.temp }}/first-graph-demo"
       - name: Native public commands and migration
         shell: bash
         env:

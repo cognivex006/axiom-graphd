@@ -44,8 +44,8 @@
   {
     "file": "owner-tests-final.txt",
     "raw_sha256": "d26908bcbb80c936c072df2aeaa9852f65f4ab88f56cc32d03ffeecfb82940be",
-    "recorded_sha256": "2a218e9f3a2b446cec284384575357e9119d28e6b7aef3d0319bc91d34fed17d",
-    "normalization": "repository path prefix replaced; LF canonicalized"
+    "recorded_sha256": "a51395697bd735027cf2b59e09fb585098a19825c9266880f07d90a7a3292aea",
+    "normalization": "repository path prefix replaced; LF canonicalized; trailing empty log lines removed"
   },
   {
     "file": "owner-tests.txt",

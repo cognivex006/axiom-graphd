@@ -1668,4 +1668,3 @@ test tests::canonical_paths_are_accepted_and_unified ... ok
 test tests::case_comparison_follows_the_host_filesystem ... ok
 
 test result: ok. 56 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
-
