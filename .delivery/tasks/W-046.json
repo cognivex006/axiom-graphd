@@ -1,0 +1,19 @@
+{
+  "task_id": "W-046",
+  "source_repo": "axiom-graphd",
+  "branch": "feature/w-046-core-012",
+  "source_revision": "6b06df39b1881c9d9b7dd3e945a05db275c61bfc",
+  "local_commit_sha": "6b06df39b1881c9d9b7dd3e945a05db275c61bfc",
+  "push_remote": "https://github.com/orchex006/axiom-graphd.git",
+  "verified_source_remote_branch_sha": "6b06df39b1881c9d9b7dd3e945a05db275c61bfc",
+  "delivery_state": "integrated",
+  "main_integration": "Source integrated and verified before the immutable tag",
+  "observed_at": "2026-10-17T13:07:22.186843+00:00",
+  "release": "v0.1.12",
+  "publication": "published_verified",
+  "release_url": "https://github.com/orchex006/axiom-graphd/releases/tag/v0.1.12",
+  "verified_published_assets": 14,
+  "native_source_ci": "https://github.com/orchex006/axiom-graphd/actions/runs/39029534536",
+  "verification": "Required owner checks, source/tag/download hashes and native publication gates passed. Full actual previous 0.1.11 upgrade/rollback and public latest native Mac Intel proof are retained by the publication coordinator.",
+  "note": "Historical source integration/publication observation. This receipt-only descendant changes no product bytes; final metadata commit is reported by the canonical coordinator."
+}
