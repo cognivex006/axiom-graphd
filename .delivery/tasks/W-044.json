@@ -1,0 +1,16 @@
+{
+  "task_id": "W-044",
+  "source_repo": "axiom-graphd",
+  "branch": "feature/w-044-product-documentation",
+  "source_revision": "303cd1a16c4d0afe938eee18b323a721d5707330",
+  "local_commit_sha": "303cd1a16c4d0afe938eee18b323a721d5707330",
+  "push_remote": "https://github.com/orchex006/axiom-graphd.git",
+  "verified_source_remote_branch_sha": "303cd1a16c4d0afe938eee18b323a721d5707330",
+  "delivery_state": "pushed",
+  "observed_at": "2026-10-17T02:54:20.471990+00:00",
+  "main_integration": "not_performed; inherited feature-only hold",
+  "canonical_checkout": "axiom-graphd/ on the task feature branch",
+  "verification": "1435 local Rust tests, format, clippy and paired release build passed. Editorial/negative checks and isolated native sample passed. Exact source CI passed all three native jobs, including docs and native example, audit and migration.",
+  "source_ci_url": "https://github.com/orchex006/axiom-graphd/actions/runs/38995748228",
+  "note": "Historical source-push observation. This receipt-only descendant changes no product or documentation bytes. No merge, version change, installation, tag or release."
+}

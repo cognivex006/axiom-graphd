@@ -1,0 +1,23 @@
+{
+  "task_id": "W-044",
+  "status": "done",
+  "source_revision": "303cd1a16c4d0afe938eee18b323a721d5707330",
+  "test_groups": 39,
+  "tests_passed": 1435,
+  "native_ci": "success",
+  "native_targets": [
+    "windows-x64",
+    "linux-x64",
+    "macos-x64"
+  ],
+  "demo_nodes": 9,
+  "demo_edges": 6,
+  "current_profile": "declarations and containment; no complete method call graph claim",
+  "limitations": [
+    "Mac ARM and separate WSL2 not run",
+    "Real licensed AI host sessions not tested",
+    "Main integration and publication remain deferred"
+  ],
+  "compatibility": "No production Rust behavior, public command/schema, dependencies or package version changed. Three test fixture includes point at contributor fixtures. Added CI doc/example verification.",
+  "rollback": "Revert task docs on a feature branch; no runtime or installed-state rollback needed."
+}
