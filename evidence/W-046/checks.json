@@ -1,0 +1,102 @@
+[
+  {
+    "id": "format",
+    "command": [
+      "cargo",
+      "+1.85.0",
+      "fmt",
+      "--all",
+      "--",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 1.048,
+    "artifact": "evidence/W-046/format.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "id": "clippy",
+    "command": [
+      "cargo",
+      "+1.85.0",
+      "clippy",
+      "--locked",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "seconds": 0.282,
+    "artifact": "evidence/W-046/clippy.txt",
+    "sha256": "2b34696728dc82b03cbf6311d7e3a6a41658bbde097834c3010a78bc82842c1a"
+  },
+  {
+    "id": "tests",
+    "command": [
+      "cargo",
+      "+1.85.0",
+      "test",
+      "--locked",
+      "--all-targets",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit_code": 0,
+    "seconds": 18.617,
+    "artifact": "evidence/W-046/tests.txt",
+    "sha256": "b48760d4d34b7db1a9a891c5c78f1ea68ac9af621a3f2783ed0d319a91781dcc"
+  },
+  {
+    "id": "build",
+    "command": [
+      "cargo",
+      "+1.85.0",
+      "build",
+      "--locked",
+      "--release",
+      "-p",
+      "axiom-graphd",
+      "-p",
+      "axiom-cli"
+    ],
+    "exit_code": 0,
+    "seconds": 0.146,
+    "artifact": "evidence/W-046/build.txt",
+    "sha256": "3997fc6790b8063b86c119e91f87ac7395ac6cf26135da637dcb229006bc32dc"
+  },
+  {
+    "id": "manifest",
+    "command": [
+      "python",
+      "tests/core_manifest.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.142,
+    "artifact": "evidence/W-046/manifest.txt",
+    "sha256": "e61b4d79168cb52d5b3cb5fb54f6aa193bb94162a66e1a7b42cf5c595a448421"
+  },
+  {
+    "id": "public-docs",
+    "command": [
+      "python",
+      "tools/check-doc-status.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.201,
+    "artifact": "evidence/W-046/public-docs.txt",
+    "sha256": "9c6267bb041b2496eabb9220f02274045e124b720248298e38c3f4260b28e49e"
+  },
+  {
+    "id": "docs-negative",
+    "command": [
+      "python",
+      "tools/check-doc-status.py",
+      "--self-test"
+    ],
+    "exit_code": 0,
+    "seconds": 0.083,
+    "artifact": "evidence/W-046/docs-negative.txt",
+    "sha256": "e5db9d50d8acdf0e891c81504043d9e9fff1ca8b6eba7649972e236d8cc30969"
+  }
+]

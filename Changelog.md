@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.12
+
 ### Bug Fixes
 
 - Accept the documented whole-repository project root `.` during solution registration while retaining traversal-path refusals.

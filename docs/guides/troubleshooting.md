@@ -20,7 +20,7 @@ automatically. Keep the error code and message when reporting a problem.
 | `build requires --solution` | Run `solution list`; pass an existing ID or complete the [quickstart](../21-INSTALLATION-QUICKSTART.md) |
 | Local bindings are required | Register with `--bindings bindings.json --dry-run`, then `--apply`, using the same Axiom home |
 | Repository root does not exist | Correct the absolute local path in the private bindings file |
-| Whole-repository `.` is rejected | On an older installed build, select an existing source subfolder; the root correction is currently prepared on the feature branch |
+| Whole-repository `.` is rejected | On an older installed build, select an existing source subfolder; whole-repository roots are supported from 0.1.12 |
 | Query returns no records | Check the fully qualified symbol, registered source folder, successful build and supported language |
 | Export destination already exists | Choose a new output directory; export does not overwrite an old snapshot |
 
