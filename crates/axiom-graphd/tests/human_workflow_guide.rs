@@ -37,7 +37,8 @@ use std::path::Path;
 use std::time::{Duration, Instant};
 
 /// The guide document, compiled in so the documentation cannot drift alone.
-const HUMAN_WORKFLOW_GUIDE: &str = include_str!("../../../docs/guides/human-workflow.md");
+const HUMAN_WORKFLOW_GUIDE: &str =
+    include_str!("../../../docs/development/guide-fixtures/human-workflow.md");
 
 const BEGIN: &str = "<!-- BEGIN HUMAN WORKFLOW EXAMPLE -->";
 const END: &str = "<!-- END HUMAN WORKFLOW EXAMPLE -->";

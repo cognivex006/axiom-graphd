@@ -1,0 +1,10 @@
+{
+  "exit_code": 2,
+  "body": {
+    "code": "VALIDATION_ERROR",
+    "message": "export requires a new output directory",
+    "retryable": false,
+    "details": {},
+    "request_id": null
+  }
+}

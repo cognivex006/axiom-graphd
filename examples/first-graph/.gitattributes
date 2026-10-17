@@ -1,0 +1,2 @@
+# Keep the recorded sample source bytes identical across native checkouts.
+source/**/*.cs text eol=lf

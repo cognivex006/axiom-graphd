@@ -37,7 +37,8 @@ use std::fs;
 use std::path::Path;
 
 /// The guide document, compiled in so the documentation cannot drift alone.
-const TROUBLESHOOTING_GUIDE: &str = include_str!("../../../docs/guides/troubleshooting.md");
+const TROUBLESHOOTING_GUIDE: &str =
+    include_str!("../../../docs/development/guide-fixtures/troubleshooting.md");
 
 const BEGIN: &str = "<!-- BEGIN TROUBLESHOOTING EXAMPLE -->";
 const END: &str = "<!-- END TROUBLESHOOTING EXAMPLE -->";

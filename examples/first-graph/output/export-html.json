@@ -1,0 +1,27 @@
+{
+  "artifacts": [
+    {
+      "bytes": 11033,
+      "name": "graph.json",
+      "sha256": "c0531f9cced56148309a5e2e345450bc2bc09e6b3e14dc0ed9592612ebf532e8"
+    },
+    {
+      "bytes": 9634,
+      "name": "result.html",
+      "sha256": "a81f6d15c9f1a9665b2f7ae08b92e44a9da3644f071ebee8d6d8bb6e2a839779"
+    },
+    {
+      "bytes": 8216,
+      "name": "summary.json",
+      "sha256": "dd16f5fffefc6362c4c4909068d0ea8b2c8b903bc15687ec399c4f788bcf811b"
+    }
+  ],
+  "catalog_generation_id": "613facfa8977508e057ca528cd334fb4be50761a46fdaa6576ff109cbb713415",
+  "completeness": "selected_projects",
+  "format": "html",
+  "generation_vector": {
+    "app": "70f6dae70771f5a8c40eab1dd869755c0b8449b38ee43c5bad5ca323f9358cd0"
+  },
+  "schema_version": 1,
+  "solution_id": "demo-shop"
+}

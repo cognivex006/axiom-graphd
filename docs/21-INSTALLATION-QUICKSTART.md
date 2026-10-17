@@ -1,8 +1,11 @@
-# First graph with the installed runtime
+# Quickstart: your first code graph
 
 Install the [prebuilt Axiom runtime](https://github.com/orchex006/axiom-cli#install-and-update),
 then run `axm version` and `axm doctor`. The following steps use `axge` directly;
 you do not need Cargo, Rust, Docker or a source build of Axiom.
+
+Want to try a known example first? [Run the store demo](../examples/first-graph/README.md)
+and open its included HTML output.
 
 ## 1. Name the solution and select source folders
 
@@ -81,6 +84,15 @@ Replace `MyNamespace.MyClass` with a symbol in your source. Build finishes after
 publishing the graph. The generated data is under
 `.axiom/graph/my-app/` in the bound repository. Export requires a new destination;
 choose another name if `graph-export` already exists.
+
+Open `graph-export/result.html` in your browser. The companion `summary.json`
+describes the rendered nodes and edges. The export result lists artifact names,
+sizes, checksums and the project generation used. See [exporting](guides/export.md)
+for sharing and interpreting these files.
+
+After a successful build, status should identify the solution and report its queue
+and graph state; a query for a known class should return that declaration. An empty
+result is a reason to check the symbol name, source folders and coverage.
 
 The current analysis profile reports declarations and containment. It does not
 claim complete method-call relationships or runtime behavior.

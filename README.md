@@ -1,101 +1,83 @@
 # Axiom Graph Engine
 
-Rust daemon, durable queue, SQLite index, static analyzers, immutable
-publication engine and the `axiom` installation/operations CLI for the Axiom
-Graph Ecosystem. Specification baseline: `2.0.0-draft.1`.
+Turn a source repository into a local, queryable code graph. Build a snapshot,
+keep it current as you edit, and share a diagram or structured JSON export.
 
-**Owner scope:** watching, reconciliation, durable queue, SQLite, analyzers,
-immutable publication, CLI, bootstrap engine, installation, native lifecycle and
-safe updates. Bootstrap/CLI/daemon modules share one core release.
+**[Quickstart](docs/21-INSTALLATION-QUICKSTART.md)** ·
+**[Try the demo](examples/first-graph/README.md)** ·
+**[Documentation](docs/README.md)** ·
+**[Command reference](docs/reference/axiom-graphd.md)**
 
-## Install and update
+## See what you get
+
+Open the [offline demo walkthrough](examples/first-graph/index.html) after downloading
+the example. The included store example starts with three small C# source files and produces
+a graph of their declarations and containment relationships.
+
+![Graph exported from the included store example](docs/images/first-graph.png)
+
+[Download and open the actual HTML diagram](examples/first-graph/output/html/result.html)
+in your browser, or [run the example yourself](examples/first-graph/README.md).
+GitHub displays HTML source; download the example or repository to view it.
+The diagram works offline and needs no account or running service.
+
+## Install
 
 Use the [Axiom installer](https://github.com/orchex006/axiom-cli#install-and-update)
-for a complete prebuilt runtime. After installation:
-
-```powershell
-axm version
-axm doctor
-axm update
-```
-
-## Create and query a graph
-
-Start with the [native quick start](docs/21-INSTALLATION-QUICKSTART.md). It shows
-the exact solution and local bindings files, registration, first build, status,
-query and watch commands using the installed `axge` binary. No source checkout
-or Rust compiler is needed to use the engine.
-
-Register your solution/projects using the [command reference](docs/reference/axiom-graphd.md),
-then build and watch using `axge`. In an agent with the development workflow plugin,
-use `$axsk build`, `$axsk watch` and `$axsk ask ...`; earlier plugin versions retain
-their original skill names. The [getting started guide](https://github.com/orchex006/axiom-skills/blob/main/docs/GETTING-STARTED.md)
-covers host onboarding and authenticated MCP access. Multiple registered projects
-can be queried through the same gateway, with separate provenance across solutions.
-
-Version 0.1.10 scoped builds also advance the complete solution catalog, retaining verified unselected project generations. This corrects stale cross-project queries after a single-project build; immutable older releases retain their original behavior.
-
-The engine analyzes source and publishes graph datasets. `axmp` serves those
-datasets through the local API/MCP service. The gateway's bounded cache does not
-create a second graph writer. See [local gateway lifecycle](https://github.com/orchex006/axiom-mcp/blob/main/docs/local-gateway.md).
-
-## Public command readiness
-
-All documented `axiom` forms dispatch to actual native adapters: bootstrap plan/apply/verify/update, host discovery/configuration/gateway verification, skills/specs version/check/approved update, diagnostics and redacted ZIP support artifacts. The existing installation, service, ecosystem update/rollback and immutable graph migration engines remain.
-
-Daemon `changed` validates registered source bytes and persists a durable pending intent; the native writer consumes it on its next bounded pass. Daemon `update` delegates to the same-release sibling executable with program/argv, identity and plan approval checks. A missing real installation/input/host, stale approval or unavailable peer still refuses with its actual reason; no current form has an unbuilt fallback.
-
-Native READY requires actual Windows x64, Linux x64 and Mac Intel executable and current migration proofs from GitHub Actions. Mac ARM is deferred. GitHub Releases distributes the checked core pair and SHA-256 values; no certification, signing or attestation prerequisite applies. Publication is a separate factual state and is not performed by adding CI.
-
-Host round-trip tests use a hermetic native MCP fixture peer and do not claim an installed licensed AI host was exercised. The adapter retains that distinction in its reports.
-
-## Developer source build and verification
-
-```bash
-cargo fmt --all -- --check
-cargo clippy --locked --all-targets -- -D warnings
-cargo test --locked --all-targets
-cargo deny check
-```
-
-The product compiler remains Rust 1.85.0. Dependency audit uses pinned cargo-deny 0.20.2 (a separate Rust 1.88 audit-tool build), so current CVSS advisories can be parsed. Record the actual audit-tool version; never silently skip an advisory parser failure.
-
-`Cargo.lock` is committed for binary crates. Generate it once with the pinned
-toolchain (`cargo generate-lockfile`) and commit it; every other command uses
-`--locked`.
-
-## Specification pin
-
-`spec.lock.json` binds an exact owner-approved immutable specification revision and contract digest rollup. Current public composition and release policy follow ADR-0030. Public CI verifies owner implementation and native artifact bytes; private specification-byte validation is recorded by the authorized local handoff.
-
-## Native scope
-
-Windows x64, Linux x64 and Mac Intel are the required READY lanes. Mac ARM is deferred. Existing older native/candidate evidence remains historical; fresh GitHub source-bound reports govern current READY.
-
-## Workspace layout
+to install the prebuilt runtime for Windows x64, Linux x64 or macOS Intel.
+Then open a new terminal:
 
 ```text
-Cargo.toml              workspace, shared dependency and lint policy
-rust-toolchain.toml     pinned toolchain (provisional - see the file header)
-deny.toml               dependency audit policy for `cargo deny check`
-crates/graph-core/      pure domain logic: errors/exit codes, path resolution, config,
-                        solution membership, trusted repository bindings
-crates/graph-store/     SQLite: patched-runtime gate, pragmas, ordered migrations,
-                        single writer actor, solution registration, inventory,
-                        graph rows, reverse index, backup, repair, unregister
-crates/graph-watch/     hint source: notify adapter, polling fallback, normalization,
-                        ignore/secret policy, debounce, dirty generations, inventory,
-                        recovery, config invalidation, read-only Git observation
-crates/graph-queue/     durable job queue: enqueue, claim, heartbeat, ack, scheduling,
-                        budget, retry, cancel, recovery, pressure, freshness barrier
-crates/graph-analyze/   static analysis: parser adapter and grammar registry, project
-                        manifests, C#/TypeScript declarations, stable symbol ids
-crates/axiom-graphd/    daemon/CLI: instance lock, lifecycle, diagnostics, version,
-                        changed-file hints and queue inspection commands
-docs/                   engine, CLI, installation and operations documentation
+axm version
+axm doctor
+axge --help
 ```
 
-`graph-core` is platform- and I/O-independent so it can be unit tested anywhere;
-native adapters (`UserDirs`, `CrossProcessGuard`, `AtomicPublisher`,
-`WatchBackend`, `PathIdentity`, `ExecutableLocator`) stay behind narrow
-interfaces inside these crates (CP-02).
+You do not need Rust, Cargo or an Axiom source build. Apple silicon packages
+are not currently available. See [installation](docs/21-INSTALLATION.md)
+for platform requirements and troubleshooting.
+
+## Your first graph
+
+Register a solution and its local source folders with the two small documents
+in the [quickstart](docs/21-INSTALLATION-QUICKSTART.md), then:
+
+```text
+axge build --solution my-app
+axge query context --solution my-app --symbol MyNamespace.MyClass --json
+axge export --solution my-app --out graph-export --format html --json
+```
+
+Open `graph-export/result.html` to explore the exported diagram. Replace the
+solution and symbol with your registered names; the output folder must be new.
+To refresh automatically while editing, run `axge watch` in a separate terminal.
+
+## Choose a workflow
+
+| You want to… | Start here |
+|---|---|
+| Try a complete example with known source and output | [First-graph demo](examples/first-graph/README.md) |
+| Index your own repository | [Quickstart](docs/21-INSTALLATION-QUICKSTART.md) |
+| Work across projects and repositories | [Solutions](docs/guides/solutions.md) |
+| Build, query, watch or share a graph | [Workflow guide](docs/workflow-commands.md) |
+| Use the graph from an AI coding agent | [Connect your agent](docs/guides/host-adapters.md) |
+| Understand an error or stale result | [Troubleshooting](docs/guides/troubleshooting.md) |
+
+## Understand the result
+
+The current build/watch profile extracts declarations and containment from
+supported C# and TypeScript source. It is useful for locating code and exploring
+structure. Complete method-call graphs, runtime dependency injection, reflection
+and dynamic behavior are outside that profile. Read [analysis coverage](docs/15-STATIC-ANALYSIS-COVERAGE.md)
+before using a missing edge to judge change impact.
+
+`axge` builds and exports graphs. `axm` manages installation and updates.
+`axmp` exposes published graphs to connected agents through the local gateway.
+[How the components fit together](docs/guides/packages.md) explains the distinction.
+
+## Contribute
+
+This repository contains the engine's production Rust source. The `crates/`
+directory holds its modules; it is needed to build the product. See the
+[developer guide](docs/development/README.md) for architecture, source builds,
+tests and verification records. [Changelog](Changelog.md).

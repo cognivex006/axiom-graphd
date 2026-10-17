@@ -1,0 +1,57 @@
+{
+  "cycle": {
+    "schema_version": 1,
+    "cycle_id": "20144-2026-10-17T02:36:11Z-2",
+    "operation": "build",
+    "status": "success",
+    "started_at": "2026-10-17T02:36:11Z",
+    "finished_at": "2026-10-17T02:36:11Z",
+    "processing_ms": 111,
+    "scan_ms": null,
+    "analyze_ms": null,
+    "validate_ms": null,
+    "publish_ms": null,
+    "queue_wait_ms": null,
+    "change_observed_to_publish_ms": null,
+    "unavailable_reason": "Phase, queue and source observation clocks are not instrumented; failure counts are unknown",
+    "files_changed": 3,
+    "files_analyzed": 3,
+    "nodes": 9,
+    "edges": 6,
+    "generation_before": {
+      "demo-shop/app": null
+    },
+    "generation_after": {
+      "demo-shop/app": "70f6dae70771f5a8c40eab1dd869755c0b8449b38ee43c5bad5ca323f9358cd0"
+    }
+  },
+  "instance_id": "default",
+  "solutions": 1,
+  "projects": 1,
+  "dirty_before": 0,
+  "dirty_after": 0,
+  "published_generations": 1,
+  "recoveries": [],
+  "outcomes": [
+    {
+      "solution_id": "demo-shop",
+      "project_id": "app",
+      "project_root": "<demo-workspace>/src",
+      "lane_root": "<demo-workspace>\\.axiom\\graph\\demo-shop\\app\\live",
+      "inventory_generation": 1,
+      "inventory_added": 3,
+      "inventory_changed": 0,
+      "inventory_deleted": 0,
+      "analyzed_files": 3,
+      "nodes": 9,
+      "edges": 6,
+      "published": true,
+      "generation_id": "70f6dae70771f5a8c40eab1dd869755c0b8449b38ee43c5bad5ca323f9358cd0",
+      "manifest_hash": "70f6dae70771f5a8c40eab1dd869755c0b8449b38ee43c5bad5ca323f9358cd0",
+      "current_generation": "70f6dae70771f5a8c40eab1dd869755c0b8449b38ee43c5bad5ca323f9358cd0",
+      "generation_before": null,
+      "coverage": "complete_for_profile"
+    }
+  ],
+  "shutdown": "Running"
+}

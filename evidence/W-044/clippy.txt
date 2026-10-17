@@ -1,0 +1,2 @@
+    Checking axiom-graphd v0.1.11 (<repository>\crates\axiom-graphd)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 9.36s

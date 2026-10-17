@@ -1,31 +1,20 @@
-# Local ecosystem lifecycle (ADR-0014 draft)
+# Runtime lifecycle
 
-The engine owns `$AXIOM_HOME/installs/ecosystem/current`, immutable versioned
-payloads and their activation journals. Distribution `installed.json` is a
-separate delivery record; it is not authority to delete engine files or change
-the running daemon.
+For routine installation and updates, use the public distribution manager:
 
-`axm engine uninstall plan --out plan.json` reviews recorded core and skill bundle
-files. `axm engine uninstall apply --plan plan.json --approve-digest <digest>`
-revalidates approval and ownership, removes the owned service first, then removes
-only unchanged recorded runtime files. Edited and undeclared files survive.
-Source, annotations, checkpoints, credentials and workspace instructions survive.
-Activation journals, skill manifests and uninstall reports remain as recovery
-evidence. The same approved transaction can be retried after interruption.
+```text
+axm version
+axm doctor
+axm update
+```
 
-The service interface operates the canonical per-user LaunchAgent label
-`com.axiom.axiom-graphd` on macOS. Its owned record includes the effective UID,
-exact definition hash and active pointer hash. Foreign definitions or labels
-are refused. Registration injects the scoped AXIOM_HOME into the daemon.
-Service mutation and installation/removal share the maintenance lock.
+The [distribution guide](https://github.com/orchex006/axiom-cli/blob/main/docs/INSTALL.md)
+documents options, uninstall, recovery and retained-version rollback. Review
+its plan before applying a change. Project source, local graph registration
+and host plugin state are distinct from the installed runtime payload.
 
-The local update entrypoint is `axm engine update plan --to <exact-version>
---bundle <directory> --out <plan.json>`. Apply requires its outer digest, which
-binds the inner verified ecosystem plan and prior active state. Update and
-rollback operate the engine pointer and coordinate an existing owned service.
-`axm engine update rollback --transaction <id>` addresses a recorded transaction,
-not an arbitrary path. Retained payload hashes are verified before restoration.
+Engine-level lifecycle commands are an advanced interface. Use only forms
+reported by the installed `axm engine --help`, with the exact plan and approval
+it requests. Preserve ownership records and changed human files during recovery.
 
-These are feature-branch development interfaces. Native evidence under
-`evidence/local-lifecycle-20260922/` states which executions actually passed.
-Local unsigned development artifacts are not released-core certification.
+[Updates](../guides/updates.md) · [Migration](../migration-runtime.md).

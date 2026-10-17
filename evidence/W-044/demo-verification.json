@@ -1,0 +1,16 @@
+{
+  "preview_svg_is_verbatim": true,
+  "source_files": {
+    "src/Order.cs": "fc40f287e18c7f430ab7c49c9ccf61fa117c5e980ae871b266f0a1a82311ba25",
+    "src/OrderRepository.cs": "a7ada4dee4d4407dd5cbef03c6bbb1484631dd20278ebd8fe5fdf2adb2e46f63",
+    "src/OrderService.cs": "da730ea332a33abbe6504726d5398e852f741278f5025ca327348fe0a43c7dc5"
+  },
+  "artifact_receipts_verified": true,
+  "nodes": 9,
+  "edges": 6,
+  "processing_ms": 111,
+  "generation_vector": {
+    "app": "70f6dae70771f5a8c40eab1dd869755c0b8449b38ee43c5bad5ca323f9358cd0"
+  },
+  "scope": "Native Windows x64 isolated sample; no installed-user state or release mutation"
+}

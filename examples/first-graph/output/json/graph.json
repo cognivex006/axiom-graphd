@@ -1,0 +1,322 @@
+{
+  "catalog_generation_id": "613facfa8977508e057ca528cd334fb4be50761a46fdaa6576ff109cbb713415",
+  "completeness": "selected_projects",
+  "freshness": "not_checked",
+  "generation_vector": {
+    "app": "70f6dae70771f5a8c40eab1dd869755c0b8449b38ee43c5bad5ca323f9358cd0"
+  },
+  "limits": [
+    "Static graph coverage is not semantic accuracy; out-of-scope and dynamic consumers remain unknown"
+  ],
+  "projects": [
+    {
+      "edges": [
+        {
+          "analyzer_id": "csharp-declarations-v1",
+          "evidence": [
+            {
+              "rule_id": "declaration-contains-v1",
+              "source": {
+                "end_line": 4,
+                "file": "src/OrderRepository.cs",
+                "start_line": 4
+              }
+            }
+          ],
+          "id": "22fffd2d401743f3b1ea12e1a93e43dcfbd900a7914a88779fffd48d23bc0a9d",
+          "kind": "CONTAINS",
+          "resolution": "exact_static",
+          "source_id": "d0b65650260be035be4b1ef1893d4ad5acc7cfbc1f0f850cf4afef135fdcbb62",
+          "target_id": "8f8b63d866c9b8a9d3c10553cf0d3cd6c432ec57a7314741ceedeee2d4c0b8c5",
+          "target_project_id": "app"
+        },
+        {
+          "analyzer_id": "csharp-declarations-v1",
+          "evidence": [
+            {
+              "rule_id": "declaration-contains-v1",
+              "source": {
+                "end_line": 3,
+                "file": "src/OrderService.cs",
+                "start_line": 3
+              }
+            }
+          ],
+          "id": "47937152a9a3cf4a0c652b89a63d2fe13048be7a0a9fcaf063c05fe15a3c5c49",
+          "kind": "CONTAINS",
+          "resolution": "exact_static",
+          "source_id": "ae992eaa1dbc8009977c0a0f59552271b8117f13f0e9b978985e3e92b729e393",
+          "target_id": "9568b971dd6e887c692a8c224e6d093568727d1d11e43c71783ef07c9cb14518",
+          "target_project_id": "app"
+        },
+        {
+          "analyzer_id": "csharp-declarations-v1",
+          "evidence": [
+            {
+              "rule_id": "declaration-contains-v1",
+              "source": {
+                "end_line": 8,
+                "file": "src/OrderService.cs",
+                "start_line": 8
+              }
+            }
+          ],
+          "id": "6e14ea66bea1ca45e0421376460706314530a9f14eddedbc9ce81c6c77a250cd",
+          "kind": "CONTAINS",
+          "resolution": "exact_static",
+          "source_id": "9568b971dd6e887c692a8c224e6d093568727d1d11e43c71783ef07c9cb14518",
+          "target_id": "5631b14c80783521d18aa25c90154ef7bacabcc0b2c81ce6c7ba9eb73a901b75",
+          "target_project_id": "app"
+        },
+        {
+          "analyzer_id": "csharp-declarations-v1",
+          "evidence": [
+            {
+              "rule_id": "declaration-contains-v1",
+              "source": {
+                "end_line": 3,
+                "file": "src/Order.cs",
+                "start_line": 3
+              }
+            }
+          ],
+          "id": "bf61737de2643fbb249197901718562330c3b96990ab0c6edff0a1fffc93d945",
+          "kind": "CONTAINS",
+          "resolution": "exact_static",
+          "source_id": "e0d49901f2e195905bc27c52be0aec6389a1d18d0189ca66e8fdbba81633c16a",
+          "target_id": "71054a704f060c9b3c469ca8a3416d52ea9dc9c788ac960bdcde076be8e6b585",
+          "target_project_id": "app"
+        },
+        {
+          "analyzer_id": "csharp-declarations-v1",
+          "evidence": [
+            {
+              "rule_id": "declaration-contains-v1",
+              "source": {
+                "end_line": 3,
+                "file": "src/OrderRepository.cs",
+                "start_line": 3
+              }
+            }
+          ],
+          "id": "cbc73ac76714b2b40850d597b2cd698a4aadb8aab582b00fb3d42331ae9ffb7e",
+          "kind": "CONTAINS",
+          "resolution": "exact_static",
+          "source_id": "83fdd2133b3be8870904b16992e7f2d7f4fb15cf5f5f1209d4a2c779303ea938",
+          "target_id": "d0b65650260be035be4b1ef1893d4ad5acc7cfbc1f0f850cf4afef135fdcbb62",
+          "target_project_id": "app"
+        },
+        {
+          "analyzer_id": "csharp-declarations-v1",
+          "evidence": [
+            {
+              "rule_id": "declaration-contains-v1",
+              "source": {
+                "end_line": 4,
+                "file": "src/OrderService.cs",
+                "start_line": 4
+              }
+            }
+          ],
+          "id": "fd609b6c2da370e0f7dc634b6f630c4ae1543647923650a08f10f6c0547eb5e4",
+          "kind": "CONTAINS",
+          "resolution": "exact_static",
+          "source_id": "9568b971dd6e887c692a8c224e6d093568727d1d11e43c71783ef07c9cb14518",
+          "target_id": "e3b3d5b513463afcecf4adc9c1dbc098a19db1334ef18aa19227a00465048310",
+          "target_project_id": "app"
+        }
+      ],
+      "generation_id": "70f6dae70771f5a8c40eab1dd869755c0b8449b38ee43c5bad5ca323f9358cd0",
+      "manifest": {
+        "analysis_profile": "default",
+        "analyzer_set_hash": "32011cc27189fe3cd4f7e601e69cbfcba6890977c0293d1ed0354bc242f0983a",
+        "config_fingerprint": "dc7318fde339ac6e830194e791ccc8ae2ac7d5c037be1153152ae0c948d70ae3",
+        "coverage": {
+          "input_files": 3,
+          "processed_files": 3,
+          "status": "complete_for_profile",
+          "unresolved_references": 0,
+          "unsupported_patterns": []
+        },
+        "dependency_fingerprint": "e6a91e1c81577191c6eb00ea5ee09223fd426263c12471087a0351022e6593e4",
+        "files": [
+          {
+            "bytes": 2758,
+            "path": "nodes/000000.json",
+            "records": 9,
+            "role": "nodes",
+            "sha256": "ec83e27079428d71e016ae16b525560b5ade0d585a55902deab3dfd988a012dd"
+          },
+          {
+            "bytes": 2773,
+            "path": "edges/000000.json",
+            "records": 6,
+            "role": "edges",
+            "sha256": "e5f4e752d9ad14accb4997b0e3096e7b742b5c7991dff81b498f27148b1a13e6"
+          },
+          {
+            "bytes": 122,
+            "path": "coverage.json",
+            "records": 1,
+            "role": "coverage",
+            "sha256": "9839e3c3929df2395e175448074136187906c613732309f3ed9b73fe28060be8"
+          }
+        ],
+        "generator_version": "0.1.11",
+        "project_id": "app",
+        "schema_version": 1,
+        "solution_id": "demo-shop",
+        "source_fingerprint": "c2f352596656109d886eb5d96058ea7be1a390d64351662345d4b598634e2e94"
+      },
+      "nodes": [
+        {
+          "attributes": {},
+          "id": "5631b14c80783521d18aa25c90154ef7bacabcc0b2c81ce6c7ba9eb73a901b75",
+          "identity_quality": "semantic_key",
+          "kind": "Method",
+          "language": "csharp",
+          "name": "IsValid",
+          "project_id": "app",
+          "qualified_name": "Demo.Shop.OrderService.IsValid",
+          "source": {
+            "end_line": 8,
+            "file": "src/OrderService.cs",
+            "start_line": 8
+          }
+        },
+        {
+          "attributes": {},
+          "id": "71054a704f060c9b3c469ca8a3416d52ea9dc9c788ac960bdcde076be8e6b585",
+          "identity_quality": "semantic_key",
+          "kind": "Class",
+          "language": "csharp",
+          "name": "Order",
+          "project_id": "app",
+          "qualified_name": "Demo.Shop.Order",
+          "source": {
+            "end_line": 3,
+            "file": "src/Order.cs",
+            "start_line": 3
+          }
+        },
+        {
+          "attributes": {},
+          "id": "83fdd2133b3be8870904b16992e7f2d7f4fb15cf5f5f1209d4a2c779303ea938",
+          "identity_quality": "semantic_key",
+          "kind": "Namespace",
+          "language": "csharp",
+          "name": "Demo.Shop",
+          "project_id": "app",
+          "qualified_name": "Demo.Shop#2",
+          "source": {
+            "end_line": 1,
+            "file": "src/OrderRepository.cs",
+            "start_line": 1
+          }
+        },
+        {
+          "attributes": {},
+          "id": "8f8b63d866c9b8a9d3c10553cf0d3cd6c432ec57a7314741ceedeee2d4c0b8c5",
+          "identity_quality": "semantic_key",
+          "kind": "Method",
+          "language": "csharp",
+          "name": "Find",
+          "project_id": "app",
+          "qualified_name": "Demo.Shop.OrderRepository.Find",
+          "source": {
+            "end_line": 4,
+            "file": "src/OrderRepository.cs",
+            "start_line": 4
+          }
+        },
+        {
+          "attributes": {},
+          "id": "9568b971dd6e887c692a8c224e6d093568727d1d11e43c71783ef07c9cb14518",
+          "identity_quality": "semantic_key",
+          "kind": "Class",
+          "language": "csharp",
+          "name": "OrderService",
+          "project_id": "app",
+          "qualified_name": "Demo.Shop.OrderService",
+          "source": {
+            "end_line": 3,
+            "file": "src/OrderService.cs",
+            "start_line": 3
+          }
+        },
+        {
+          "attributes": {},
+          "id": "ae992eaa1dbc8009977c0a0f59552271b8117f13f0e9b978985e3e92b729e393",
+          "identity_quality": "semantic_key",
+          "kind": "Namespace",
+          "language": "csharp",
+          "name": "Demo.Shop",
+          "project_id": "app",
+          "qualified_name": "Demo.Shop#3",
+          "source": {
+            "end_line": 1,
+            "file": "src/OrderService.cs",
+            "start_line": 1
+          }
+        },
+        {
+          "attributes": {},
+          "id": "d0b65650260be035be4b1ef1893d4ad5acc7cfbc1f0f850cf4afef135fdcbb62",
+          "identity_quality": "semantic_key",
+          "kind": "Class",
+          "language": "csharp",
+          "name": "OrderRepository",
+          "project_id": "app",
+          "qualified_name": "Demo.Shop.OrderRepository",
+          "source": {
+            "end_line": 3,
+            "file": "src/OrderRepository.cs",
+            "start_line": 3
+          }
+        },
+        {
+          "attributes": {},
+          "id": "e0d49901f2e195905bc27c52be0aec6389a1d18d0189ca66e8fdbba81633c16a",
+          "identity_quality": "semantic_key",
+          "kind": "Namespace",
+          "language": "csharp",
+          "name": "Demo.Shop",
+          "project_id": "app",
+          "qualified_name": "Demo.Shop",
+          "source": {
+            "end_line": 1,
+            "file": "src/Order.cs",
+            "start_line": 1
+          }
+        },
+        {
+          "attributes": {},
+          "id": "e3b3d5b513463afcecf4adc9c1dbc098a19db1334ef18aa19227a00465048310",
+          "identity_quality": "semantic_key",
+          "kind": "Method",
+          "language": "csharp",
+          "name": "GetOrder",
+          "project_id": "app",
+          "qualified_name": "Demo.Shop.OrderService.GetOrder",
+          "source": {
+            "end_line": 4,
+            "file": "src/OrderService.cs",
+            "start_line": 4
+          }
+        }
+      ],
+      "project_id": "app"
+    }
+  ],
+  "schema_version": 1,
+  "selection": {
+    "edge_ids": [],
+    "node_ids": [],
+    "projection": "induced",
+    "projects": [
+      "app"
+    ]
+  },
+  "solution_id": "demo-shop",
+  "source_fidelity": "published_source_not_staged_verified"
+}

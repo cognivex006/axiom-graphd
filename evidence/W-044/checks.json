@@ -1,0 +1,37 @@
+[
+  {
+    "id": "format",
+    "command": "cargo +1.85.0 fmt --all -- --check",
+    "exit_code": 0,
+    "seconds": 1.119,
+    "artifact": "evidence/W-044/format.txt"
+  },
+  {
+    "id": "clippy",
+    "command": "cargo +1.85.0 clippy --locked --all-targets -- -D warnings",
+    "exit_code": 0,
+    "seconds": 9.515,
+    "artifact": "evidence/W-044/clippy.txt"
+  },
+  {
+    "id": "owner-tests",
+    "command": "cargo +1.85.0 test --locked --all-targets -- --test-threads=1",
+    "exit_code": 101,
+    "seconds": 86.884,
+    "artifact": "evidence/W-044/owner-tests.txt"
+  },
+  {
+    "id": "owner-tests-final",
+    "command": "cargo +1.85.0 test --locked --all-targets -- --test-threads=1",
+    "exit_code": 0,
+    "seconds": 65.198,
+    "artifact": "evidence/W-044/owner-tests-final.txt"
+  },
+  {
+    "id": "build",
+    "command": "cargo +1.85.0 build --locked --release -p axiom-cli -p axiom-graphd",
+    "exit_code": 0,
+    "seconds": 4.007,
+    "artifact": "evidence/W-044/build.txt"
+  }
+]

@@ -9,6 +9,8 @@
 
 ### Documentation
 
+- Rewrite the engine documentation around installed-user workflows, separate contributor builds and audit records, and add an offline walkthrough with reproducible sample source and actual HTML/JSON exports.
+- Validate public command coverage, local links, JSON examples and offline demo resources without obsolete development-stage readiness boilerplate.
 - Replace the obsolete installation quick start with a tested installed-binary workflow for registration, build, query, export and watch. Separate developer Cargo checks from user setup.
 
 ## 0.1.11

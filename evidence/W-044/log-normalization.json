@@ -1,0 +1,56 @@
+[
+  {
+    "file": "build.txt",
+    "raw_sha256": "06c8197b6058ccab8c9671277fb6fe178fbac3be819ca3522b6d25779ae98f6d",
+    "recorded_sha256": "5406628ae2c2d3458452798e095f3caf20f342ef1794d8a20054889c0e919884",
+    "normalization": "repository path prefix replaced; LF canonicalized"
+  },
+  {
+    "file": "clippy.txt",
+    "raw_sha256": "861bc9403e4ab62ec5779e8ac72d94ed7558c296025ed8ba76b74ef680e0fb35",
+    "recorded_sha256": "ad26eef1c2a1dfa261613ccb1d6fd970a7777bc144c51c1ed444c58d17bf7533",
+    "normalization": "repository path prefix replaced; LF canonicalized"
+  },
+  {
+    "file": "demo-existing.txt",
+    "raw_sha256": "f05a182d2b739d0a46a0c3028353ed7e9e7285c65da1f63596727943c51b8278",
+    "recorded_sha256": "a06954da9744888a06f78f8dc813a2d8a8dc176d5185e2c1b4f7da6de8a96f6c",
+    "normalization": "repository path prefix replaced; LF canonicalized"
+  },
+  {
+    "file": "demo-missing-engine.txt",
+    "raw_sha256": "dbb52277a842069e4f9c64086143ed7d3aaeede3799bdd736ca54dfc1b9cb2c2",
+    "recorded_sha256": "885635d23056ce190d13e519c9b544ed9cb0394e144644a53aa1b6aafc975950",
+    "normalization": "repository path prefix replaced; LF canonicalized"
+  },
+  {
+    "file": "docs-negative.txt",
+    "raw_sha256": "6ce0c1316a95c663e9fb6c693baaf123113a933bfe0a42c6c2998798aab30b55",
+    "recorded_sha256": "e5db9d50d8acdf0e891c81504043d9e9fff1ca8b6eba7649972e236d8cc30969",
+    "normalization": "repository path prefix replaced; LF canonicalized"
+  },
+  {
+    "file": "docs.txt",
+    "raw_sha256": "5763c8697a486cbe73eb29d94b00b62052e0123071d573968e6167d05055a6e9",
+    "recorded_sha256": "9c6267bb041b2496eabb9220f02274045e124b720248298e38c3f4260b28e49e",
+    "normalization": "repository path prefix replaced; LF canonicalized"
+  },
+  {
+    "file": "format.txt",
+    "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "recorded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "normalization": "repository path prefix replaced; LF canonicalized"
+  },
+  {
+    "file": "owner-tests-final.txt",
+    "raw_sha256": "d26908bcbb80c936c072df2aeaa9852f65f4ab88f56cc32d03ffeecfb82940be",
+    "recorded_sha256": "2a218e9f3a2b446cec284384575357e9119d28e6b7aef3d0319bc91d34fed17d",
+    "normalization": "repository path prefix replaced; LF canonicalized"
+  },
+  {
+    "file": "owner-tests.txt",
+    "raw_sha256": "ec3461ee5a11bf4e72363ae8196afb228a202dec6b6ba06b84899218da02ccad",
+    "recorded_sha256": "2d10cf1063cfd483a5a122de5305f39ee63d702bda3e4ca61e22f8a770efee82",
+    "normalization": "repository path prefix replaced; LF canonicalized"
+  }
+]

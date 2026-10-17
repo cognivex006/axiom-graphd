@@ -1,0 +1,2 @@
+usage: run_demo.py [-h] [--engine ENGINE] --out OUT
+run_demo.py: error: Engine not found. Install Axiom or pass --engine with its executable path.

@@ -1,0 +1,15 @@
+{
+  "component": "axiom-graphd",
+  "version": "0.1.11",
+  "spec_version": "2.0.0-draft.1",
+  "graph_schema": 1,
+  "control_api": 1,
+  "queue_schema": 1,
+  "build_revision": "unknown",
+  "update_status": "unconfigured",
+  "sqlite_version": "3.51.3",
+  "sqlite_available": true,
+  "sqlite_wal_baseline": "capability-based",
+  "sqlite_wal_supported": true,
+  "analyzers": []
+}

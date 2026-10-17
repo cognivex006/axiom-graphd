@@ -1,170 +1,72 @@
-# Multiple-project Solutions
+# Solutions and projects
 
-Owner: `axiom-graphd`. Spec baseline: `2.0.0-draft.1`. This guide describes the
-portable solution concepts. For the current native registration document and
-installed commands, use the [native quick start](../21-INSTALLATION-QUICKSTART.md).
-The fuller portable model below is separate from that concise CLI input.
+A solution groups the source you want to query together. A project selects a
+source folder in one repository. Repository IDs are logical names; a local
+bindings document maps each name to this machine's checkout.
 
-## 1. What a Solution is
+## Start with one project
 
-A **solution** is the unit an operator registers. One solution has:
-
-- one portable `solution_id`;
-- one or more **repositories**, each named by a logical `repo_id`;
-- one or more **projects** per repository, each with its own `project_id`;
-- exactly one **catalog host** repository, chosen by the operator.
-
-Repository and project ids are logical names (`[a-z][a-z0-9-]{0,62}`). They are
-not paths. The same repository can therefore hold several projects, and one
-solution can span several repositories, without any id encoding a machine
-location.
-
-Each project claims a repository-relative source `path`: `"."` for the whole
-repository, or a portable `/`-separated relative path. Two projects may share a
-repository, but their claims must not overlap. `src/App` and `src/AppTests` are
-a valid pair; `src/App` and `src/App/generated` are not, because the second
-claim is nested inside the first and graph ownership would be ambiguous. The
-membership check is segment-aware and refuses the overlap before any row is
-written.
-
-## 2. The catalog host
-
-The catalog host is one of the member repositories. It carries the solution's
-publication namespace `_catalog/` under the generated graph root, and it is the
-single read commit point for the solution:
+The [quickstart](../21-INSTALLATION-QUICKSTART.md) provides the smallest working
+`solution.json` and `bindings.json`. Register them with a preview, then apply:
 
 ```text
-<repository>/
-  .axiom/
-    graph/
-      <solution-id>/
-        <project-id>/            # one immutable generation vector per project
-        _catalog/                # only in the chosen catalog-host repository
+axge solution register --config solution.json --bindings bindings.json --dry-run
+axge solution register --config solution.json --bindings bindings.json --apply
+axge solution list
 ```
 
-A catalog pins the exact `generation_id` and `source_fingerprint` of every
-member project, across every repository of the solution. A member that vanishes
-from the inputs is refused (`export-catalog-member-missing`) rather than
-silently replaced by whatever generation happens to be newest, and a catalog
-that names a generation that was never published fails verification. One query
-therefore reads one catalog vector; the per-repository pointers are not an
-independent source transaction.
+A `.sln` or `.csproj` filename does not register an Axiom solution automatically.
+Use the solution's `id` in build, query and export commands.
 
-## 3. Worked example: two repositories, four projects
+## Add projects in separate folders
 
-The portable, Git-tracked file is
-`.axiom/config/solutions/<solution-id>.json`. It contains logical ids,
-repository-relative paths, and a `binding_key` per repository. It never
-contains an absolute checkout path, a machine-local reference or a secret.
+This native registration input declares two projects in one repository:
 
-<!-- BEGIN SOLUTIONS EXAMPLE -->
 ```json
 {
-  "schema_version": 2,
-  "solution_id": "demo-solution",
+  "id": "store",
   "profile": "default",
-  "catalog_host_repo": "repo-alpha",
-  "repositories": [
-    { "repo_id": "repo-alpha", "binding_key": "alpha" },
-    { "repo_id": "repo-beta", "binding_key": "beta" }
-  ],
+  "catalog_host_repo": "store-repo",
   "projects": [
-    { "project_id": "proj-app", "repo_id": "repo-alpha", "path": "src/App", "language_profile": "csharp-dotnet" },
-    { "project_id": "proj-portal", "repo_id": "repo-alpha", "path": "src/Portal", "language_profile": "typescript-angular" },
-    { "project_id": "proj-jobs", "repo_id": "repo-beta", "path": "services/Jobs", "language_profile": "csharp-dotnet" },
-    { "project_id": "proj-tools", "repo_id": "repo-beta", "path": "tools/GraphTools", "language_profile": "mixed", "allow_untracked": true }
-  ],
-  "graph_output_root": ".axiom/graph",
-  "ignore": [],
-  "watch": { "debounce_ms": 250, "max_wait_ms": 2000, "inventory_interval_seconds": 300, "backend": "auto" },
-  "queue": { "worker_limit": 2, "max_batch_files": 256, "max_batch_bytes": 33554432, "retry_limit": 3 },
-  "semantic_links": [],
-  "workspace_layout": 2
+    { "id": "api", "repo_id": "store-repo", "path": "src/api" },
+    { "id": "web", "repo_id": "store-repo", "path": "src/web" }
+  ]
 }
 ```
-<!-- END SOLUTIONS EXAMPLE -->
 
-`repo-alpha` holds two projects and is the catalog host; `repo-beta` holds two
-more. Nothing in this file resolves a project to a filesystem location.
+Both folders must exist. Project paths are repository-relative and must not
+overlap: selecting `src` and `src/api` as separate projects would be ambiguous.
+`.` selects a whole repository on builds containing the whole-root correction.
+On an older installed build, use an existing source subfolder instead.
 
-## 4. Local bindings stay local
+For several repositories, give each its own `repo_id`, add its absolute checkout
+path to the private bindings file, and choose a member as `catalog_host_repo`.
+The catalog records the project snapshots read together by queries and exports.
 
-The portable file names a repository by `repo_id` and points at a local
-`binding_key`. The operator-provided, machine-local binding storage maps that
-key to one absolute checkout path:
+## Keep bindings local
+
+`solution.json` describes portable IDs and relative folders. `bindings.json`
+contains absolute machine paths and should stay outside version control.
+Registration persists accepted bindings under the selected Axiom home.
+Reuse that home for build, watch, query and gateway access.
+
+## Work on one project
 
 ```text
-AXIOM_HOME/config/registry.json      # machine-local; never committed
-  bindings:
-    alpha -> <absolute checkout of repo-alpha>
-    beta  -> <absolute checkout of repo-beta>
+axge build --solution store --project api --json
+axge export --solution store --project api --out api-graph --format html --json
 ```
 
-Rules:
+A scoped build retains verified snapshots for unselected projects in the
+complete solution catalog. Missing or corrupt members are reported explicitly.
+Watch remains instance-wide; inspect `solution list` before starting it.
 
-- The absolute checkout path lives only in machine-local state
-  (`AXIOM_HOME/config/registry.json`) or an ignored local override. It is never
-  written into `.axiom/config/**`, a graph snapshot or a catalog.
-- An id is resolved to a path only through a declared binding. Guessing a path
-  from `repo_id`, following `..`, or accepting a symlink that leaves the bound
-  root is refused.
-- Graph payloads store logical ids and repository-relative `/` paths only.
-- A binding path that is not an absolute local path is rejected, and a portable
-  path that is absolute, backslash-separated, contains a `..` segment, or
-  carries a drive prefix is rejected as `UNSAFE_PORTABLE_PATH`.
-- Copying the same logical solution between machines changes only the local
-  binding; the portable config and every published generation digest are
-  unchanged.
+## Remove a registration
 
-## 5. Registration and inspection
-
-```bash
-axge solution register --config .axiom/config/solutions/demo-solution.json --bindings <machine-local-bindings> --dry-run
-axge solution register --config .axiom/config/solutions/demo-solution.json --bindings <machine-local-bindings> --apply
-axge solution list --json
-axge build --solution demo-solution --json
-axge status --solution demo-solution --json
+```text
+axge solution remove --solution store --dry-run
+axge solution remove --solution store --apply
 ```
 
-The dry run reports every root, output path, excluded path, profile and
-cross-project link, plus each collision, before anything is written. A missing
-root is reported, never auto-cloned. When several projects share a repository,
-each project must declare its own `path` so that no two projects claim the same
-or a nested source or generated-output root.
-
-## 6. Guarantees and refusals
-
-| Situation | Result |
-|---|---|
-| Two projects in one repository with disjoint claims (`src/App`, `src/Portal`) | accepted; both projects are published into the shared catalog |
-| Two projects with the same or a nested claim in one repository | refused with `CONFLICT` (`rule=root-overlap`) naming both owners |
-| Duplicate `project_id` in one solution | refused with `CONFLICT` (`rule=duplicate-project-id`) |
-| Absolute, backslash, `..` or drive-prefixed project `path` | refused with `UNSAFE_PORTABLE_PATH` |
-| A project name that is not a portable id | refused with `VALIDATION_ERROR` |
-| Catalog member absent without an explicit drop | refused with `export-catalog-member-missing` |
-| Catalog naming an unpublished or mismatched generation | refused with `export-missing` / `export-integrity` |
-| Two writers claiming one output namespace | refused with `WRITER_ALREADY_RUNNING` |
-| One `binding_key` declared by two `repositories[]` entries | refused with `CONFLICT` (`rule=binding-key-duplicate`) |
-| A declared `binding_key` with no local root, or a local key the solution does not declare | refused with `VALIDATION_ERROR` (`rule=binding-key-unresolved`) |
-| A derived project root that leaves its bound local root | refused with `VALIDATION_ERROR` (`rule=project-root-escapes-binding`) |
-| A `semantic_links[]` endpoint that is not a member project | refused with `VALIDATION_ERROR` (`rule=link-endpoint-not-member`) |
-| An `http`, `sql` or `message` link with no `route_prefix` | refused with `VALIDATION_ERROR` (`rule=route-prefix-required`) |
-| A `route_prefix` that is machine-local or credential-shaped | refused with `VALIDATION_ERROR` (`rule=route-prefix-not-portable-free-text`) |
-| An observed service address that no declared alias matches | explicit unresolved result (`rule=alias-unresolved-host`), never a guessed project |
-| An observed service address two different projects claim | refused with `CONFLICT` (`rule=alias-ambiguous-host`), never a tie broken by order |
-
-## 7. Status and limits
-
-The membership, path, binding, publication and catalog rules above are
-implemented in `graph-core` and `graph-export`. The registered solution document
-itself is read by `axiom-config` (`read_registered_solution`, task H-004): it
-validates the whole membership claim set before returning anything, derives the
-cross-service alias map from `semantic_links[].route_prefix`, and writes no row
-and no file, so an accepted document is the only source of the cross-service
-join. The L3 HTTP join consumes that map through
-`SolutionMapping::from_registered_aliases(registered.l3_aliases())`; its alias
-table is private and has no mutator, so a host cannot be resolved by a table a
-caller built by hand. Native registration is available through `axge solution`;
-installation is managed by the distribution owner through `axm`.
-See `docs/13-SQLITE-QUEUE-AND-RECONCILIATION.md` for the
-durable-state contract and `docs/21-INSTALLATION.md` for the install runbook.
+Review the preview first. Removing registration is separate from editing your
+source or uninstalling Axiom. See [files and state](files-and-state.md).

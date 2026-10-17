@@ -23,7 +23,7 @@ use graph_export::sha256_hex;
 use serde_json::Value;
 
 /// The guide document, compiled in so the documentation cannot drift alone.
-const SOLUTIONS_GUIDE: &str = include_str!("../../../docs/guides/solutions.md");
+const SOLUTIONS_GUIDE: &str = include_str!("../../../docs/development/guide-fixtures/solutions.md");
 
 const BEGIN: &str = "<!-- BEGIN SOLUTIONS EXAMPLE -->";
 const END: &str = "<!-- END SOLUTIONS EXAMPLE -->";

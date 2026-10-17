@@ -1,0 +1,105 @@
+{
+  "solution_id": "demo-shop",
+  "generation_id": "70f6dae70771f5a8c40eab1dd869755c0b8449b38ee43c5bad5ca323f9358cd0",
+  "kind": "context",
+  "target": "Demo.Shop.OrderService",
+  "limits": {
+    "max_bytes": 8192,
+    "max_nodes": 20,
+    "depth": 1
+  },
+  "records": [
+    {
+      "key": "9568b971dd6e887c692a8c224e6d093568727d1d11e43c71783ef07c9cb14518",
+      "kind": "node",
+      "body": {
+        "attributes": {},
+        "id": "9568b971dd6e887c692a8c224e6d093568727d1d11e43c71783ef07c9cb14518",
+        "identity_quality": "semantic_key",
+        "kind": "Class",
+        "language": "csharp",
+        "name": "OrderService",
+        "project_id": "app",
+        "qualified_name": "Demo.Shop.OrderService",
+        "source": {
+          "end_line": 3,
+          "file": "src/OrderService.cs",
+          "start_line": 3
+        }
+      }
+    },
+    {
+      "key": "47937152a9a3cf4a0c652b89a63d2fe13048be7a0a9fcaf063c05fe15a3c5c49",
+      "kind": "edge",
+      "body": {
+        "analyzer_id": "csharp-declarations-v1",
+        "evidence": [
+          {
+            "rule_id": "declaration-contains-v1",
+            "source": {
+              "end_line": 3,
+              "file": "src/OrderService.cs",
+              "start_line": 3
+            }
+          }
+        ],
+        "id": "47937152a9a3cf4a0c652b89a63d2fe13048be7a0a9fcaf063c05fe15a3c5c49",
+        "kind": "CONTAINS",
+        "resolution": "exact_static",
+        "source_id": "ae992eaa1dbc8009977c0a0f59552271b8117f13f0e9b978985e3e92b729e393",
+        "target_id": "9568b971dd6e887c692a8c224e6d093568727d1d11e43c71783ef07c9cb14518",
+        "target_project_id": "app"
+      }
+    },
+    {
+      "key": "6e14ea66bea1ca45e0421376460706314530a9f14eddedbc9ce81c6c77a250cd",
+      "kind": "edge",
+      "body": {
+        "analyzer_id": "csharp-declarations-v1",
+        "evidence": [
+          {
+            "rule_id": "declaration-contains-v1",
+            "source": {
+              "end_line": 8,
+              "file": "src/OrderService.cs",
+              "start_line": 8
+            }
+          }
+        ],
+        "id": "6e14ea66bea1ca45e0421376460706314530a9f14eddedbc9ce81c6c77a250cd",
+        "kind": "CONTAINS",
+        "resolution": "exact_static",
+        "source_id": "9568b971dd6e887c692a8c224e6d093568727d1d11e43c71783ef07c9cb14518",
+        "target_id": "5631b14c80783521d18aa25c90154ef7bacabcc0b2c81ce6c7ba9eb73a901b75",
+        "target_project_id": "app"
+      }
+    },
+    {
+      "key": "fd609b6c2da370e0f7dc634b6f630c4ae1543647923650a08f10f6c0547eb5e4",
+      "kind": "edge",
+      "body": {
+        "analyzer_id": "csharp-declarations-v1",
+        "evidence": [
+          {
+            "rule_id": "declaration-contains-v1",
+            "source": {
+              "end_line": 4,
+              "file": "src/OrderService.cs",
+              "start_line": 4
+            }
+          }
+        ],
+        "id": "fd609b6c2da370e0f7dc634b6f630c4ae1543647923650a08f10f6c0547eb5e4",
+        "kind": "CONTAINS",
+        "resolution": "exact_static",
+        "source_id": "9568b971dd6e887c692a8c224e6d093568727d1d11e43c71783ef07c9cb14518",
+        "target_id": "e3b3d5b513463afcecf4adc9c1dbc098a19db1334ef18aa19227a00465048310",
+        "target_project_id": "app"
+      }
+    }
+  ],
+  "omitted": 0,
+  "truncated": false,
+  "reasons": [],
+  "bytes": 2076
+}

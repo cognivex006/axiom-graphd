@@ -1,0 +1,187 @@
+{
+  "engine_version": {
+    "component": "axiom-graphd",
+    "version": "0.1.11",
+    "spec_version": "2.0.0-draft.1",
+    "graph_schema": 1,
+    "control_api": 1,
+    "queue_schema": 1,
+    "build_revision": "unknown",
+    "update_status": "unconfigured",
+    "sqlite_version": "3.51.3",
+    "sqlite_available": true,
+    "sqlite_wal_baseline": "capability-based",
+    "sqlite_wal_supported": true,
+    "analyzers": []
+  },
+  "engine_sha256": "a09d1977cf8eecbad1fd2ced8ae117fb18f0bd987c298c4ec9c9fe4c78fd4ff0",
+  "source_sha256": {
+    "src/Order.cs": "fc40f287e18c7f430ab7c49c9ccf61fa117c5e980ae871b266f0a1a82311ba25",
+    "src/OrderRepository.cs": "a7ada4dee4d4407dd5cbef03c6bbb1484631dd20278ebd8fe5fdf2adb2e46f63",
+    "src/OrderService.cs": "da730ea332a33abbe6504726d5398e852f741278f5025ca327348fe0a43c7dc5"
+  },
+  "solution_id": "demo-shop",
+  "project_ids": [
+    "app"
+  ],
+  "nodes": 9,
+  "edges": 6,
+  "commands": [
+    {
+      "name": "version",
+      "argv": [
+        "axge",
+        "version",
+        "--json"
+      ],
+      "exit_code": 0,
+      "wall_ms": 33.265
+    },
+    {
+      "name": "preview",
+      "argv": [
+        "axge",
+        "solution",
+        "register",
+        "--config",
+        "solution.json",
+        "--bindings",
+        "bindings.json",
+        "--dry-run",
+        "--json"
+      ],
+      "exit_code": 0,
+      "wall_ms": 60.207
+    },
+    {
+      "name": "register",
+      "argv": [
+        "axge",
+        "solution",
+        "register",
+        "--config",
+        "solution.json",
+        "--bindings",
+        "bindings.json",
+        "--apply",
+        "--json"
+      ],
+      "exit_code": 0,
+      "wall_ms": 36.626
+    },
+    {
+      "name": "build",
+      "argv": [
+        "axge",
+        "build",
+        "--solution",
+        "demo-shop",
+        "--json"
+      ],
+      "exit_code": 0,
+      "wall_ms": 129.6
+    },
+    {
+      "name": "status",
+      "argv": [
+        "axge",
+        "status",
+        "--solution",
+        "demo-shop",
+        "--json"
+      ],
+      "exit_code": 0,
+      "wall_ms": 20.815
+    },
+    {
+      "name": "query",
+      "argv": [
+        "axge",
+        "query",
+        "context",
+        "--solution",
+        "demo-shop",
+        "--symbol",
+        "Demo.Shop.OrderService",
+        "--max-nodes",
+        "20",
+        "--max-bytes",
+        "8192",
+        "--json"
+      ],
+      "exit_code": 0,
+      "wall_ms": 15.736
+    },
+    {
+      "name": "export-html",
+      "argv": [
+        "axge",
+        "export",
+        "--solution",
+        "demo-shop",
+        "--out",
+        "html",
+        "--format",
+        "html",
+        "--json"
+      ],
+      "exit_code": 0,
+      "wall_ms": 29.483
+    },
+    {
+      "name": "export-json",
+      "argv": [
+        "axge",
+        "export",
+        "--solution",
+        "demo-shop",
+        "--out",
+        "json",
+        "--format",
+        "json",
+        "--json"
+      ],
+      "exit_code": 0,
+      "wall_ms": 17.808
+    }
+  ],
+  "engine_cycle": {
+    "schema_version": 1,
+    "cycle_id": "20144-2026-10-17T02:36:11Z-2",
+    "operation": "build",
+    "status": "success",
+    "started_at": "2026-10-17T02:36:11Z",
+    "finished_at": "2026-10-17T02:36:11Z",
+    "processing_ms": 111,
+    "scan_ms": null,
+    "analyze_ms": null,
+    "validate_ms": null,
+    "publish_ms": null,
+    "queue_wait_ms": null,
+    "change_observed_to_publish_ms": null,
+    "unavailable_reason": "Phase, queue and source observation clocks are not instrumented; failure counts are unknown",
+    "files_changed": 3,
+    "files_analyzed": 3,
+    "nodes": 9,
+    "edges": 6,
+    "generation_before": {
+      "demo-shop/app": null
+    },
+    "generation_after": {
+      "demo-shop/app": "70f6dae70771f5a8c40eab1dd869755c0b8449b38ee43c5bad5ca323f9358cd0"
+    }
+  },
+  "generation_vector": {
+    "app": "70f6dae70771f5a8c40eab1dd869755c0b8449b38ee43c5bad5ca323f9358cd0"
+  },
+  "source_fidelity": "published_source_not_staged_verified",
+  "platform": "win32",
+  "coverage": "declarations and containment; complete method-call analysis outside this profile",
+  "checks": {
+    "preview_did_not_persist_bindings": true,
+    "source_unchanged": true,
+    "known_symbol_returned": true,
+    "artifact_receipts_verified": true,
+    "existing_destination_refused_unchanged": true
+  }
+}

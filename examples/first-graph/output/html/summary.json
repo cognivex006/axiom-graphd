@@ -1,0 +1,284 @@
+{
+  "schema_version": 1,
+  "solution_id": "demo-shop",
+  "banner": {
+    "coverage": {
+      "status": "complete_for_profile",
+      "present": true,
+      "complete": true,
+      "input_files": 3,
+      "processed_files": 3,
+      "unresolved_references": 0,
+      "unsupported_patterns": []
+    },
+    "freshness": {
+      "status": "unknown",
+      "dirty_files": 0,
+      "verification": "none",
+      "latest_published_generations": []
+    },
+    "manifest": {
+      "generation_ids": [
+        "70f6dae70771f5a8c40eab1dd869755c0b8449b38ee43c5bad5ca323f9358cd0"
+      ],
+      "shards": 3,
+      "records": 16,
+      "total_bytes": 5653,
+      "graph_records": 15,
+      "skipped_records": 1
+    },
+    "notice": "coverage is complete_for_profile: the analysed profile reported no partial or unsupported input. freshness is unknown: no store comparison backed this render."
+  },
+  "nodes": [
+    {
+      "id": "5631b14c80783521d18aa25c90154ef7bacabcc0b2c81ce6c7ba9eb73a901b75",
+      "kind": "Method",
+      "vocabulary": "frozen",
+      "color": "#bcf60c",
+      "placeholder": false,
+      "placeholder_reason": null,
+      "name": "IsValid",
+      "qualified_name": "Demo.Shop.OrderService.IsValid",
+      "project_ids": [
+        "app"
+      ]
+    },
+    {
+      "id": "71054a704f060c9b3c469ca8a3416d52ea9dc9c788ac960bdcde076be8e6b585",
+      "kind": "Class",
+      "vocabulary": "frozen",
+      "color": "#ffe119",
+      "placeholder": false,
+      "placeholder_reason": null,
+      "name": "Order",
+      "qualified_name": "Demo.Shop.Order",
+      "project_ids": [
+        "app"
+      ]
+    },
+    {
+      "id": "83fdd2133b3be8870904b16992e7f2d7f4fb15cf5f5f1209d4a2c779303ea938",
+      "kind": "Namespace",
+      "vocabulary": "frozen",
+      "color": "#f58231",
+      "placeholder": false,
+      "placeholder_reason": null,
+      "name": "Demo.Shop",
+      "qualified_name": "Demo.Shop#2",
+      "project_ids": [
+        "app"
+      ]
+    },
+    {
+      "id": "8f8b63d866c9b8a9d3c10553cf0d3cd6c432ec57a7314741ceedeee2d4c0b8c5",
+      "kind": "Method",
+      "vocabulary": "frozen",
+      "color": "#bcf60c",
+      "placeholder": false,
+      "placeholder_reason": null,
+      "name": "Find",
+      "qualified_name": "Demo.Shop.OrderRepository.Find",
+      "project_ids": [
+        "app"
+      ]
+    },
+    {
+      "id": "9568b971dd6e887c692a8c224e6d093568727d1d11e43c71783ef07c9cb14518",
+      "kind": "Class",
+      "vocabulary": "frozen",
+      "color": "#ffe119",
+      "placeholder": false,
+      "placeholder_reason": null,
+      "name": "OrderService",
+      "qualified_name": "Demo.Shop.OrderService",
+      "project_ids": [
+        "app"
+      ]
+    },
+    {
+      "id": "ae992eaa1dbc8009977c0a0f59552271b8117f13f0e9b978985e3e92b729e393",
+      "kind": "Namespace",
+      "vocabulary": "frozen",
+      "color": "#f58231",
+      "placeholder": false,
+      "placeholder_reason": null,
+      "name": "Demo.Shop",
+      "qualified_name": "Demo.Shop#3",
+      "project_ids": [
+        "app"
+      ]
+    },
+    {
+      "id": "d0b65650260be035be4b1ef1893d4ad5acc7cfbc1f0f850cf4afef135fdcbb62",
+      "kind": "Class",
+      "vocabulary": "frozen",
+      "color": "#ffe119",
+      "placeholder": false,
+      "placeholder_reason": null,
+      "name": "OrderRepository",
+      "qualified_name": "Demo.Shop.OrderRepository",
+      "project_ids": [
+        "app"
+      ]
+    },
+    {
+      "id": "e0d49901f2e195905bc27c52be0aec6389a1d18d0189ca66e8fdbba81633c16a",
+      "kind": "Namespace",
+      "vocabulary": "frozen",
+      "color": "#f58231",
+      "placeholder": false,
+      "placeholder_reason": null,
+      "name": "Demo.Shop",
+      "qualified_name": "Demo.Shop",
+      "project_ids": [
+        "app"
+      ]
+    },
+    {
+      "id": "e3b3d5b513463afcecf4adc9c1dbc098a19db1334ef18aa19227a00465048310",
+      "kind": "Method",
+      "vocabulary": "frozen",
+      "color": "#bcf60c",
+      "placeholder": false,
+      "placeholder_reason": null,
+      "name": "GetOrder",
+      "qualified_name": "Demo.Shop.OrderService.GetOrder",
+      "project_ids": [
+        "app"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "22fffd2d401743f3b1ea12e1a93e43dcfbd900a7914a88779fffd48d23bc0a9d",
+      "project_id": "app",
+      "source_id": "d0b65650260be035be4b1ef1893d4ad5acc7cfbc1f0f850cf4afef135fdcbb62",
+      "target": "8f8b63d866c9b8a9d3c10553cf0d3cd6c432ec57a7314741ceedeee2d4c0b8c5",
+      "target_kind": "resolved",
+      "unresolved_target": null,
+      "target_project_id": "app",
+      "kind": "CONTAINS",
+      "vocabulary": "frozen",
+      "color": "#7f7fbf",
+      "resolution": "exact_static",
+      "dash_pattern": ""
+    },
+    {
+      "id": "47937152a9a3cf4a0c652b89a63d2fe13048be7a0a9fcaf063c05fe15a3c5c49",
+      "project_id": "app",
+      "source_id": "ae992eaa1dbc8009977c0a0f59552271b8117f13f0e9b978985e3e92b729e393",
+      "target": "9568b971dd6e887c692a8c224e6d093568727d1d11e43c71783ef07c9cb14518",
+      "target_kind": "resolved",
+      "unresolved_target": null,
+      "target_project_id": "app",
+      "kind": "CONTAINS",
+      "vocabulary": "frozen",
+      "color": "#7f7fbf",
+      "resolution": "exact_static",
+      "dash_pattern": ""
+    },
+    {
+      "id": "6e14ea66bea1ca45e0421376460706314530a9f14eddedbc9ce81c6c77a250cd",
+      "project_id": "app",
+      "source_id": "9568b971dd6e887c692a8c224e6d093568727d1d11e43c71783ef07c9cb14518",
+      "target": "5631b14c80783521d18aa25c90154ef7bacabcc0b2c81ce6c7ba9eb73a901b75",
+      "target_kind": "resolved",
+      "unresolved_target": null,
+      "target_project_id": "app",
+      "kind": "CONTAINS",
+      "vocabulary": "frozen",
+      "color": "#7f7fbf",
+      "resolution": "exact_static",
+      "dash_pattern": ""
+    },
+    {
+      "id": "bf61737de2643fbb249197901718562330c3b96990ab0c6edff0a1fffc93d945",
+      "project_id": "app",
+      "source_id": "e0d49901f2e195905bc27c52be0aec6389a1d18d0189ca66e8fdbba81633c16a",
+      "target": "71054a704f060c9b3c469ca8a3416d52ea9dc9c788ac960bdcde076be8e6b585",
+      "target_kind": "resolved",
+      "unresolved_target": null,
+      "target_project_id": "app",
+      "kind": "CONTAINS",
+      "vocabulary": "frozen",
+      "color": "#7f7fbf",
+      "resolution": "exact_static",
+      "dash_pattern": ""
+    },
+    {
+      "id": "cbc73ac76714b2b40850d597b2cd698a4aadb8aab582b00fb3d42331ae9ffb7e",
+      "project_id": "app",
+      "source_id": "83fdd2133b3be8870904b16992e7f2d7f4fb15cf5f5f1209d4a2c779303ea938",
+      "target": "d0b65650260be035be4b1ef1893d4ad5acc7cfbc1f0f850cf4afef135fdcbb62",
+      "target_kind": "resolved",
+      "unresolved_target": null,
+      "target_project_id": "app",
+      "kind": "CONTAINS",
+      "vocabulary": "frozen",
+      "color": "#7f7fbf",
+      "resolution": "exact_static",
+      "dash_pattern": ""
+    },
+    {
+      "id": "fd609b6c2da370e0f7dc634b6f630c4ae1543647923650a08f10f6c0547eb5e4",
+      "project_id": "app",
+      "source_id": "9568b971dd6e887c692a8c224e6d093568727d1d11e43c71783ef07c9cb14518",
+      "target": "e3b3d5b513463afcecf4adc9c1dbc098a19db1334ef18aa19227a00465048310",
+      "target_kind": "resolved",
+      "unresolved_target": null,
+      "target_project_id": "app",
+      "kind": "CONTAINS",
+      "vocabulary": "frozen",
+      "color": "#7f7fbf",
+      "resolution": "exact_static",
+      "dash_pattern": ""
+    }
+  ],
+  "node_legend": [
+    {
+      "kind": "Namespace",
+      "vocabulary": "frozen",
+      "color": "#f58231",
+      "placeholder": false
+    },
+    {
+      "kind": "Class",
+      "vocabulary": "frozen",
+      "color": "#ffe119",
+      "placeholder": false
+    },
+    {
+      "kind": "Method",
+      "vocabulary": "frozen",
+      "color": "#bcf60c",
+      "placeholder": false
+    }
+  ],
+  "edge_legend": [
+    {
+      "kind": "CONTAINS",
+      "vocabulary": "frozen",
+      "color": "#7f7fbf"
+    }
+  ],
+  "resolution_legend": [
+    {
+      "resolution": "exact_static",
+      "dash_pattern": ""
+    }
+  ],
+  "counts": {
+    "nodes": 9,
+    "edges": 6,
+    "placeholders": 0,
+    "placeholder_edges": 0,
+    "absent_targets": 0,
+    "shards": 3,
+    "graph_records": 15,
+    "skipped_records": 1,
+    "node_kinds": 3,
+    "edge_kinds": 1,
+    "resolutions": 1
+  },
+  "unresolved_targets": []
+}

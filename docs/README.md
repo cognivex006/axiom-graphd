@@ -1,28 +1,44 @@
-# axiom-graphd documentation
+# Axiom Graph Engine documentation
 
-These guides are owned and released with `axiom-graphd`. Start with the
-[native quick start](21-INSTALLATION-QUICKSTART.md) for the installed commands,
-solution registration, local folder bindings and first graph. Source build and
-engineering contracts are separate from that user workflow. Resolve shared
-normative references through the pinned `axiom-specs` revision.
+Build a local code graph, find source declarations, and share a snapshot your
+teammates can open in a browser. Start with an installed `axge` command.
 
-- [13-SQLITE-QUEUE-AND-RECONCILIATION](13-SQLITE-QUEUE-AND-RECONCILIATION.md)
-- [15-STATIC-ANALYSIS-COVERAGE](15-STATIC-ANALYSIS-COVERAGE.md)
-- [18-BOOTSTRAP-AND-MANAGED-INSTRUCTIONS](18-BOOTSTRAP-AND-MANAGED-INSTRUCTIONS.md)
-- [19-GIT-SNAPSHOTS-AND-MERGES](19-GIT-SNAPSHOTS-AND-MERGES.md)
-- [21-INSTALLATION](21-INSTALLATION.md)
-- [22-OPERATIONS-AND-TROUBLESHOOTING](22-OPERATIONS-AND-TROUBLESHOOTING.md)
-- [WATCHER-QUEUE-AND-ANALYSIS](WATCHER-QUEUE-AND-ANALYSIS.md)
-- [CLI-EXIT-CODES](CLI-EXIT-CODES.md)
-- [native-operations](native-operations.md)
+## Get started
 
-Platform install runbooks and the command reference:
+1. [Install Axiom](21-INSTALLATION.md) — prebuilt packages and a first health check.
+2. [Try the demo](../examples/first-graph/README.md) — sample source, commands and actual output.
+3. [Build your first graph](21-INSTALLATION-QUICKSTART.md) — register your own repository.
 
-- [install-windows](guides/install-windows.md)
-- [install-linux](guides/install-linux.md)
-- [install-macos](guides/install-macos.md)
-- [axiom-graphd command reference](reference/axiom-graphd.md)
+## Work with graphs
 
-Shared storage/wire/layout contracts are canonical in axiom-specs. Do not create a local editable copy of them. A published site can aggregate documentation from immutable revisions without an extra repository.
+| Guide | What you will learn |
+|---|---|
+| [Build, query, watch and export](workflow-commands.md) | The everyday command sequence and what each result means |
+| [Solutions and projects](guides/solutions.md) | Register one or several source roots without embedding local paths |
+| [Editing with watch](guides/human-workflow.md) | Saves, renames, deletes and restarting after offline edits |
+| [Export a diagram or JSON](guides/export.md) | Open HTML locally, share a snapshot and interpret its metadata |
+| [Analysis coverage](15-STATIC-ANALYSIS-COVERAGE.md) | Supported source and the limits of relationship analysis |
+| [Use Git with graph output](guides/git-checkpoints.md) | Keep generated data separate from source changes |
+| [Connect an AI agent](guides/host-adapters.md) | Install a host skill and verify access to a graph |
 
-- [Workflow commands](workflow-commands.md) — build/watch/export and measured cycles.
+## Operate and troubleshoot
+
+- [Troubleshooting](guides/troubleshooting.md)
+- [Native operations](native-operations.md)
+- [Updates and rollback](guides/updates.md)
+- [Migration](migration-runtime.md)
+- Installation: [Windows](guides/install-windows.md), [Linux](guides/install-linux.md), [macOS Intel](guides/install-macos.md)
+
+## Reference
+
+- [Engine commands](reference/axiom-graphd.md)
+- [Exit codes](CLI-EXIT-CODES.md)
+- [Files and local state](guides/files-and-state.md)
+- [Components and versions](guides/packages.md)
+
+## For contributors
+
+[Development](development/README.md) covers the Rust workspace, build and test
+commands, benchmark scope and internal verification. Product guides describe
+the commands and outcomes a user needs; engineering records stay with the
+development workflow.

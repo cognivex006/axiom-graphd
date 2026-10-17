@@ -1,22 +1,8 @@
 # CLI exit codes
 
-Owner: `axiom-graphd`. Spec baseline: `2.0.0-draft.1`. Frozen CLI contract (task B-002).
-
-Every `axiom-graphd` invocation returns exactly one of the process exit codes
-below. The numbers are a stable interface: scripts, hook adapters and the
-installation engine branch on them, so a number can only change through a
-contract change in `axiom-specs` (`docs/16-CLI-AND-CONTROL-API.md` section 6,
-Errors and exits).
-
-`--help` prints the same table. Both are generated from
-`graph_core::error::ExitCode::all()` (`exit_code_table()` in
-`crates/axiom-graphd/src/cli.rs`), so the documentation and the enforced exit
-status come from one source and cannot drift: the compile-time test
-`cli_exit_code_doc_matches_the_frozen_contract` fails if this file disagrees with
-the code it documents.
-
-Exit code `1` stays unassigned on purpose, so a generic shell or runtime failure
-is never mistaken for an Axiom outcome.
+Use the exit status to decide whether a command succeeded. With `--json`,
+read the error `code`, `message`, `retryable` and `details` fields as well.
+Exit code `1` is reserved. `axge --help` lists the engine exit codes.
 
 <!-- BEGIN GENERATED EXIT CODES -->
 | Code | Meaning | Raised when |
@@ -35,20 +21,13 @@ is never mistaken for an Axiom outcome.
 | 20 | partial multi-repo operation | A multi-repository operation partially succeeded. |
 <!-- END GENERATED EXIT CODES -->
 
-Token-for-token equal to `axiom-specs/docs/16-CLI-AND-CONTROL-API.md` section 6:
+Compact summary:
 
     0 success, 2 validation, 3 not found, 4 not ready/stale, 5 authorization, 6 conflict, 7 timeout/busy, 8 I/O internal, 9 incompatible, 10 lock unavailable, 20 partial multi-repo operation
 
-Text mode writes diagnostics to stderr and leaves stdout empty. `--json` writes
-exactly one JSON object to stdout: `0` on success, and on failure the error
-envelope `{code,message,retryable,details,request_id}` whose `code` is a stable
-`ErrorCode` spelling. Diagnostic prose never joins the JSON object.
+## Error names
 
-## Error code to exit code
-
-Every `AxiomError` carries one stable `ErrorCode`; `exit_code_for()` maps it to
-the process exit code. The table is generated from `ErrorCode::all()` and
-`exit_code_for()`, and the same compile-time test pins it.
+The following error names map to process exit statuses.
 
 | Error code | Exit code |
 | ---------- | --------- |

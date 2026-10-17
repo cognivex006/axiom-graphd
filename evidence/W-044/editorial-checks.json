@@ -1,0 +1,30 @@
+[
+  {
+    "id": "docs",
+    "command": "python tools/check-doc-status.py",
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "artifact": "evidence/W-044/docs.txt"
+  },
+  {
+    "id": "docs-negative",
+    "command": "python tools/check-doc-status.py --self-test",
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "artifact": "evidence/W-044/docs-negative.txt"
+  },
+  {
+    "id": "demo-existing",
+    "command": "python examples/first-graph/run_demo.py --engine target/release/axiom-graphd.exe --out ../_coord/w044-demo-staged-inputs",
+    "exit_code": 2,
+    "expected_exit_code": 2,
+    "artifact": "evidence/W-044/demo-existing.txt"
+  },
+  {
+    "id": "demo-missing-engine",
+    "command": "python examples/first-graph/run_demo.py --engine not-an-installed-axiom-engine --out ../_coord/w044-should-not-exist",
+    "exit_code": 2,
+    "expected_exit_code": 2,
+    "artifact": "evidence/W-044/demo-missing-engine.txt"
+  }
+]

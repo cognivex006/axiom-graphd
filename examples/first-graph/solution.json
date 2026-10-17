@@ -1,0 +1,8 @@
+{
+  "id": "demo-shop",
+  "profile": "default",
+  "catalog_host_repo": "demo-shop-repo",
+  "projects": [
+    { "id": "app", "repo_id": "demo-shop-repo", "path": "src" }
+  ]
+}

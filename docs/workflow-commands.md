@@ -1,51 +1,77 @@
-# Graph workflow commands
+# Build, query, watch and export
 
-Build, watch and export are available in the 0.1.11 installed runtime. Start with
-the [native quick start](21-INSTALLATION-QUICKSTART.md) to register a solution and
-its local folders. Inspect `axge --help` when using an older installed release.
+These commands use a registered solution. If you have not registered one,
+complete the [quickstart](21-INSTALLATION-QUICKSTART.md) first.
+
+## Build a snapshot
 
 ```text
-axge build --solution ID [--project ID] [--full] --json
-axge watch [--registry PATH] --json
-axge export --solution ID [--project ID]... [--node-id ID]... --out NEW-DIRECTORY [--format json|html] --json
+axge build --solution my-app --json
+axge status --solution my-app --json
 ```
 
-Build uses existing inventory/analysis/publication. Unchanged source is a no-op;
-full invalidation requires --full. Registration remains explicit. An existing
-instance writer is refused, never bypassed. Malformed declarations fail before
-publication; unknown input languages are reported as partial coverage. The
-current profile has declarations and containment, not complete method call edges.
+Build scans the selected source and publishes a new graph when its facts change.
+Unchanged source is a no-op. For a single project, add `--project app`.
+Use `--full` only when you intend to invalidate and rebuild the selected source facts.
+Only one writer can own an Axiom home; stop a foreground watcher before a separate build.
 
-Watch reuses serve and covers every registration in the instance. It uses polling,
-not per-project isolation or native event guarantees. Reuse an existing authorized
-service; do not create a second writer. Cooperative shutdown drains owned work.
-Save/rename/delete, including deletion of the last source, update the published
-graph without an additional manual reconcile. Idle fallback scans are not work events.
-Transient source writes and malformed saves preserve the previous valid publication
-and the watcher. Up to three immediate source retries occur before waiting for a
-new hint or inventory fallback. Failed cycles retain measured timing; no stale
-publication is promoted to proof of current-source freshness.
+The result includes publication information and measured processing time.
+Review status for pending work and coverage before treating a graph as current.
+[Captured demo results](../examples/first-graph/output/README.md) show actual output.
 
-Build results and each non-idle watch cycle carry a monotonic processing_ms,
-outcome, changed/analyzed files and before/after generation vector. Cycle records
-appear on stderr as `{"target":"work_cycle","cycle":{...}}`; --json stdout keeps
-one result object. Failed work also records elapsed time with unknown counts as
-null. Uninstrumented phases/queue/observed-source delay are null with a reason.
-These observations never enter graph content/hashes or MCP stdio output.
+## Find a declaration
 
-Export defaults to JSON, pins one catalog vector, verifies exact project manifests
-and shards under native reader guards and rejects corrupt/missing members. Project
-and node selectors preserve discussed scope; node selections are induced projections
-and are labeled filtered. HTML comes from the same snapshots and renderer. The new
-destination is claimed without overwriting an existing directory. A write failure
-may leave a partial new directory and returns an error; it never reports success.
+```text
+axge query context --solution my-app --symbol MyNamespace.MyClass --max-nodes 20 --max-bytes 8192 --json
+```
 
-The result lists relative artifact names, sizes, SHA256 and generation metadata.
-Export has no implicit refresh, installation, source/Git-index edit or external
-publication. No database, bindings, credential or log is exported. Published-source
-identity is not staged-source fidelity; staged checkpoints still need explicit
-source-selector verification. Schema validity is not semantic accuracy.
+Replace the symbol with a fully qualified name from your source. A bounded
+result may be truncated; increase the bounds deliberately or narrow the subject.
+`query impact` explores recorded relationships with the same subject and bounds.
+Missing edges do not prove there is no impact: the current build profile is
+declarations and containment, with [analysis limits](15-STATIC-ANALYSIS-COVERAGE.md).
 
-Use --edge-id <id>, --exact-projection and --catalog-generation <sha256> to retain an observed edge set and conversation snapshot. An empty exact edge set stays empty; unavailable retained generations are refused. Default node selections remain induced projections.
+## Refresh while editing
 
-MCP query catalog_generation_id is its member-vector digest, not the engine catalog manifest identity. Pass the actual project_generations through repeated --project-generation ID=SHA256; a retained matching catalog is selected within a bounded search. Use --catalog-generation only for an actual engine catalog ID.
+```text
+axge watch
+```
+
+Watch stays in the foreground and covers every registered solution in the
+selected Axiom home. It uses polling. It has no per-project watch flag.
+Save source normally; use Ctrl+C to request shutdown. Do not start a second
+writer when a service or watcher already owns this home.
+
+Saves, renames and deletes update the graph. A malformed or interrupted save
+preserves the previous valid snapshot; fix the source and let the next cycle
+run. [Editing with watch](guides/human-workflow.md) explains this workflow.
+
+## Open a diagram
+
+```text
+axge export --solution my-app --out graph-export --format html --json
+```
+
+Open `graph-export/result.html`. Export reads the published snapshot without
+rebuilding it. The destination must be new, and `--project` can be repeated to
+select projects. [Export guide](guides/export.md).
+
+## Share structured data
+
+```text
+axge export --solution my-app --out graph-data --json
+```
+
+JSON is the default export format. The command reports the files it wrote,
+their SHA-256 values and their generation metadata. It does not include the
+runtime database, machine bindings, credentials or logs. Review source labels
+and graph content before sharing them outside your team.
+
+## Read machine output
+
+`--json` keeps one result object on stdout. Operational cycle diagnostics go
+to stderr; redirect those streams separately in scripts. `processing_ms` is
+measured within the engine. Unmeasured phases and delays are `null` with a
+reason, so they should not be interpreted as zero.
+
+See the [command reference](reference/axiom-graphd.md) for less common options.
