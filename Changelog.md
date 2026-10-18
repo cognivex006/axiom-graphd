@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.13
+
+### Chores
+
+- Align the native graph engine package with the 0.1.13 distribution; graph and installation engine behavior is unchanged.
+
 ## 0.1.12
 
 ### Bug Fixes
