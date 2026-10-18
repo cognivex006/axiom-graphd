@@ -117,3 +117,11 @@ The user explicitly requested all reported fixes and merge/release as 0.1.11 on 
 For CLI, installer, bootstrap, interactive setup and long-running terminal changes, consult the canonical [cli-terminal-ux skill](https://github.com/orchex006/axiom-cli/blob/main/.agents/skills/cli-terminal-ux/SKILL.md) by default. Resolve its normative contract through the verified spec pin; retain native visual evidence and existing ownership/approval/release rules. Other repositories link that source rather than maintaining edited copies.
 
 The current 2026-10-18 owner request explicitly authorizes the scoped 0.1.13 implementation, integration and new immutable publication after mandatory native/visual, independent review and previous-release rollback/source-hash gates. Preserve real user state and historical tags/assets.
+
+## Authorized corrected 0.1.14 release
+
+The owner explicitly selected corrected 0.1.14 after the unpublished CLI 0.1.13
+tag exposed POSIX progress races and release evidence naming conflicts. Preserve
+all 0.1.13 tags and published owner assets. Native Windows/Linux/macOS source,
+upgrade/rollback, integrity and independent-review checks remain required. This
+release retains the owner-selected native-only scope and publishes no Docker image.

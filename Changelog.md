@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.14
+
+### Chores
+
+- Align the paired native engine package with the 0.1.14 distribution; graph and installation engine behavior is unchanged.
+
 ## 0.1.13
 
 ### Chores
