@@ -26,9 +26,10 @@ axge version
 axge solution list
 ```
 
-If your repository is already registered, use its listed ID and skip registration.
-If the list is empty, follow the first-run steps below. Use the same `AXIOM_HOME`
-for every command. A different home has a different registry.
+If your repository is already registered, use its listed ID with the
+[everyday build and export commands](workflow-commands.md), rather than repeating
+the first-run setup below. If the list is empty, continue below. Use the same
+`AXIOM_HOME` for every command. A different home has a different registry.
 
 ## Windows PowerShell
 
