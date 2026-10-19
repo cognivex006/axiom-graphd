@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Documentation
+
+- Make first-graph setup registration-first, with a Windows PowerShell walkthrough that captures the current repository, protects existing setup files, and produces an HTML export. Clarify solution IDs versus paths, missing-registration errors and separate MCP readiness.
+
 ## 0.1.14
 
 ### Chores

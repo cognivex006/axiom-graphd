@@ -18,6 +18,12 @@ axge solution list
 A `.sln` or `.csproj` filename does not register an Axiom solution automatically.
 Use the solution's `id` in build, query and export commands.
 
+`--solution` is not a source-path argument. For example, `my-app` is only valid
+after you register a configuration with `"id": "my-app"`. Passing `./my-repository`
+does not discover or register that folder. The current working directory does not
+override the registered bindings. If an ID is missing, check `axge solution list`
+and the selected `AXIOM_HOME` before repeating the build.
+
 ## Add projects in separate folders
 
 This native registration input declares two projects in one repository:

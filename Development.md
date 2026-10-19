@@ -16,6 +16,16 @@ Implement one bounded task; coordinate public changes through spec ADR/RFC first
 
 Attach real test output/hashes, acceptance mapping, changed-file review, compatibility and rollback notes, updated local docs and Changelog.md. Record actual platform coverage and unrun tests. Complete the canonical six preflight and eight completion checks; spec tooling validates evidence consistency, but independent CI reruns remain required.
 
+For registration-first documentation changes, validate the PowerShell quickstart
+against the installed native engine using a private `AXIOM_HOME`, private local
+app-data folder and copied supported source. Exercise missing/unregistered/path
+IDs before apply, the non-overwrite guard, UTF-8 without BOM, dry-run/apply/list,
+build/status/known-symbol query and actual HTML export. Keep the native JSON
+quickstart markers consumed by `workflow_facade` tests. Run
+`python tools/check-doc-status.py` and its `--self-test`; a documentation-only
+change does not justify rebuilding unrelated ecosystem components. Do not index
+the operator's real repository or mutate their registration to test instructions.
+
 ## Branch/release policy
 
 Canonical policy: `Development.md` §3 (`Branch/worktree policy`) ใน `axiom-specs` ณ revision ที่ `spec.lock.json` pin ไว้

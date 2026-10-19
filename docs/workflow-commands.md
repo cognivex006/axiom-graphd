@@ -3,6 +3,10 @@
 These commands use a registered solution. If you have not registered one,
 complete the [quickstart](21-INSTALLATION-QUICKSTART.md) first.
 
+Use `axge solution list` to find your registered ID. Every `my-app` below is an
+example ID, and every example symbol must be substituted with your own source
+name. `--solution` does not accept a repository path or infer the current folder.
+
 ## Build a snapshot
 
 ```text

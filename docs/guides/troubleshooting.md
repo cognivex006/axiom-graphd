@@ -18,11 +18,17 @@ automatically. Keep the error code and message when reporting a problem.
 |---|---|
 | `axge` is not found | Open a new terminal after installation; follow the [installer's PATH guidance](https://github.com/orchex006/axiom-cli/blob/main/docs/INSTALL.md) |
 | `build requires --solution` | Run `solution list`; pass an existing ID or complete the [quickstart](../21-INSTALLATION-QUICKSTART.md) |
+| `NOT_FOUND: this solution id is not registered` | `--solution` needs a listed ID, not a directory or `.sln` path. Register first; `my-app` is an example, not a built-in solution. Check that registration and build use the same `AXIOM_HOME`. |
 | Local bindings are required | Register with `--bindings bindings.json --dry-run`, then `--apply`, using the same Axiom home |
 | Repository root does not exist | Correct the absolute local path in the private bindings file |
 | Whole-repository `.` is rejected | On an older installed build, select an existing source subfolder; whole-repository roots are supported from 0.1.12 |
 | Query returns no records | Check the fully qualified symbol, registered source folder, successful build and supported language |
 | Export destination already exists | Choose a new output directory; export does not overwrite an old snapshot |
+
+A failed build may also print a `work_cycle` diagnostic with empty generation
+maps and null counts/timings. This reports the failed attempt; it is not evidence
+that a graph was built, and the uninstrumented timing message is not its cause.
+Use the accompanying error, such as `NOT_FOUND`, to choose the recovery step.
 
 ## Another writer owns the home
 

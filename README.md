@@ -39,8 +39,15 @@ for platform requirements and troubleshooting.
 
 ## Your first graph
 
-Register a solution and its local source folders with the two small documents
-in the [quickstart](docs/21-INSTALLATION-QUICKSTART.md), then:
+Start with the [step-by-step quickstart](docs/21-INSTALLATION-QUICKSTART.md).
+The [PowerShell walkthrough](docs/21-INSTALLATION-QUICKSTART.md#windows-powershell)
+creates the setup files from your current source folder, previews registration,
+applies it and builds an HTML diagram.
+
+**Register first.** `my-app` below is an example ID you must register, not a built-in
+project. `--solution` selects that ID, not a directory or `.sln` path. Merely running
+`cd` into a repository does not register or select it. Check `axge solution list`
+before using these commands:
 
 ```text
 axge build --solution my-app
