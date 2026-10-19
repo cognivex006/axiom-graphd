@@ -140,6 +140,20 @@ pub trait DirentSource {
     /// Implementations report an unrecoverable failure; individual denied
     /// entries belong in [`WalkReport::permission_errors`].
     fn walk(&self, root: &Path) -> Result<WalkReport, AxiomError>;
+
+    /// Apply policies before expensive filesystem reads when supported.
+    /// Synthetic sources retain the planner's existing post-walk checks.
+    ///
+    /// # Errors
+    /// Reports the same filesystem/policy failures as [`Self::walk`].
+    fn walk_filtered(
+        &self,
+        root: &Path,
+        _ignore: &IgnorePolicy,
+        _input: &InputPolicy,
+    ) -> Result<WalkReport, AxiomError> {
+        self.walk(root)
+    }
 }
 
 /// The digest set the database already holds for one project.
@@ -357,7 +371,7 @@ pub fn plan_inventory(
     ignore: &IgnorePolicy,
     input: &InputPolicy,
 ) -> Result<InventoryPlan, AxiomError> {
-    let report = source.walk(root)?;
+    let report = source.walk_filtered(root, ignore, input)?;
     if report.entries().len() > MAX_INVENTORY_ENTRIES {
         return Err(AxiomError::new(
             ErrorCode::ValidationError,
@@ -384,7 +398,12 @@ pub fn plan_inventory(
             )
             .with_detail("portable_path", path));
         }
-        match ignore.classify(&path)? {
+        let policy_path = if matches!(entry.kind(), ScannedKind::Directory) {
+            format!("{path}/__axiom_policy_probe__")
+        } else {
+            path.clone()
+        };
+        match ignore.classify(&policy_path)? {
             IgnoreDecision::Ignored { reason, .. } => {
                 plan.excluded.push(ExcludedPath { path, reason });
                 continue;
@@ -392,7 +411,14 @@ pub fn plan_inventory(
             IgnoreDecision::Tracked => {}
         }
         let watched = match entry.kind() {
-            ScannedKind::Directory => continue,
+            ScannedKind::Directory => {
+                if let InputDecision::Skipped(reason) =
+                    input.decide(&policy_path, &WatchedEntry::File)?
+                {
+                    plan.withheld.push(WithheldPath { path, reason });
+                }
+                continue;
+            }
             ScannedKind::File => WatchedEntry::File,
             ScannedKind::Symlink { resolved_target } => match resolved_target {
                 Some(target) => WatchedEntry::ResolvedSymlink {
@@ -459,8 +485,28 @@ pub struct StdDirentSource;
 
 impl DirentSource for StdDirentSource {
     fn walk(&self, root: &Path) -> Result<WalkReport, AxiomError> {
+        self.walk_native(root, None)
+    }
+
+    fn walk_filtered(
+        &self,
+        root: &Path,
+        ignore: &IgnorePolicy,
+        input: &InputPolicy,
+    ) -> Result<WalkReport, AxiomError> {
+        self.walk_native(root, Some((ignore, input)))
+    }
+}
+
+impl StdDirentSource {
+    fn walk_native(
+        &self,
+        root: &Path,
+        policies: Option<(&IgnorePolicy, &InputPolicy)>,
+    ) -> Result<WalkReport, AxiomError> {
         let mut entries = Vec::new();
         let mut errors = Vec::new();
+        let mut visited = 0usize;
         let mut stack = vec![(root.to_path_buf(), String::new())];
         while let Some((directory, prefix)) = stack.pop() {
             let listing = match std::fs::read_dir(&directory) {
@@ -479,12 +525,22 @@ impl DirentSource for StdDirentSource {
                 }
             };
             for item in listing {
+                if visited >= MAX_INVENTORY_ENTRIES {
+                    return Err(AxiomError::new(
+                        ErrorCode::ValidationError,
+                        "inventory walk exceeded its bound",
+                    )
+                    .with_detail("limit", MAX_INVENTORY_ENTRIES.to_string()));
+                }
+                visited += 1;
                 let item = match item {
                     Ok(item) => item,
                     Err(_) => {
-                        if !prefix.is_empty() {
-                            errors.push(prefix.clone());
-                        }
+                        errors.push(if prefix.is_empty() {
+                            ".".to_string()
+                        } else {
+                            prefix.clone()
+                        });
                         continue;
                     }
                 };
@@ -502,6 +558,28 @@ impl DirentSource for StdDirentSource {
                     }
                 };
                 let file_type = metadata.file_type();
+                // Classify directory membership before descending. Existing
+                // policy rules classify children (bin/file), not a file named bin.
+                let policy_path = if file_type.is_dir() {
+                    format!("{relative}/__axiom_policy_probe__")
+                } else {
+                    relative.clone()
+                };
+                if let Some((ignore, input)) = policies {
+                    if !ignore.classify(&policy_path)?.is_tracked()
+                        || !input
+                            .decide(&policy_path, &WatchedEntry::File)?
+                            .is_parsable()
+                    {
+                        let kind = if file_type.is_dir() {
+                            ScannedKind::Directory
+                        } else {
+                            ScannedKind::File
+                        };
+                        entries.push(ScannedEntry::new(relative, kind, metadata.len(), None));
+                        continue;
+                    }
+                }
                 if file_type.is_symlink() {
                     let resolved = std::fs::canonicalize(item.path())
                         .ok()
@@ -527,9 +605,8 @@ impl DirentSource for StdDirentSource {
                     stack.push((item.path(), relative));
                 } else {
                     let size = metadata.len();
-                    match std::fs::read(item.path()) {
-                        Ok(bytes) => {
-                            let digest = content_digest(&bytes);
+                    match hash_file(&item.path()) {
+                        Ok(digest) => {
                             entries.push(ScannedEntry::new(
                                 relative,
                                 ScannedKind::File,
@@ -555,6 +632,21 @@ impl DirentSource for StdDirentSource {
         errors.dedup();
         Ok(WalkReport::new(entries, errors, false))
     }
+}
+
+fn hash_file(path: &Path) -> std::io::Result<String> {
+    use std::io::Read;
+    let mut file = std::fs::File::open(path)?;
+    let mut digest = Sha256::new();
+    let mut buffer = [0u8; 64 * 1024];
+    loop {
+        let count = file.read(&mut buffer)?;
+        if count == 0 {
+            break;
+        }
+        digest.update(&buffer[..count]);
+    }
+    Ok(format!("{:x}", digest.finalize()))
 }
 
 #[cfg(test)]
@@ -713,10 +805,8 @@ mod tests {
         assert_eq!(event_kind(&plan.events()[1]), "modified");
         assert_eq!(plan.events()[1].path(), "src/App.cs");
         assert!(
-            plan.excluded()
-                .iter()
-                .any(|entry| entry.path() == "obj/App.g.cs"),
-            "a generated build output is excluded even though it is new"
+            plan.excluded().iter().any(|entry| entry.path() == "obj"),
+            "a generated build subtree is excluded before its children are read"
         );
 
         std::fs::remove_file(root.join("src/New.cs")).expect("remove offline addition");
@@ -747,5 +837,59 @@ mod tests {
             InventoryEvent::Modified { .. } => "modified",
             InventoryEvent::Deleted { .. } => "deleted",
         }
+    }
+}
+
+#[cfg(test)]
+mod native_policy_tests {
+    use super::*;
+
+    #[test]
+    fn native_walk_prunes_excluded_trees_before_opening_and_hashes_source() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        for name in ["bin", "obj", "node_modules", ".git", ".axiom", ".secrets"] {
+            std::fs::create_dir_all(root.join(name).join("nested")).unwrap();
+            std::fs::write(root.join(name).join("nested/Generated.cs"), "excluded").unwrap();
+        }
+        std::fs::write(root.join(".env"), "private").unwrap();
+        std::fs::write(root.join("Program.cs"), "root source").unwrap();
+        let report = StdDirentSource
+            .walk_filtered(
+                root,
+                &IgnorePolicy::new(".axiom"),
+                &InputPolicy::new(root.to_string_lossy()),
+            )
+            .unwrap();
+        assert!(!report.entries().iter().any(|e| e.path().contains('/')));
+        for entry in report.entries() {
+            if entry.path() == "Program.cs" {
+                assert_eq!(
+                    entry.content_hash(),
+                    Some(content_digest(b"root source").as_str())
+                );
+            } else {
+                assert!(
+                    entry.content_hash().is_none(),
+                    "excluded content opened: {}",
+                    entry.path()
+                );
+            }
+        }
+        assert!(report.permission_errors().is_empty());
+        let plan = plan_inventory(
+            &StdDirentSource,
+            root,
+            &KnownInventory::default(),
+            &IgnorePolicy::new(".axiom"),
+            &InputPolicy::new(root.to_string_lossy()),
+        )
+        .unwrap();
+        assert!(plan
+            .withheld()
+            .iter()
+            .any(|entry| entry.path() == ".secrets"));
+        assert!(plan.withheld().iter().any(|entry| entry.path() == ".env"));
+        assert_eq!(plan.observed_files(&KnownInventory::default()).len(), 1);
     }
 }

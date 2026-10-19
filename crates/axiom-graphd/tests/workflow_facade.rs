@@ -138,6 +138,143 @@ fn missing_setup_gives_native_registration_steps() {
 }
 
 #[test]
+fn whole_repository_above_one_inventory_batch_builds_and_retains_root_source() {
+    assert_eq!(
+        graph_store::files::MAX_COMPLETE_INVENTORY,
+        graph_watch::inventory::MAX_INVENTORY_ENTRIES
+    );
+    let dir = tempfile::tempdir().unwrap();
+    #[cfg(not(windows))]
+    let root = std::fs::canonicalize(dir.path()).unwrap();
+    #[cfg(windows)]
+    let root = dir.path().to_path_buf();
+    let repo = root.join("repo");
+    std::fs::create_dir_all(&repo).unwrap();
+    // Unsupported inputs still belong to the inventory/coverage contract;
+    // silently narrowing the project to Src would hide the original defect.
+    for i in 0..8192 {
+        std::fs::write(repo.join(format!("input{i:04}.txt")), "inventory fixture").unwrap();
+    }
+    std::fs::create_dir(repo.join("Src")).unwrap();
+    for i in 0..92 {
+        std::fs::write(
+            repo.join(format!("Src/Source{i}.cs")),
+            format!("namespace Large;\npublic class Source{i} {{}}\n"),
+        )
+        .unwrap();
+    }
+    std::fs::write(
+        repo.join("Program.cs"),
+        "namespace Large;\npublic class RootProgram {\n public void Run() {}\n}\n",
+    )
+    .unwrap();
+    for excluded in ["bin", "obj", ".git", "node_modules", ".axiom"] {
+        std::fs::create_dir_all(repo.join(excluded)).unwrap();
+        std::fs::write(repo.join(excluded).join("Invalid.cs"), "not C# source").unwrap();
+    }
+    let config = root.join("solution.json");
+    std::fs::write(
+        &config,
+        serde_json::to_vec(&serde_json::json!({
+                "id":"large","profile":"default","catalog_host_repo":"large-repo",
+                "projects":[{"id":"app","repo_id":"large-repo","path":"."}]
+        }))
+        .unwrap(),
+    )
+    .unwrap();
+    let bindings = root.join("bindings.json");
+    std::fs::write(
+        &bindings,
+        serde_json::to_vec(&serde_json::json!({
+            "bindings":{"large-repo":repo}
+        }))
+        .unwrap(),
+    )
+    .unwrap();
+    let home = root.join("home");
+    call(
+        &home,
+        &[
+            "solution",
+            "register",
+            "--config",
+            config.to_str().unwrap(),
+            "--bindings",
+            bindings.to_str().unwrap(),
+            "--apply",
+        ],
+    );
+    let built = call(&home, &["build", "--solution", "large"]);
+    assert!(built["published_generations"].as_u64().unwrap() > 0);
+    let context = call(
+        &home,
+        &[
+            "query",
+            "context",
+            "--solution",
+            "large",
+            "--symbol",
+            "Large.RootProgram",
+        ],
+    );
+    assert!(context["records"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|r| r["body"].to_string().contains("RootProgram")));
+    let unchanged = call(&home, &["build", "--solution", "large"]);
+    assert_eq!(unchanged["published_generations"], 0);
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::OpenOptionsExt;
+        let pointer = repo.join(".axiom/graph/large/_catalog/live/current.json");
+        let previous = std::fs::read(&pointer).unwrap();
+        let locked = std::fs::OpenOptions::new()
+            .read(true)
+            .share_mode(0)
+            .open(repo.join("Program.cs"))
+            .unwrap();
+        let denied = Command::new(env!("CARGO_BIN_EXE_axiom-graphd"))
+            .env("AXIOM_HOME", &home)
+            .args(["build", "--solution", "large", "--json"])
+            .output()
+            .unwrap();
+        drop(locked);
+        assert!(!denied.status.success());
+        let error: serde_json::Value = serde_json::from_slice(&denied.stdout).unwrap();
+        assert_eq!(error["code"], "WORKTREE_BUSY");
+        assert_eq!(std::fs::read(pointer).unwrap(), previous);
+        call(
+            &home,
+            &[
+                "query",
+                "context",
+                "--solution",
+                "large",
+                "--symbol",
+                "Large.RootProgram",
+            ],
+        );
+    }
+    std::fs::remove_file(repo.join("input0000.txt")).unwrap();
+    call(&home, &["build", "--solution", "large"]);
+    let export = root.join("html");
+    let result = call(
+        &home,
+        &[
+            "export",
+            "--solution",
+            "large",
+            "--format",
+            "html",
+            "--out",
+            export.to_str().unwrap(),
+        ],
+    );
+    assert_eq!(result["format"], "html");
+}
+
+#[test]
 fn strict_facade_arguments_and_no_natural_language_shell() {
     use axiom_graphd::cli::{parse, Command as Parsed};
     for words in [

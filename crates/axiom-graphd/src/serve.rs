@@ -41,12 +41,12 @@ use graph_core::paths::AxiomHome;
 use graph_export::manifest::ManifestHeader;
 use graph_export::staging::StagingLayout;
 use graph_export::{pointer, reader, recovery};
-use graph_store::files::{ack_generation, apply_inventory, ObservedFile};
+use graph_store::files::{ack_generation, apply_complete_inventory, ObservedFile};
 use graph_store::graph_rows::{EdgeFact, EdgeTarget, GraphFactSet, NodeFact};
 use graph_store::outbox::{self, AnalysisCommit, Operation, OutboxState, PublishIntent};
 use graph_watch::ignore::IgnorePolicy;
 use graph_watch::input_policy::InputPolicy;
-use graph_watch::inventory::{plan_inventory, KnownInventory, StdDirentSource};
+use graph_watch::inventory::{plan_inventory, InventoryPlan, KnownInventory, StdDirentSource};
 use graph_watch::poll::{FileStamp, PollingWatcher, SnapshotSource};
 use rusqlite::{Connection, OptionalExtension};
 use serde::Serialize;
@@ -693,6 +693,18 @@ struct ResolutionInputs<'a> {
     catalog: &'a [CatalogRepoReference],
 }
 
+fn require_complete_inventory(plan: &InventoryPlan) -> Result<(), AxiomError> {
+    if plan.requires_full_scan() || !plan.unreadable().is_empty() {
+        return Err(AxiomError::new(
+            ErrorCode::WorktreeBusy,
+            "source inventory is incomplete; prior inventory and publication preserved",
+        )
+        .with_detail("rule", "incomplete-source-inventory")
+        .with_detail("unreadable", plan.unreadable().len().to_string()));
+    }
+    Ok(())
+}
+
 fn reconcile_project(
     config: &ServiceConfig,
     connection: &mut Connection,
@@ -740,6 +752,9 @@ fn reconcile_project(
         &IgnorePolicy::new(".axiom"),
         &InputPolicy::new(project_root.clone()),
     )?;
+    // Missing observations from a denied/truncated walk are not deletions.
+    // Refuse before any inventory mutation, analysis or publication.
+    require_complete_inventory(&plan)?;
     let observed: Vec<ObservedFile> = plan
         .observed_files(&known)
         .into_iter()
@@ -753,7 +768,7 @@ fn reconcile_project(
         )
         .map_err(|error| runtime::storage_error("inventory generation", &error))?;
     let generation = highest + 1;
-    let inventory = apply_inventory(connection, &project.id, generation, &observed)?;
+    let inventory = apply_complete_inventory(connection, &project.id, generation, &observed)?;
 
     // Analysis: every file the inventory advanced, path order, so the pass is
     // deterministic and reproducible.
@@ -1732,6 +1747,51 @@ pub fn solution_exists(connection: &Connection, solution_id: &str) -> Result<boo
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn incomplete_inventory_cannot_turn_unseen_descendants_into_deletions() {
+        use graph_watch::inventory::{DirentSource, ScannedEntry, ScannedKind, WalkReport};
+        struct Denied(WalkReport);
+        impl DirentSource for Denied {
+            fn walk(
+                &self,
+                _: &std::path::Path,
+            ) -> Result<WalkReport, graph_core::error::AxiomError> {
+                Ok(self.0.clone())
+            }
+        }
+        let known = graph_watch::inventory::KnownInventory::from_pairs([("src/Kept.cs", "old")]);
+        for denied_path in [".", "src"] {
+            let plan = graph_watch::inventory::plan_inventory(
+                &Denied(WalkReport::new(
+                    vec![ScannedEntry::new("src", ScannedKind::Directory, 0, None)],
+                    vec![denied_path.to_string()],
+                    false,
+                )),
+                std::path::Path::new("."),
+                &known,
+                &graph_watch::ignore::IgnorePolicy::new(".axiom"),
+                &graph_watch::input_policy::InputPolicy::new("."),
+            )
+            .unwrap();
+            assert!(
+                plan.events().iter().any(|event| matches!(event,
+                graph_watch::inventory::InventoryEvent::Deleted { path } if path == "src/Kept.cs"))
+            );
+            assert_eq!(
+                super::require_complete_inventory(&plan).unwrap_err().code(),
+                graph_core::error::ErrorCode::WorktreeBusy
+            );
+        }
+        let truncated = graph_watch::inventory::plan_inventory(
+            &Denied(WalkReport::new(vec![], vec![], true)),
+            std::path::Path::new("."),
+            &known,
+            &graph_watch::ignore::IgnorePolicy::new(".axiom"),
+            &graph_watch::input_policy::InputPolicy::new("."),
+        )
+        .unwrap();
+        assert!(super::require_complete_inventory(&truncated).is_err());
+    }
     use super::*;
 
     use graph_export::manifest::Coverage;

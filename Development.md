@@ -16,6 +16,13 @@ Implement one bounded task; coordinate public changes through spec ADR/RFC first
 
 Attach real test output/hashes, acceptance mapping, changed-file review, compatibility and rollback notes, updated local docs and Changelog.md. Record actual platform coverage and unrun tests. Complete the canonical six preflight and eight completion checks; spec tooling validates evidence consistency, but independent CI reruns remain required.
 
+Inventory changes must test complete scans above the 4,096-entry batch limit,
+unchanged and deleted files across chunk boundaries, duplicate/stale rejection
+and rollback after a later-chunk storage failure. Run graph-store/graph-watch
+tests and the native workflow facade, including a repository-root source file.
+Native scanning must apply existing exclusions before descent/content reads;
+do not replace complete-set reconciliation with separate partial inventories.
+
 For registration-first documentation changes, validate the PowerShell quickstart
 against the installed native engine using a private `AXIOM_HOME`, private local
 app-data folder and copied supported source. Exercise missing/unregistered/path

@@ -24,6 +24,18 @@ use crate::storage_error;
 /// one reconciliation unbounded.
 pub const MAX_INVENTORY_BATCH: usize = 4096;
 
+/// Complete-scan bound, aligned with the native inventory walk limit.
+pub const MAX_COMPLETE_INVENTORY: usize = 500_000;
+
+fn inventory_bound_error(limit: usize, observed: usize) -> AxiomError {
+    AxiomError::new(
+        ErrorCode::ValidationError,
+        "inventory batch exceeds the bounded size",
+    )
+    .with_detail("limit", limit.to_string())
+    .with_detail("observed", observed.to_string())
+}
+
 /// Dirty reason recorded for a path that appeared for the first time.
 pub const REASON_NEW_FILE: &str = "new-file";
 /// Dirty reason recorded when an observed content digest differs from the stored one.
@@ -126,6 +138,27 @@ pub fn apply_inventory(
     generation: i64,
     observed: &[ObservedFile],
 ) -> Result<InventoryReport, AxiomError> {
+    if observed.len() > MAX_INVENTORY_BATCH {
+        return Err(inventory_bound_error(MAX_INVENTORY_BATCH, observed.len()));
+    }
+    apply_complete_inventory(connection, project_id, generation, observed)
+}
+
+/// Reconcile one complete inventory, processing observations in bounded chunks.
+///
+/// Missing paths are tombstoned only after all chunks have been applied, in the
+/// same transaction. Calling `apply_inventory` separately per chunk would mark
+/// files in every other chunk deleted and reject the repeated generation.
+///
+/// # Errors
+/// Same validation/storage errors as [`apply_inventory`], with a complete-scan
+/// bound of [`MAX_COMPLETE_INVENTORY`] instead of the individual batch bound.
+pub fn apply_complete_inventory(
+    connection: &mut Connection,
+    project_id: &str,
+    generation: i64,
+    observed: &[ObservedFile],
+) -> Result<InventoryReport, AxiomError> {
     if !is_portable_id(project_id) {
         return Err(AxiomError::new(
             ErrorCode::ValidationError,
@@ -140,13 +173,11 @@ pub fn apply_inventory(
         )
         .with_detail("generation", generation.to_string()));
     }
-    if observed.len() > MAX_INVENTORY_BATCH {
-        return Err(AxiomError::new(
-            ErrorCode::ValidationError,
-            "inventory batch exceeds the bounded size",
-        )
-        .with_detail("limit", MAX_INVENTORY_BATCH.to_string())
-        .with_detail("observed", observed.len().to_string()));
+    if observed.len() > MAX_COMPLETE_INVENTORY {
+        return Err(inventory_bound_error(
+            MAX_COMPLETE_INVENTORY,
+            observed.len(),
+        ));
     }
     let mut seen: BTreeMap<&str, &str> = BTreeMap::new();
     for file in observed {
@@ -223,55 +254,57 @@ pub fn apply_inventory(
         ..InventoryReport::default()
     };
 
-    for file in observed {
-        let previous = rows.remove(file.path());
-        match previous {
-            None => {
-                transaction
-                    .execute(
-                        "INSERT INTO files(project_id, path, observed_hash, indexed_hash, \
-                         desired_generation, indexed_generation, deleted) \
-                         VALUES(?1, ?2, ?3, NULL, ?4, 0, 0)",
-                        params![project_id, file.path(), file.content_hash(), generation],
-                    )
-                    .map_err(|error| storage_error("inventory insert", &error))?;
-                report.added += 1;
-                queue_dirty(
-                    &transaction,
-                    file.path(),
-                    project_id,
-                    generation,
-                    REASON_NEW_FILE,
-                    &now,
-                )?;
-                report.queued += 1;
-            }
-            Some(row) => {
-                let digest_changed = row.observed_hash.as_deref() != Some(file.content_hash());
-                let reappeared = row.deleted;
-                if digest_changed || reappeared {
+    for chunk in observed.chunks(MAX_INVENTORY_BATCH) {
+        for file in chunk {
+            let previous = rows.remove(file.path());
+            match previous {
+                None => {
                     transaction
                         .execute(
-                            "UPDATE files SET observed_hash = ?1, desired_generation = ?2, \
-                             deleted = 0 WHERE id = ?3",
-                            params![file.content_hash(), generation, row.id],
+                            "INSERT INTO files(project_id, path, observed_hash, indexed_hash, \
+                         desired_generation, indexed_generation, deleted) \
+                         VALUES(?1, ?2, ?3, NULL, ?4, 0, 0)",
+                            params![project_id, file.path(), file.content_hash(), generation],
                         )
-                        .map_err(|error| storage_error("inventory update", &error))?;
-                    let reason = if reappeared {
-                        REASON_REAPPEARED
-                    } else {
-                        REASON_CONTENT_CHANGE
-                    };
-                    queue_dirty_id(&transaction, row.id, generation, reason, &now)?;
-                    report.changed += 1;
+                        .map_err(|error| storage_error("inventory insert", &error))?;
+                    report.added += 1;
+                    queue_dirty(
+                        &transaction,
+                        file.path(),
+                        project_id,
+                        generation,
+                        REASON_NEW_FILE,
+                        &now,
+                    )?;
                     report.queued += 1;
-                } else {
-                    if row.deleted {
+                }
+                Some(row) => {
+                    let digest_changed = row.observed_hash.as_deref() != Some(file.content_hash());
+                    let reappeared = row.deleted;
+                    if digest_changed || reappeared {
                         transaction
-                            .execute("UPDATE files SET deleted = 0 WHERE id = ?1", [row.id])
+                            .execute(
+                                "UPDATE files SET observed_hash = ?1, desired_generation = ?2, \
+                             deleted = 0 WHERE id = ?3",
+                                params![file.content_hash(), generation, row.id],
+                            )
                             .map_err(|error| storage_error("inventory update", &error))?;
+                        let reason = if reappeared {
+                            REASON_REAPPEARED
+                        } else {
+                            REASON_CONTENT_CHANGE
+                        };
+                        queue_dirty_id(&transaction, row.id, generation, reason, &now)?;
+                        report.changed += 1;
+                        report.queued += 1;
+                    } else {
+                        if row.deleted {
+                            transaction
+                                .execute("UPDATE files SET deleted = 0 WHERE id = ?1", [row.id])
+                                .map_err(|error| storage_error("inventory update", &error))?;
+                        }
+                        report.unchanged += 1;
                     }
-                    report.unchanged += 1;
                 }
             }
         }
@@ -596,5 +629,58 @@ mod tests {
                 .code(),
             ErrorCode::NotFound
         );
+    }
+}
+
+#[cfg(test)]
+mod complete_inventory_tests {
+    use super::*;
+    use crate::test_support::{memory_store, seed_project, seed_solution};
+
+    #[test]
+    fn complete_inventory_chunks_preserve_noop_deletions_and_atomic_rollback() {
+        let mut db = memory_store();
+        seed_solution(&db, "sol-one", "inst-one");
+        seed_project(&db, "proj-app", "sol-one");
+        let mut files: Vec<_> = (0..MAX_INVENTORY_BATCH * 2 + 3)
+            .map(|i| ObservedFile::new(format!("Source{i}.cs"), "hash"))
+            .collect();
+        assert!(apply_inventory(&mut db, "proj-app", 1, &files).is_err());
+        let first = apply_complete_inventory(&mut db, "proj-app", 1, &files).unwrap();
+        assert_eq!(first.added, files.len());
+        assert_eq!(first.deleted, 0);
+        let unchanged = apply_complete_inventory(&mut db, "proj-app", 2, &files).unwrap();
+        assert_eq!(unchanged.unchanged, files.len());
+        assert_eq!(unchanged.queued, 0);
+        // Fail during the second chunk, after earlier updates executed. No
+        // observations or dirty generations may survive transaction rollback.
+        db.execute_batch("CREATE TRIGGER reject_late BEFORE UPDATE ON files WHEN NEW.path='Source4097.cs' BEGIN SELECT RAISE(ABORT,'injected'); END;").unwrap();
+        let changed: Vec<_> = files
+            .iter()
+            .map(|f| ObservedFile::new(f.path(), "changed"))
+            .collect();
+        assert!(apply_complete_inventory(&mut db, "proj-app", 2, &changed).is_err());
+        let changed_rows: i64 = db
+            .query_row(
+                "SELECT COUNT(*) FROM files WHERE observed_hash='changed'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(changed_rows, 0);
+        db.execute_batch("DROP TRIGGER reject_late;").unwrap();
+        files.remove(0);
+        files.pop();
+        let deleted = apply_complete_inventory(&mut db, "proj-app", 2, &files).unwrap();
+        assert_eq!(deleted.deleted, 2);
+        assert_eq!(deleted.unchanged, files.len());
+        assert_eq!(deleted.queued, 2);
+        let mut duplicate = files.clone();
+        duplicate.push(files[0].clone());
+        assert!(apply_complete_inventory(&mut db, "proj-app", 3, &duplicate).is_err());
+        assert!(apply_complete_inventory(&mut db, "proj-app", 2, &files).is_err());
+        let oversized = vec![ObservedFile::new("bounded.cs", "hash"); MAX_COMPLETE_INVENTORY + 1];
+        let error = apply_complete_inventory(&mut db, "proj-app", 3, &oversized).unwrap_err();
+        assert_eq!(error.code(), ErrorCode::ValidationError);
     }
 }

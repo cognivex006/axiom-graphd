@@ -30,6 +30,26 @@ maps and null counts/timings. This reports the failed attempt; it is not evidenc
 that a graph was built, and the uninstrumented timing message is not its cause.
 Use the accompanying error, such as `NOT_FOUND`, to choose the recovery step.
 
+## A large build fails at 4,096 inventory entries
+
+`inventory batch exceeds the bounded size` on 0.1.14 is an engine defect:
+the complete scan was passed to a single-batch storage operation. It does not
+mean your solution ID or repository-root scope is wrong. The Unreleased fix
+processes complete inventories in bounded chunks and retains atomic deletion
+detection. It also skips existing build/dependency/generated exclusions before
+reading their contents. This source fix does not change the published 0.1.14
+binary; use a later release containing it when available.
+
+Keep the reported `limit`, `observed` count and failed cycle. Do not delete
+source or narrow the project to `Src` and omit root files just to pass this
+limit. A failed first build has no queryable generation; an earlier successful
+publication remains available if one exists.
+
+`source inventory is incomplete` means a retained input or directory could not
+be read, or enumeration was truncated. Resolve file access or an in-progress
+source change and retry. The engine preserves the previous inventory and
+publication instead of treating unseen files as deleted.
+
 ## Another writer owns the home
 
 `WRITER_ALREADY_RUNNING` or exit `10` means another daemon or watcher owns the
