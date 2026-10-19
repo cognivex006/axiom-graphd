@@ -47,30 +47,34 @@ than deleting it to force another run.
 
 <!-- BEGIN POWERSHELL FIRST RUN -->
 ```powershell
-$solutionId = 'my-app'
-$repoId = 'my-app-repo'
-$repoRoot = (Get-Location).Path
-$setupDir = Join-Path $env:LOCALAPPDATA ('Axiom\setup\' + $solutionId)
-if (Test-Path -LiteralPath $setupDir) { throw 'Setup folder already exists; inspect it or choose a new solution ID.' }
-New-Item -ItemType Directory -Path $setupDir -ErrorAction Stop | Out-Null
-$configPath = Join-Path $setupDir 'solution.json'
-$bindingsPath = Join-Path $setupDir 'bindings.json'
-$utf8 = [System.Text.UTF8Encoding]::new($false)
-$config = @{
-    id = $solutionId
-    profile = 'default'
-    catalog_host_repo = $repoId
-    projects = @(@{ id = 'app'; repo_id = $repoId; path = '.' })
+. {
+    $solutionId = 'my-app'
+    $repoId = 'my-app-repo'
+    $repoRoot = (Get-Location).Path
+    $setupDir = Join-Path $env:LOCALAPPDATA ('Axiom\setup\' + $solutionId)
+    if (Test-Path -LiteralPath $setupDir) { throw 'Setup folder already exists; inspect it or choose a new solution ID.' }
+    New-Item -ItemType Directory -Path $setupDir -ErrorAction Stop | Out-Null
+    $configPath = Join-Path $setupDir 'solution.json'
+    $bindingsPath = Join-Path $setupDir 'bindings.json'
+    $utf8 = [System.Text.UTF8Encoding]::new($false)
+    $config = @{
+        id = $solutionId
+        profile = 'default'
+        catalog_host_repo = $repoId
+        projects = @(@{ id = 'app'; repo_id = $repoId; path = '.' })
+    }
+    $bindings = @{ bindings = @{ $repoId = $repoRoot } }
+    [System.IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json -Depth 6), $utf8)
+    [System.IO.File]::WriteAllText($bindingsPath, ($bindings | ConvertTo-Json -Depth 6), $utf8)
 }
-$bindings = @{ bindings = @{ $repoId = $repoRoot } }
-[System.IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json -Depth 6), $utf8)
-[System.IO.File]::WriteAllText($bindingsPath, ($bindings | ConvertTo-Json -Depth 6), $utf8)
 ```
 <!-- END POWERSHELL FIRST RUN -->
 
 `solution.json` names the source scope. `bindings.json` maps that name to the
 actual checkout on this machine; keep bindings private and out of Git. The block
-writes UTF-8 without a byte-order mark, including on PowerShell 5.1. It does not
+writes UTF-8 without a byte-order mark, including on PowerShell 5.1. Paste the
+whole block together: its enclosing block stops the file writes if a safety
+check fails, while retaining the variables for later steps. It does not
 register anything yet or change your source files.
 
 ### 2. Preview the registration
