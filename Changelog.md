@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.15
+
 ### Fixes
 
 - Reconcile complete repository inventories across bounded storage chunks instead of failing above 4,096 files. Keep deletion detection and rollback atomic across the complete scan.

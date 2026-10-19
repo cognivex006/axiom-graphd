@@ -34,11 +34,10 @@ Use the accompanying error, such as `NOT_FOUND`, to choose the recovery step.
 
 `inventory batch exceeds the bounded size` on 0.1.14 is an engine defect:
 the complete scan was passed to a single-batch storage operation. It does not
-mean your solution ID or repository-root scope is wrong. The Unreleased fix
+mean your solution ID or repository-root scope is wrong. The 0.1.15 fix
 processes complete inventories in bounded chunks and retains atomic deletion
 detection. It also skips existing build/dependency/generated exclusions before
-reading their contents. This source fix does not change the published 0.1.14
-binary; use a later release containing it when available.
+reading their contents. Upgrade to 0.1.15 or later with `axm update` to use the fix.
 
 Keep the reported `limit`, `observed` count and failed cycle. Do not delete
 source or narrow the project to `Src` and omit root files just to pass this
