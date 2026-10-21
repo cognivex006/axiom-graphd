@@ -1,0 +1,108 @@
+{
+  "task_id": "W-079",
+  "version": "0.1.14",
+  "published_source_revision": "b054ea90af103117020878c1c1a3cf97925eb9e5",
+  "tag": "v0.1.14",
+  "publication": {
+    "published": true,
+    "repository": "cognivex006/axiom-graphd",
+    "version": "0.1.14",
+    "url": "https://github.com/cognivex006/axiom-graphd/releases/tag/v0.1.14",
+    "source_revision": "b054ea90af103117020878c1c1a3cf97925eb9e5",
+    "release_branch": "release/v0.1.14",
+    "asset_count": 8,
+    "downloaded_sha256": {
+      "axiom-0.1.14-windows-x64.sbom.json": "9b29445bf2ea8700424714aeb23b80e4ad2d6402529c230c10f84b8e696cdb00",
+      "axiom-0.1.14-windows-x64.zip": "ddf9ed7ec920f45b1fd975e664e68695ed5254e0b5f2233ac8a23ee4fd1cb4dc",
+      "RELEASE-NOTES.md": "83868f291295ab7c005b8eccdece4a65e3dbcdb9ff212923fbc50d4f26a97c2c",
+      "RELEASE-SCOPE.json": "147623b4b0706895172ba3b37b8e7aa0c5968166aa5ba5c4f8779bba5645fdc5",
+      "SHA256SUMS": "851412b885f8e90cd2e34e023ef8cd07ba5cb63c32dbf995ea6fd3d7c082f4c4",
+      "SOURCE-REVISION.txt": "8ca9515e49c19e445a9865e084b18164261229dba9a1d57ba9d0b119aa7376f4",
+      "windows-x64-manifest.json": "eb5157fcd71c343e35739b715be145d20946e01333d2b20d410890bc1644a668",
+      "windows-x64-native-report.json": "1b766f5e88976d7c5a36d90b3022098c88c969d9113b94da045ed9fe768bad09"
+    },
+    "github_workflows_used": false,
+    "protected_main_unchanged": true
+  },
+  "public_install": {
+    "passed": true,
+    "version": "0.1.14",
+    "execution": "native",
+    "platform": "windows-x64",
+    "sources": {
+      "axiom-cli": "b9a836bcc9d0dfde9df10d104dd60662ef7df73c",
+      "axiom-graphd": "b054ea90af103117020878c1c1a3cf97925eb9e5",
+      "axiom-skills": "dd19829e850b9700821ccd2938383df0126b0d76",
+      "axiom-mcp": "0b702e8b68ef48cb628104c1fa5c8124937ccdf5"
+    },
+    "downloaded_scripts_sha256": {
+      "install.ps1": "b9b82dc983d6ee5cb4eec3d900fb7bd77870aa6e5a92d9449d0a15d2be1f1317",
+      "update.ps1": "e2a1c565e707e4454a0d401daf92f649f67af930ce6e57f244649daa73f2ac82",
+      "channel.json": "20256bc0248963e1cdbd9b9464e293900ee3f37d27c0a0ffbd85510babdc387f"
+    },
+    "cases": [
+      {
+        "case": "canonical public Windows install",
+        "exit_code": 0,
+        "raw_log_sha256": "c80c957be19733cf389d1716a886e3f3a8f3b6f3716e8ed966952dbe8028749a"
+      },
+      {
+        "case": "installed version",
+        "exit_code": 0,
+        "raw_log_sha256": "8b9b549075dca0f691926a8bacd4cb93cafed3e93ba9db5bbb5e7adb143b6eb1"
+      },
+      {
+        "case": "installed doctor",
+        "exit_code": 0,
+        "raw_log_sha256": "05eac3aa121e8be60d8613802d60ee4de7ac8193b8076c40d91fbf32bb1b212f"
+      },
+      {
+        "case": "installed MCP source",
+        "exit_code": 0,
+        "raw_log_sha256": "437f66a06b92333196f814aebf1b5908c5dace98a3de859911beedf4b209b1a2"
+      },
+      {
+        "case": "canonical public same-release channel/update smoke",
+        "exit_code": 0,
+        "raw_log_sha256": "a8ca3b31478f1eea403d63556adb9b114ecdb3ea4b4c1b3690da0de241867cfe"
+      },
+      {
+        "case": "doctor after public update",
+        "exit_code": 0,
+        "raw_log_sha256": "05eac3aa121e8be60d8613802d60ee4de7ac8193b8076c40d91fbf32bb1b212f"
+      },
+      {
+        "case": "private-profile uninstall",
+        "exit_code": 0,
+        "raw_log_sha256": "b89b82829b890b26a80a23a939d6994ea8dab49a5df7c5f51b6c5dd92f9ddb83"
+      }
+    ],
+    "profile_isolation": true,
+    "user_data_preserved": true,
+    "scope": "Actual GitHub canonical downloads and installed channel; existing elevation fixture seam, no GUI-host certification."
+  },
+  "local_build_sha256": "524b5cbca51831005942f557fdab75cf9846391e63863ba0d6a9c591e815d111",
+  "source_checks_sha256": "895f73260958894def71d29c365a988bc4ba00bac1ae1a8b786d0cd81430fe15",
+  "independent_review": "Reviewed source and final local-machine publication plan; all native gates passed before publication.",
+  "limitations": "Windows x64 only; portable MCP/skills tested on Windows, unsigned binaries; no licensed GUI-host certification. Protected component main remains unchanged; source integration awaits human PR review. Historical evidence and original artifacts remain unchanged.",
+  "github_workflows_used": false,
+  "native_acceptance": {
+    "passed": true,
+    "source_bound_build": true
+  },
+  "native_readiness": {
+    "state": "READY",
+    "ready": true,
+    "certification_required": false,
+    "source_revision": "b054ea90af103117020878c1c1a3cf97925eb9e5",
+    "verification": "local_machine",
+    "native_lanes": [
+      {
+        "platform": "windows-x64",
+        "report_sha256": "1b766f5e88976d7c5a36d90b3022098c88c969d9113b94da045ed9fe768bad09"
+      }
+    ],
+    "macos_arm64": "deferred",
+    "published": false
+  }
+}

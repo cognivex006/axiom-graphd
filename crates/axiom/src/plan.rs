@@ -1083,7 +1083,7 @@ mod tests {
     /// `tests/test_update_plan_contract.py` re-reads that file, so this literal is
     /// the cross-language anchor for the canonical byte form.
     const FROZEN_EXAMPLE_DIGEST: &str =
-        "b1938dd0652de5cd76d1a4934fd39d5a7d83012eb3a8e8c0c6139e1bc1d77b00";
+        "edd7b1a88aee20ef2cae093e786aec7ab43c3e5eb21485dace0ea3c5066f343e";
 
     /// The approved plan of the shipped example, rebuilt here so this crate
     /// never carries a second copy of the normative artifact.
@@ -1123,7 +1123,7 @@ mod tests {
             "downloads": [
                 {
                     "artifact": "axiom-graphd-0.2.0-windows-x64.zip",
-                    "url": "https://github.com/orchex006/axiom-graphd/releases/download/v0.2.0/axiom-graphd-0.2.0-windows-x64.zip",
+                    "url": "https://github.com/cognivex006/axiom-graphd/releases/download/v0.2.0/axiom-graphd-0.2.0-windows-x64.zip",
                     "sha256": "3333333333333333333333333333333333333333333333333333333333333333",
                     "size_bytes": 41943040
                 }

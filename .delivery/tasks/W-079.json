@@ -1,0 +1,10 @@
+{
+  "task_id": "W-079",
+  "owner_repository": "axiom-graphd",
+  "branch": "feature/w-079-windows-014",
+  "status": "published",
+  "version": "0.1.14",
+  "published_source_revision": "b054ea90af103117020878c1c1a3cf97925eb9e5",
+  "publication_receipt": "evidence/W-079/publication.json",
+  "main_integration": "Pending human review; protected main unchanged."
+}

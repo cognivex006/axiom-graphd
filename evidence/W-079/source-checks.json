@@ -1,0 +1,88 @@
+{
+  "task_id": "W-079",
+  "repository": "axiom-graphd",
+  "status": "source_verified",
+  "version": "0.1.14",
+  "platform": "windows-x64",
+  "spec_revision": "c8bd7f33d562b31a585478d377f866ce0da4fb0c",
+  "source_unchanged_during_checks": true,
+  "checks": [
+    {
+      "command": "cargo +1.85.0 fmt --all -- --check",
+      "exit_code": 0,
+      "raw_log_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "observed_summary": []
+    },
+    {
+      "command": "cargo +1.85.0 clippy --locked --all-targets -- -D warnings",
+      "exit_code": 0,
+      "raw_log_sha256": "8592d5ed3662a95dbe6f32802ab68114f1d4f596829f16d3e0cf7bc0d0f2cc13",
+      "observed_summary": []
+    },
+    {
+      "command": "cargo +1.85.0 test --locked --all-targets -- --test-threads=1",
+      "exit_code": 0,
+      "raw_log_sha256": "29f9ef200d02129a90996eea4f91d4ec26fcff2e0f5b99c6eb8289306d58aaa3",
+      "observed_summary": [
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s",
+        "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.64s",
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s",
+        "test result: ok. 49 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s",
+        "test result: ok. 73 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.53s",
+        "test result: ok. 94 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+        "test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.67s",
+        "test result: ok. 57 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s"
+      ]
+    },
+    {
+      "command": "python tools/check-doc-status.py",
+      "exit_code": 0,
+      "raw_log_sha256": "d1c8dbb3a172c3f68bba89a9fdcb39b1c9774ea72d7f981807b9f96abc8cc8b7",
+      "observed_summary": []
+    },
+    {
+      "command": "python tools/check-doc-status.py --self-test",
+      "exit_code": 0,
+      "raw_log_sha256": "f43e5a9e4fea3f431fb573684bfd6b93b872580c35c868a38b93f6a65bd386da",
+      "observed_summary": []
+    },
+    {
+      "command": "python tests/core_manifest.py",
+      "exit_code": 0,
+      "raw_log_sha256": "701c5bf71cd6a91d5a678cd3f50ceda9178e3295898426ed6ed40acbdcdba035",
+      "observed_summary": []
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_release_delivery.py -q",
+      "exit_code": 0,
+      "raw_log_sha256": "51ee68fc0de1ec04f95a0dc2283f276441626195cc17e5a37b67303fe48c49f2",
+      "observed_summary": [
+        "Ran 4 tests in 0.656s",
+        "OK"
+      ]
+    },
+    {
+      "command": "cargo-deny.exe --locked check",
+      "exit_code": 0,
+      "raw_log_sha256": "e8f3ef0706da3b64502607b42a3d97deac771df04e42b208ffeeb7d989adb388",
+      "observed_summary": [
+        "advisories ok, bans ok, licenses ok, sources ok"
+      ]
+    }
+  ],
+  "independent_review": "No blocking source finding; actual native owner/distribution, refusal and rollback acceptance remains mandatory before publication.",
+  "publication": "not_published",
+  "tested_input_hashes": {
+    "Cargo.lock": "d5c159b3176ac0d4c03c95a32485c8ab42a12afb5e4a9135c2716c45eb6f4b17",
+    "Cargo.toml": "d83cc4bf4c29829df91496a413a0d88483d94bdf9b14090a45751ee244fbc18f",
+    "Changelog.md": "bfd30d00c0244687ab40619dbf7d1f38d23b3616705314ce15b6b7b4bab76d2a",
+    "Development.md": "74791dc9f6c5d8ff465aea475d072df8fb39c2bdfafe45fe3437017babe5061f",
+    "VERSION": "9940d4b5219de8404015bc18af844c88d7e9e9105682a5d47b1d369d027dbd25",
+    "crates/axiom/src/plan.rs": "0a816e276a1e748653a60839698ac2c2789b5a49fc793ce1d9faf1cfabea298c",
+    "docs/LOCAL-BUILD-DEPLOY.md": "efd76e9db50e9e7894461478862252c5c58eb800843dc3599ac13f3633749da2",
+    "release/collect_assets.py": "825f4ff04e23242fa314a01a1dc49cdbea393aa515d15c8d32b067af39db88a9",
+    "release/core-manifest.json": "968bb6ceada3a2cc7f8623a51d322e9306e888ad1a3e756e58990f7b6c1f3224",
+    "release/readiness.json": "ea9fd9c42ccb10d4420380fbba33ae9a62a015047246231f757daf647cacd7a9",
+    "spec.lock.json": "c87cd120b2ce2f5f3ba3fa7787b5297e4c7c5082875d2547762ccd8aafe8f093"
+  }
+}
