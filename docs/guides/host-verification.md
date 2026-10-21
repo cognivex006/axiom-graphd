@@ -19,4 +19,4 @@ solution registration and published graph state. Do not change credentials
 or reinstall the runtime solely because a graph has not been built yet.
 
 [Host setup](host-adapters.md) ·
-[Gateway guide](https://github.com/orchex006/axiom-mcp/blob/main/docs/local-gateway.md)
+[Gateway guide](https://github.com/cognivex006/axiom-mcp/blob/main/docs/local-gateway.md)

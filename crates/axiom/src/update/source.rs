@@ -318,18 +318,18 @@ mod tests {
 
     #[test]
     fn an_explicit_source_builds_only_https_release_urls() {
-        let source = UpdateSource::new("orchex006", "axiom-graphd", "stable").expect("valid");
-        assert_eq!(source.slug(), "orchex006/axiom-graphd");
+        let source = UpdateSource::new("cognivex006", "axiom-graphd", "stable").expect("valid");
+        assert_eq!(source.slug(), "cognivex006/axiom-graphd");
         assert_eq!(source.channel(), "stable");
         assert_eq!(
             source.release_base_url(),
-            "https://github.com/orchex006/axiom-graphd/releases"
+            "https://github.com/cognivex006/axiom-graphd/releases"
         );
         assert_eq!(
             source
                 .asset_url("v0.2.0", "axiom-graphd-0.2.0-linux-x64.tar.gz")
                 .expect("valid asset"),
-            "https://github.com/orchex006/axiom-graphd/releases/download/v0.2.0/axiom-graphd-0.2.0-linux-x64.tar.gz"
+            "https://github.com/cognivex006/axiom-graphd/releases/download/v0.2.0/axiom-graphd-0.2.0-linux-x64.tar.gz"
         );
         assert!(source.release_base_url().starts_with("https://"));
         assert_eq!(source.origin(), SourceOrigin::Configured);
@@ -359,7 +359,7 @@ mod tests {
 
         // A half-configured source is refused too, and the missing half is named.
         let partial = SourceConfig {
-            owner: Some("orchex006".to_string()),
+            owner: Some("cognivex006".to_string()),
             repo: None,
             channel: Some("stable".to_string()),
         };
@@ -389,13 +389,13 @@ mod tests {
     #[test]
     fn a_channel_outside_the_frozen_set_is_refused() {
         for channel in ["latest", "nightly", "", "Stable"] {
-            let error = UpdateSource::new("orchex006", "axiom-graphd", channel)
+            let error = UpdateSource::new("cognivex006", "axiom-graphd", channel)
                 .expect_err("an unknown channel must be refused");
             assert_eq!(rule_of(&error), "unsupported_channel", "{channel}");
         }
         assert_eq!(CHANNELS, ["stable", "prerelease"]);
         for channel in CHANNELS {
-            assert!(UpdateSource::new("orchex006", "axiom-graphd", channel).is_ok());
+            assert!(UpdateSource::new("cognivex006", "axiom-graphd", channel).is_ok());
         }
     }
 
@@ -428,7 +428,7 @@ mod tests {
 
     #[test]
     fn an_asset_name_that_would_escape_the_repository_is_refused() {
-        let source = UpdateSource::new("orchex006", "axiom-graphd", "stable").expect("valid");
+        let source = UpdateSource::new("cognivex006", "axiom-graphd", "stable").expect("valid");
         for asset in ["../other-repo/blob", "sub/dir/file", "", "space name"] {
             let error = source
                 .asset_url("v0.2.0", asset)

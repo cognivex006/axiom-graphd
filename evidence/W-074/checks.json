@@ -1,0 +1,78 @@
+{
+  "task_id": "W-074",
+  "source_repo": "axiom-graphd",
+  "platform": "windows-x64",
+  "execution": "native",
+  "verification": "source checks; not release acceptance",
+  "commands": [
+    {
+      "command": "cargo +1.85.0 fmt --all -- --check",
+      "exit_code": 0,
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "observed_summary": []
+    },
+    {
+      "command": "cargo +1.85.0 clippy --locked --all-targets -- -D warnings",
+      "exit_code": 0,
+      "raw_log_sha256": "658593473d0fa8993c413af1add919cb40997c1049dcd0c21a2903db093147ed",
+      "observed_summary": []
+    },
+    {
+      "command": "cargo +1.85.0 test --locked --all-targets -- --test-threads=1",
+      "exit_code": 0,
+      "raw_log_sha256": "ed6a1cce1615eaf1faf6f2a9b3120985da163b7391f1db81be0853fb1404782a",
+      "observed_summary": [
+        "test result: ok. 49 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s",
+        "test result: ok. 73 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.67s",
+        "test result: ok. 94 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+        "test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.31s",
+        "test result: ok. 57 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s"
+      ]
+    },
+    {
+      "command": "python tools/check-doc-status.py",
+      "exit_code": 0,
+      "raw_log_sha256": "5763c8697a486cbe73eb29d94b00b62052e0123071d573968e6167d05055a6e9",
+      "observed_summary": []
+    },
+    {
+      "command": "python tools/check-doc-status.py --self-test",
+      "exit_code": 0,
+      "raw_log_sha256": "6ce0c1316a95c663e9fb6c693baaf123113a933bfe0a42c6c2998798aab30b55",
+      "observed_summary": []
+    },
+    {
+      "command": "python tests/core_manifest.py",
+      "exit_code": 0,
+      "raw_log_sha256": "924d17dc376c59645511d6257037de0a90404e74dc9f3cc5b6337dbcb818bc9b",
+      "observed_summary": [
+        "ok: E-048/V2-021 one core release carries axiom-graphd and axiom from the same version and revision, with per-target provenance, executable metadata and honest installation evidence; 3 positive legs hold and 12 negative legs were rejected as required"
+      ]
+    },
+    {
+      "command": "python -m unittest discover -s tests -p test_release_delivery.py -q",
+      "exit_code": 0,
+      "raw_log_sha256": "b43181a59bb089c976b2944ba5605828e60a078718a031f2813f8b891ead4b34",
+      "observed_summary": [
+        "Ran 4 tests in 0.429s",
+        "OK"
+      ]
+    },
+    {
+      "command": "cargo-deny --locked check",
+      "exit_code": 0,
+      "raw_log_sha256": "286f68a0d628f9bd0a8171372924f2d3d792635399a7a0edc2cbc68753344c11",
+      "observed_summary": [
+        "advisories ok, bans ok, licenses ok, sources ok"
+      ]
+    }
+  ],
+  "spec_revision": "4ef9d1d5be0588e85df3a437efa2ae6df2f81245",
+  "verified_contract_digests": 46,
+  "limitations": [
+    "Rebuilt multi-platform binary acceptance and publication are pending.",
+    "Linux, macOS, WSL, current manual terminal screenshots and release upgrade/rollback were not executed for this namespace migration.",
+    "Original legacy-owner cached release bytes remain unpublished."
+  ],
+  "preserved_history": "Original source commits, archived task receipts and frozen contract/skill fixtures retain original identities."
+}

@@ -16,7 +16,7 @@ automatically. Keep the error code and message when reporting a problem.
 
 | Symptom | What to do |
 |---|---|
-| `axge` is not found | Open a new terminal after installation; follow the [installer's PATH guidance](https://github.com/orchex006/axiom-cli/blob/main/docs/INSTALL.md) |
+| `axge` is not found | Open a new terminal after installation; follow the [installer's PATH guidance](https://github.com/cognivex006/axiom-cli/blob/main/docs/INSTALL.md) |
 | `build requires --solution` | Run `solution list`; pass an existing ID or complete the [quickstart](../21-INSTALLATION-QUICKSTART.md) |
 | `NOT_FOUND: this solution id is not registered` | `--solution` needs a listed ID, not a directory or `.sln` path. Register first; `my-app` is an example, not a built-in solution. Check that registration and build use the same `AXIOM_HOME`. |
 | Local bindings are required | Register with `--bindings bindings.json --dry-run`, then `--apply`, using the same Axiom home |

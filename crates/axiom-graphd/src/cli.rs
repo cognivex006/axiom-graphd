@@ -205,7 +205,7 @@ First graph:
   axge build --solution <id>
   axge watch
   Native setup guide (no compiler required):
-  https://github.com/orchex006/axiom-graphd/blob/main/docs/21-INSTALLATION-QUICKSTART.md
+  https://github.com/cognivex006/axiom-graphd/blob/main/docs/21-INSTALLATION-QUICKSTART.md
 
 ";
 

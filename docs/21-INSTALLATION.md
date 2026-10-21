@@ -17,7 +17,7 @@ Rust, Cargo and a source checkout of Axiom are not required.
 
 ## Install the runtime
 
-Follow the [official installation instructions](https://github.com/orchex006/axiom-cli#install-and-update)
+Follow the [official installation instructions](https://github.com/cognivex006/axiom-cli#install-and-update)
 for your platform. The installer verifies downloaded checksums, shows its plan
 and asks before applying. Run it as your normal user, without Administrator or sudo.
 
@@ -43,6 +43,6 @@ checksum verification checks their bytes and should stay enabled.
 ## Update or remove
 
 `axm update` reviews and applies a newer runtime when one is available.
-Use the [distribution guide](https://github.com/orchex006/axiom-cli/blob/main/docs/INSTALL.md)
+Use the [distribution guide](https://github.com/cognivex006/axiom-cli/blob/main/docs/INSTALL.md)
 for install options, PATH setup, uninstall and rollback. Project source and local
 graph registration are separate from package installation.

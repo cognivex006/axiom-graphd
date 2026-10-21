@@ -12,5 +12,5 @@ If the host is missing, install or locate it using its own setup instructions,
 then retry the [managed skill setup](host-adapters.md).
 
 Unknown host versions or foreign configuration need review. Preserve existing
-settings and use the [current compatibility guide](https://github.com/orchex006/axiom-skills/blob/main/docs/host-compatibility.md)
+settings and use the [current compatibility guide](https://github.com/cognivex006/axiom-skills/blob/main/docs/host-compatibility.md)
 rather than assuming a configuration shape from another host.

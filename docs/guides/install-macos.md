@@ -6,7 +6,7 @@ An Intel Mac and a normal user account. Apple silicon packages are not currently
 
 ## Install and verify
 
-Use the [official installer](https://github.com/orchex006/axiom-cli#install-and-update)
+Use the [official installer](https://github.com/cognivex006/axiom-cli#install-and-update)
 for this platform. It verifies downloaded checksums and asks before applying
 the displayed plan. Keep this trust verification enabled.
 
@@ -38,5 +38,5 @@ A per-user service is optional; inspect installed service capabilities in
 [Agent setup](host-adapters.md) covers managed skills and MCP access.
 Installation success alone does not verify an agent handshake.
 For uninstall and PATH verification, follow the
-[distribution guide](https://github.com/orchex006/axiom-cli/blob/main/docs/INSTALL.md).
+[distribution guide](https://github.com/cognivex006/axiom-cli/blob/main/docs/INSTALL.md).
 Preserve project source, private bindings and any reviewed snapshots you need.

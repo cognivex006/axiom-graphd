@@ -15,4 +15,4 @@ covers host namespaces and query verification.
 `axm skills list` inspects managed registrations. The manager preserves foreign
 and modified host settings; review a reported conflict before retrying.
 Other hosts use their documented manual setup from the
-[skills project](https://github.com/orchex006/axiom-skills/blob/main/docs/GETTING-STARTED.md).
+[skills project](https://github.com/cognivex006/axiom-skills/blob/main/docs/GETTING-STARTED.md).

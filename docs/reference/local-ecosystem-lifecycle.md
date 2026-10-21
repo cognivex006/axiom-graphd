@@ -8,7 +8,7 @@ axm doctor
 axm update
 ```
 
-The [distribution guide](https://github.com/orchex006/axiom-cli/blob/main/docs/INSTALL.md)
+The [distribution guide](https://github.com/cognivex006/axiom-cli/blob/main/docs/INSTALL.md)
 documents options, uninstall, recovery and retained-version rollback. Review
 its plan before applying a change. Project source, local graph registration
 and host plugin state are distinct from the installed runtime payload.

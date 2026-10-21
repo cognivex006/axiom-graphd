@@ -23,7 +23,7 @@ The diagram works offline and needs no account or running service.
 
 ## Install
 
-Use the [Axiom installer](https://github.com/orchex006/axiom-cli#install-and-update)
+Use the [Axiom installer](https://github.com/cognivex006/axiom-cli#install-and-update)
 to install the prebuilt runtime for Windows x64, Linux x64 or macOS Intel.
 Then open a new terminal:
 
@@ -88,3 +88,7 @@ This repository contains the engine's production Rust source. The `crates/`
 directory holds its modules; it is needed to build the product. See the
 [developer guide](docs/development/README.md) for architecture, source builds,
 tests and verification records. [Changelog](Changelog.md).
+
+## Build and deployment
+
+Build, verify and deploy on operator-managed machines; see [local build and deployment](docs/LOCAL-BUILD-DEPLOY.md). GitHub Actions workflows are removed.

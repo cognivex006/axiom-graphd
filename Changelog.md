@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Chores
+
+- Move repository and download references to cognivex006 and run verification/builds on operator-managed machines instead of GitHub Actions.
+
+
 ## 0.1.15
 
 ### Fixes

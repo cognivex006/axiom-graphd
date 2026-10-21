@@ -32,7 +32,7 @@
     "bootstrap_note": "Bootstrap and installer behaviour live inside this same workspace and ship in this same core release; there is no second component, no second version and no second publication for them.",
     "source": {
       "workspace_toml": "Cargo.toml",
-      "workspace_toml_sha256": "2d721ab46c3c11c58f1c24737ca91ef7a2c40ec776db7368805a589976dc1d41",
+      "workspace_toml_sha256": "eafe85433844038b2ad70575ca08ce35749a64a7e407b8145438a94f7b0a08ac",
       "lockfile": "Cargo.lock",
       "lockfile_sha256": "8e96d84f6aa86f0b8d8733062398e05daffdfb08a1ad10be44f51d7ac57d079c",
       "lockfile_state": "checked_in"
@@ -226,17 +226,17 @@
       "state": "optional",
       "scheme": "minisign-ed25519",
       "key_id": null,
-      "note": "GitHub Actions verifies exact source/assets; GitHub Releases delivers checked downloads. Certification/signing/attestation are not prerequisites. Existing runtime updater integrity and approval checks remain unchanged."
+      "note": "operator-managed build machines verifies exact source/assets; GitHub Releases delivers checked downloads. Certification/signing/attestation are not prerequisites. Existing runtime updater integrity and approval checks remain unchanged."
     },
     "publication": {
       "state": "not_published",
       "tag": null,
-      "reason": "Owner-authorized 0.1.15 publication is performed by the checked GitHub workflow; actual outcome is recorded separately."
+      "reason": "Rebuilt namespace-migrated native artifacts and source-bound machine reports are pending; no publication claimed."
     }
   },
   "v2_task": "V2-021",
   "release_policy": {
-    "verification": "github_actions",
+    "verification": "local_machine",
     "delivery": "github_releases",
     "certification_required": false,
     "signature_required": false,

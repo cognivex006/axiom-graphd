@@ -19,7 +19,7 @@ Keep the original error and transaction information. Fix network, checksum,
 permission or disk problems before retrying. Changed or incomplete retained
 runtime files are preserved and refused rather than silently overwritten.
 
-Follow the [distribution guide](https://github.com/orchex006/axiom-cli/blob/main/docs/INSTALL.md)
+Follow the [distribution guide](https://github.com/cognivex006/axiom-cli/blob/main/docs/INSTALL.md)
 for rollback, recovery and upgrading older installations. Engine-level
 operations are an advanced interface; use the public `axm` workflow for routine
 updates. Do not mix binaries from different core releases.

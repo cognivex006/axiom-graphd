@@ -11,7 +11,7 @@ freshness and read source before making a claim.
 | `.axiom/agent/bootstrap.lock.json` | Ownership record for managed content |
 
 Begin with [managed host setup](host-adapters.md) and the
-[skills guide](https://github.com/orchex006/axiom-skills/blob/main/docs/GETTING-STARTED.md).
+[skills guide](https://github.com/cognivex006/axiom-skills/blob/main/docs/GETTING-STARTED.md).
 Review the exact project plan before applying repository changes.
 
 Existing human instructions remain authoritative. Missing, duplicate or

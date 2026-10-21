@@ -509,6 +509,8 @@ def problems_in(manifest, repo_root):
                 ci = publication.get("github_actions", {})
                 if ci.get("conclusion") != "success" or ci.get("source_revision") != revision:
                     problems.append("published release lacks matching successful GitHub Actions evidence")
+            if manifest.get("release_policy", {}).get("verification") == "local_machine":
+                problems.append("machine publication requires the source-bound native collector; legacy manifest declarations cannot authorize publication")
             if not is_commit(revision):
                 problems.append("release.publication is published while the revision is not pinned")
             if publication.get("tag") != "v%s" % version:

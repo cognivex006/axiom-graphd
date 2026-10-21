@@ -568,14 +568,14 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         let graphd = temp.path().join("axiom-graphd");
         let mcp = temp.path().join("axiom-mcp");
-        write_checkout(&graphd, "https://github.com/orchex006/axiom-graphd.git");
-        write_checkout(&mcp, "https://github.com/orchex006/axiom-mcp.git");
+        write_checkout(&graphd, "https://github.com/cognivex006/axiom-graphd.git");
+        write_checkout(&mcp, "https://github.com/cognivex006/axiom-mcp.git");
 
         let request = SolutionRequest::new(
             "axiom-main",
             vec![
                 RepositoryBinding::new("graphd", "axiom-graphd", graphd.display().to_string())
-                    .with_remote("https://github.com/orchex006/axiom-graphd.git"),
+                    .with_remote("https://github.com/cognivex006/axiom-graphd.git"),
                 RepositoryBinding::new("mcp", "axiom-mcp", mcp.display().to_string()),
             ],
         );
@@ -587,7 +587,7 @@ mod tests {
         assert_eq!(set.approved()[0].name, "axiom-graphd");
         assert_eq!(
             set.approved()[0].remote.as_deref(),
-            Some("https://github.com/orchex006/axiom-graphd.git")
+            Some("https://github.com/cognivex006/axiom-graphd.git")
         );
         assert!(set.rejected().is_empty());
     }
@@ -598,9 +598,12 @@ mod tests {
     fn similarly_named_inaccessible_and_foreign_repositories_are_refused() {
         let temp = tempfile::tempdir().expect("tempdir");
         let similar = temp.path().join("axiom-graphd-old");
-        write_checkout(&similar, "https://github.com/orchex006/axiom-graphd.git");
+        write_checkout(&similar, "https://github.com/cognivex006/axiom-graphd.git");
         let foreign = temp.path().join("axiom-mcp");
-        write_checkout(&foreign, "https://github.com/orchex006/axiom-mcp-fork.git");
+        write_checkout(
+            &foreign,
+            "https://github.com/cognivex006/axiom-mcp-fork.git",
+        );
         let absent = temp.path().join("axiom-skills");
 
         let probe = LocalRepoProbe;
@@ -609,7 +612,7 @@ mod tests {
             vec![
                 RepositoryBinding::new("graphd", "axiom-graphd", similar.display().to_string()),
                 RepositoryBinding::new("mcp", "axiom-mcp", foreign.display().to_string())
-                    .with_remote("https://github.com/orchex006/axiom-mcp.git"),
+                    .with_remote("https://github.com/cognivex006/axiom-mcp.git"),
                 RepositoryBinding::new("skills", "axiom-skills", absent.display().to_string()),
             ],
         );
@@ -707,18 +710,18 @@ mod tests {
     /// sections of a real Git config.
     #[test]
     fn only_the_origin_remote_is_read_from_a_git_config() {
-        let config = "[core]\n\tbare = false\n[remote \"upstream\"]\n\turl = https://example.invalid/upstream.git\n[remote \"origin\"]\n\turl = https://github.com/orchex006/axiom-graphd.git\n";
+        let config = "[core]\n\tbare = false\n[remote \"upstream\"]\n\turl = https://example.invalid/upstream.git\n[remote \"origin\"]\n\turl = https://github.com/cognivex006/axiom-graphd.git\n";
         assert_eq!(
             parse_origin_remote(config).as_deref(),
-            Some("https://github.com/orchex006/axiom-graphd.git")
+            Some("https://github.com/cognivex006/axiom-graphd.git")
         );
         assert_eq!(parse_origin_remote("[core]\n\tbare = false\n"), None);
         assert!(remote_satisfies(
-            "https://github.com/orchex006/axiom-graphd",
-            Some("https://github.com/orchex006/axiom-graphd.git")
+            "https://github.com/cognivex006/axiom-graphd",
+            Some("https://github.com/cognivex006/axiom-graphd.git")
         ));
         assert!(!remote_satisfies(
-            "https://github.com/orchex006/axiom-graphd",
+            "https://github.com/cognivex006/axiom-graphd",
             None
         ));
     }

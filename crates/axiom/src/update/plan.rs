@@ -566,7 +566,7 @@ mod tests {
             }],
             downloads: vec![PlanDownload {
                 artifact: "axiom-graphd-0.2.0-windows-x64.zip".to_string(),
-                url: "https://github.com/orchex006/axiom-graphd/releases/download/v0.2.0/axiom-graphd-0.2.0-windows-x64.zip".to_string(),
+                url: "https://github.com/cognivex006/axiom-graphd/releases/download/v0.2.0/axiom-graphd-0.2.0-windows-x64.zip".to_string(),
                 sha256: "3".repeat(64),
                 size_bytes: 41_943_040,
             }],

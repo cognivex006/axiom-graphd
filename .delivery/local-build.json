@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "repository": "axiom-graphd",
+  "check": [
+    [
+      "cargo",
+      "+1.85.0",
+      "fmt",
+      "--all",
+      "--",
+      "--check"
+    ],
+    [
+      "cargo",
+      "+1.85.0",
+      "clippy",
+      "--locked",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    [
+      "cargo",
+      "+1.85.0",
+      "test",
+      "--locked",
+      "--all-targets",
+      "--",
+      "--test-threads=1"
+    ],
+    [
+      "python",
+      "tools/check-doc-status.py"
+    ],
+    [
+      "python",
+      "tools/check-doc-status.py",
+      "--self-test"
+    ],
+    [
+      "python",
+      "tests/core_manifest.py"
+    ],
+    [
+      "python",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-p",
+      "test_release_delivery.py",
+      "-q"
+    ],
+    [
+      "cargo-deny",
+      "--locked",
+      "check"
+    ]
+  ],
+  "build": [
+    [
+      "cargo",
+      "+1.85.0",
+      "build",
+      "--locked",
+      "--release",
+      "--workspace"
+    ]
+  ]
+}

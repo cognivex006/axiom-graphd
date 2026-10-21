@@ -452,7 +452,7 @@ mod tests {
 
     fn check_input(offline: bool) -> CheckInput {
         CheckInput {
-            source_origin: String::from("https://github.com/orchex006/axiom-skills"),
+            source_origin: String::from("https://github.com/cognivex006/axiom-skills"),
             offline,
         }
     }
@@ -612,7 +612,7 @@ mod tests {
             downloads: vec![plan::PlanDownload {
                 artifact: String::from("skills-0.2.0-all.zip"),
                 url: String::from(
-                    "https://github.com/orchex006/axiom-skills/releases/download/v0.2.0/skills-0.2.0-all.zip",
+                    "https://github.com/cognivex006/axiom-skills/releases/download/v0.2.0/skills-0.2.0-all.zip",
                 ),
                 sha256: "4".repeat(64),
                 size_bytes: 4_194_304,

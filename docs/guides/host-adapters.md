@@ -33,7 +33,7 @@ source and reports freshness and coverage.
 
 ## Other hosts
 
-Use the [skills getting-started guide](https://github.com/orchex006/axiom-skills/blob/main/docs/GETTING-STARTED.md)
+Use the [skills getting-started guide](https://github.com/cognivex006/axiom-skills/blob/main/docs/GETTING-STARTED.md)
 for current host compatibility and manual setup. Do not copy another host's
 configuration keys into a different host. [Verify agent access](host-verification.md)
 if a plugin appears installed but cannot query your graph.

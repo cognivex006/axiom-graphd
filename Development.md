@@ -1,5 +1,15 @@
 # Development — axiom-graphd
 
+## Current machine delivery policy (2026-10-21)
+
+The explicit owner request and current ecosystem policy supersede hosted-Actions
+requirements and older release-tag retention instructions for this migration.
+Use [local build and deployment](docs/LOCAL-BUILD-DEPLOY.md). Preserve required
+checks, native evidence, independent review, integrity and rollback gates.
+Do not publish cached legacy-owner binaries. New source is feature-only; main
+integration and rebuilt multi-platform release publication remain separate.
+
+
 ## Pinned governance
 
 The canonical workflow is Development.md in `axiom-specs` at the exact revision in `spec.lock.json`. A missing or unverified pin blocks implementation; do not treat `spec.lock.example.json` as valid authorization.
@@ -14,7 +24,7 @@ Implement one bounded task; coordinate public changes through spec ADR/RFC first
 
 ## Completion
 
-Attach real test output/hashes, acceptance mapping, changed-file review, compatibility and rollback notes, updated local docs and Changelog.md. Record actual platform coverage and unrun tests. Complete the canonical six preflight and eight completion checks; spec tooling validates evidence consistency, but independent CI reruns remain required.
+Attach real test output/hashes, acceptance mapping, changed-file review, compatibility and rollback notes, updated local docs and Changelog.md. Record actual platform coverage and unrun tests. Complete the canonical six preflight and eight completion checks; spec tooling validates evidence consistency, but independent machine reruns remain required.
 
 Inventory changes must test complete scans above the 4,096-entry batch limit,
 unchanged and deleted files across chunk boundaries, duplicate/stale rejection
@@ -101,7 +111,7 @@ K-310 composes the public four migration forms for immutable graph import with e
 
 ## K-607 current public READY scope
 
-ADR-0030 and the immutable owner pin govern the complete public composition. Native Windows/Linux/Mac Intel GitHub Actions must pass source-bound owner tests, executable command cases and current immutable graph migration. Mac ARM and certification/signing/attestation are not prerequisites. Existing updater integrity/approval rules are unchanged. Current audit tooling is cargo-deny 0.20.2 built separately from the product's pinned Rust 1.85.0; audit parser failures are failures, not ignored advisories.
+ADR-0030 and the immutable owner pin govern the complete public composition. Native Windows/Linux/Mac Intel operator-managed build machines must pass source-bound owner tests, executable command cases and current immutable graph migration. Mac ARM and certification/signing/attestation are not prerequisites. Existing updater integrity/approval rules are unchanged. Current audit tooling is cargo-deny 0.20.2 built separately from the product's pinned Rust 1.85.0; audit parser failures are failures, not ignored advisories.
 
 The operator adapters consume canonical skills-owned bootstrap content; they do not carry a forked policy. Host configurations preview by default, apply only an exact approved project plan and preserve unrelated settings. Gateway verification reports its actual scope rather than inventing installed-host verification.
 
@@ -131,7 +141,7 @@ The user explicitly requested all reported fixes and merge/release as 0.1.11 on 
 
 ## Terminal UX development
 
-For CLI, installer, bootstrap, interactive setup and long-running terminal changes, consult the canonical [cli-terminal-ux skill](https://github.com/orchex006/axiom-cli/blob/main/.agents/skills/cli-terminal-ux/SKILL.md) by default. Resolve its normative contract through the verified spec pin; retain native visual evidence and existing ownership/approval/release rules. Other repositories link that source rather than maintaining edited copies.
+For CLI, installer, bootstrap, interactive setup and long-running terminal changes, consult the canonical [cli-terminal-ux skill](https://github.com/cognivex006/axiom-cli/blob/main/.agents/skills/cli-terminal-ux/SKILL.md) by default. Resolve its normative contract through the verified spec pin; retain native visual evidence and existing ownership/approval/release rules. Other repositories link that source rather than maintaining edited copies.
 
 The current 2026-10-18 owner request explicitly authorizes the scoped 0.1.13 implementation, integration and new immutable publication after mandatory native/visual, independent review and previous-release rollback/source-hash gates. Preserve real user state and historical tags/assets.
 

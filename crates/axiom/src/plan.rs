@@ -1240,7 +1240,7 @@ mod tests {
             ),
             (
                 "artifact hash",
-                json!({"downloads": [{"artifact": "axiom-graphd-0.2.0-windows-x64.zip", "url": "https://github.com/orchex006/axiom-graphd/releases/download/v0.2.0/axiom-graphd-0.2.0-windows-x64.zip", "sha256": "3".repeat(63) + "4", "size_bytes": 41943040}]}),
+                json!({"downloads": [{"artifact": "axiom-graphd-0.2.0-windows-x64.zip", "url": "https://github.com/cognivex006/axiom-graphd/releases/download/v0.2.0/axiom-graphd-0.2.0-windows-x64.zip", "sha256": "3".repeat(63) + "4", "size_bytes": 41943040}]}),
             ),
             (
                 "migration set",

@@ -66,7 +66,7 @@ def collect(root, revision, output):
     changes = re.sub(r"^### ", "## ", entries[0].strip(), flags=re.M)
     (output / "RELEASE-NOTES.md").write_text(
         "# Axiom core " + version + "\n\n" + changes + "\n\n"
-        "Native Windows x64, Linux x64 and Mac Intel assets verified by GitHub Actions. "
+        "Native Windows x64, Linux x64 and Mac Intel assets verified by operator-managed build machines. "
         "Use axge for the graph engine and axm engine for private installation operations. "
         "Mac ARM and live AI-host verification remain outside this release's native evidence.\n",
         encoding="utf-8", newline="\n")

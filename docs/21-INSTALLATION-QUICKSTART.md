@@ -1,6 +1,6 @@
 # Quickstart: register a repository and build your first graph
 
-Install the [prebuilt Axiom runtime](https://github.com/orchex006/axiom-cli#install-and-update)
+Install the [prebuilt Axiom runtime](https://github.com/cognivex006/axiom-cli#install-and-update)
 and open a new terminal. This guide uses the installed `axge` command. No Rust,
 Cargo, Docker, .NET build or running MCP server is required for this workflow.
 
