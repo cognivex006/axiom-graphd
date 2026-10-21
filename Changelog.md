@@ -21,6 +21,12 @@
 
 ## 0.1.14
 
+### Current Windows distribution
+
+- Rebuild Windows delivery under cognivex006 with source-bound local-machine verification and no GitHub Actions.
+- Retain immutable source/checksum inventories and the current complete-inventory graph fixes.
+
+
 ### Chores
 
 - Align the paired native engine package with the 0.1.14 distribution; graph and installation engine behavior is unchanged.
