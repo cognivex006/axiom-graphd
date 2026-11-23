@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- Read the skills source revision from the combined distribution's per-component `RELEASE-SOURCES.json`. Before this fix, `axm install` from the published Windows 0.1.14 archive failed with "the skill bundle violates the versioned skill-bundle contract" on any machine where the extracted archive was not inside a Git checkout.
+
 ### Chores
 
 - Move repository and download references to cognivex006 and run verification/builds on operator-managed machines instead of GitHub Actions.

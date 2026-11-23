@@ -109,6 +109,17 @@ impl PayloadSource for Source {
     }
 }
 
+/// The owner's source revision recorded in `RELEASE-SOURCES.json`.
+///
+/// An owner release writes `{"source_revision": ...}`. The combined distribution archive
+/// instead keys one revision per component (`{"axiom-skills": ...}`), so both shapes are read.
+fn release_sources_revision(sources: &serde_json::Value, owner: &str) -> Option<String> {
+    sources["source_revision"]
+        .as_str()
+        .or_else(|| sources[owner].as_str())
+        .map(str::to_owned)
+}
+
 fn source(root: &Path, component: &str) -> Result<(SkillBundle, Source), AxiomError> {
     io::no_links(root)?;
     let root = std::fs::canonicalize(root).map_err(|_| {
@@ -184,7 +195,7 @@ fn source(root: &Path, component: &str) -> Result<(SkillBundle, Source), AxiomEr
         .or_else(|| {
             io::read_json(&root.join("RELEASE-SOURCES.json"))
                 .ok()
-                .and_then(|v| v["source_revision"].as_str().map(str::to_owned))
+                .and_then(|v| release_sources_revision(&v, expected_owner))
         })
         .or_else(|| {
             std::process::Command::new("git")
@@ -489,4 +500,39 @@ pub fn run(request: &Request) -> Result<Value, AxiomError> {
     Ok(
         json!({"status":"applied","component":component,"version":result.version,"directory":result.directory,"manifest_sha256":result.manifest_sha256,"pointer":result.pointer,"previous_generation_retained":true,"plan_digest":value["plan_digest"]}),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::release_sources_revision;
+    use serde_json::json;
+
+    const REV: &str = "dd19829e850b9700821ccd2938383df0126b0d76";
+
+    #[test]
+    fn owner_release_shape_is_read() {
+        let sources = json!({ "source_revision": REV });
+        assert_eq!(
+            release_sources_revision(&sources, "axiom-skills").as_deref(),
+            Some(REV)
+        );
+    }
+
+    #[test]
+    fn combined_distribution_shape_is_read_by_owner() {
+        let sources = json!({
+            "axiom-graphd": "b054ea90af103117020878c1c1a3cf97925eb9e5",
+            "axiom-skills": REV,
+        });
+        assert_eq!(
+            release_sources_revision(&sources, "axiom-skills").as_deref(),
+            Some(REV)
+        );
+    }
+
+    #[test]
+    fn another_owner_revision_is_not_borrowed() {
+        let sources = json!({ "axiom-graphd": "b054ea90af103117020878c1c1a3cf97925eb9e5" });
+        assert_eq!(release_sources_revision(&sources, "axiom-skills"), None);
+    }
 }
