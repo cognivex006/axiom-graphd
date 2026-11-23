@@ -11,7 +11,7 @@
 //!   (`additionalProperties: false`), because a typo that is silently ignored is
 //!   how a stale value keeps controlling a live service.
 //! * Discovery is first-existing-source-wins: an explicit `--registry` path
-//!   wins, otherwise the per-user `config/registry.json` under `AXIOM_HOME`,
+//!   wins, otherwise the per-user `config/daemon.json` under `AXIOM_HOME` (then a legacy daemon-shaped `config/registry.json`, ADR-0047),
 //!   otherwise built-in defaults.
 //! * Environment overrides may only *narrow* the allowed source roots. An
 //!   environment variable can never widen the set of directories the daemon is
@@ -36,7 +36,26 @@ use crate::paths::{is_absolute_host_path, AxiomHome, PathEnvironment};
 ///
 /// Resolved under [`AxiomHome::root`], matching the state layout in
 /// docs/10-ARCHITECTURE.md section D.
-pub const RUNTIME_CONFIG: &str = "config/registry.json";
+pub const RUNTIME_CONFIG: &str = "config/daemon.json";
+
+/// Former location of the daemon configuration. Since ADR-0047 this path is the
+/// solution registry; a daemon-shaped document found there is still honoured
+/// during the transition and moved by the next `solution register --apply`.
+pub const LEGACY_RUNTIME_CONFIG: &str = "config/registry.json";
+
+/// `true` when `text` is a solution registry (it declares `schema_version`)
+/// rather than a daemon configuration document (ADR-0047).
+#[must_use]
+pub fn is_solution_registry(text: &str) -> bool {
+    serde_json::from_str::<serde_json::Value>(text)
+        .ok()
+        .and_then(|value| {
+            value
+                .as_object()
+                .map(|object| object.contains_key("schema_version"))
+        })
+        .unwrap_or(false)
+}
 
 /// Environment variable that may narrow the allowed source roots.
 pub const ENV_ALLOWED_SOURCE_ROOTS: &str = "AXIOM_ALLOWED_SOURCE_ROOTS";
@@ -523,7 +542,9 @@ impl ServiceConfig {
         if let Some(explicit) = daemon {
             sources.push(explicit.to_path_buf());
         }
+        sources.push(home.config_daemon());
         sources.push(home.config_registry());
+        let legacy = home.config_registry();
         for source in &sources {
             if source.is_file() {
                 let document = std::fs::read_to_string(source).map_err(|error| {
@@ -532,6 +553,9 @@ impl ServiceConfig {
                         format!("configuration source could not be read: {error}"),
                     )
                 })?;
+                if *source == legacy && is_solution_registry(&document) {
+                    continue;
+                }
                 return Self::from_json_str_with(&document, &environment);
             }
         }

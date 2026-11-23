@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixes
+
+- `axge solution register --apply` and `axge solution remove --apply` now write `config/registry.json`, the solution registry the MCP gateway reads, so solutions you register become queryable through MCP (ADR-0047).
+- Daemon settings now live in `config/daemon.json`. An existing `config/registry.json` that holds daemon settings is still honoured, and the next registration moves it to `config/daemon.json`. If both files hold different settings, registration stops and changes neither.
+
 ### Chores
 
 - Move repository and download references to cognivex006 and run verification/builds on operator-managed machines instead of GitHub Actions.

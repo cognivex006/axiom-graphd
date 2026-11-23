@@ -1288,6 +1288,7 @@ pub fn report_failure(
 struct OperatorContext {
     home: AxiomHome,
     store: Store,
+    instance_id: String,
 }
 
 /// Open the instance store the foreground daemon and the operator verbs share.
@@ -1302,7 +1303,12 @@ fn open_operator() -> Result<OperatorContext, AxiomError> {
     let config = ServiceConfig::load(None)?;
     let mut store = runtime::open_store(&config, &home)?;
     graph_store::migrations::apply(store.connection_mut())?;
-    Ok(OperatorContext { home, store })
+    let instance_id = config.daemon().instance_id().to_owned();
+    Ok(OperatorContext {
+        home,
+        store,
+        instance_id,
+    })
 }
 
 /// Serialise one operator report as exactly one JSON object.
@@ -1407,6 +1413,7 @@ fn solution_command(command: &SolutionCommand) -> Result<String, AxiomError> {
             if dry_run {
                 report_json(&plan)
             } else {
+                runtime::migrate_legacy_daemon_config(&context.home)?;
                 runtime::persist_bindings(&context.home, &table)?;
                 let record =
                     solution::apply_register(context.store.connection_mut(), &plan, &declaration)?;
@@ -1432,6 +1439,11 @@ fn solution_command(command: &SolutionCommand) -> Result<String, AxiomError> {
                     &plan.config_hash,
                     catalog_host,
                 )?;
+                runtime::write_solution_registry(
+                    &context.home,
+                    context.store.connection(),
+                    &context.instance_id,
+                )?;
                 report_json(&record)
             }
         }
@@ -1449,7 +1461,13 @@ fn solution_command(command: &SolutionCommand) -> Result<String, AxiomError> {
             if dry_run {
                 report_json(&plan)
             } else {
+                runtime::migrate_legacy_daemon_config(&context.home)?;
                 let report = solution::apply_remove(context.store.connection_mut(), &plan)?;
+                runtime::write_solution_registry(
+                    &context.home,
+                    context.store.connection(),
+                    &context.instance_id,
+                )?;
                 report_json(&report)
             }
         }

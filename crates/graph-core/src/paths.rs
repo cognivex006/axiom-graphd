@@ -383,6 +383,12 @@ impl AxiomHome {
         self.root.join("config").join("registry.json")
     }
 
+    /// `config/daemon.json`: the daemon runtime configuration (ADR-0047).
+    #[must_use]
+    pub fn config_daemon(&self) -> PathBuf {
+        self.root.join("config").join("daemon.json")
+    }
+
     /// `instances/`.
     #[must_use]
     pub fn instances_dir(&self) -> PathBuf {

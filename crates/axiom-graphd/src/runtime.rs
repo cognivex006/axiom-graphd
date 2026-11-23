@@ -197,6 +197,144 @@ pub fn catalog_host_repo(
     }
 }
 
+fn stage_and_replace(path: &Path, bytes: &[u8], label: &str) -> Result<(), AxiomError> {
+    use std::io::Write;
+    axiom_platform::atomic_file::reject_links(path).map_err(|_| {
+        AxiomError::new(ErrorCode::Forbidden, format!("unsafe {label} destination"))
+    })?;
+    let parent = path
+        .parent()
+        .ok_or_else(|| AxiomError::new(ErrorCode::Internal, format!("{label} has no parent")))?;
+    std::fs::create_dir_all(parent).map_err(|error| storage_error(label, &error))?;
+    let temporary = path.with_extension(format!("{}.next", std::process::id()));
+    let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&temporary)
+        .map_err(|error| storage_error(label, &error))?;
+    file.write_all(bytes)
+        .and_then(|()| file.sync_all())
+        .map_err(|error| storage_error(label, &error))?;
+    drop(file);
+    axiom_platform::atomic_file::replace(&temporary, path)
+        .map_err(|error| storage_error(label, &error))
+}
+
+/// Move a daemon-shaped `config/registry.json` to `config/daemon.json` (ADR-0047).
+///
+/// Returns `true` when a file was moved. Operator settings are never deleted:
+/// when `daemon.json` already holds different content the move is refused.
+///
+/// # Errors
+///
+/// [`ErrorCode::Conflict`] when both files hold different daemon settings.
+pub fn migrate_legacy_daemon_config(home: &AxiomHome) -> Result<bool, AxiomError> {
+    let legacy = home.config_registry();
+    let Ok(text) = std::fs::read_to_string(&legacy) else {
+        return Ok(false);
+    };
+    if graph_core::config::is_solution_registry(&text) {
+        return Ok(false);
+    }
+    let target = home.config_daemon();
+    match std::fs::read_to_string(&target) {
+        Ok(existing) if existing == text => {}
+        Ok(_) => {
+            return Err(AxiomError::new(
+                ErrorCode::Conflict,
+                "config/registry.json holds daemon settings and config/daemon.json already holds different ones; merge them into config/daemon.json, remove config/registry.json, then register again",
+            )
+            .with_detail("rule", LEGACY_DAEMON_CONFIG_RULE));
+        }
+        Err(_) => stage_and_replace(&target, text.as_bytes(), "daemon configuration")?,
+    }
+    std::fs::remove_file(&legacy)
+        .map_err(|error| storage_error("legacy daemon configuration", &error))?;
+    Ok(true)
+}
+
+/// Finding/refusal rule for daemon settings still stored in `config/registry.json`.
+pub const LEGACY_DAEMON_CONFIG_RULE: &str = "legacy_daemon_config_location";
+
+/// Rewrite `config/registry.json`, the solution registry MCP reads (ADR-0047).
+///
+/// The document is a projection of the authoritative registrations (SQLite,
+/// registered-solution metadata and bindings), rebuilt whole on every call.
+///
+/// # Errors
+///
+/// Storage, bindings and metadata errors. A daemon-shaped file in the way is
+/// refused; call [`migrate_legacy_daemon_config`] first.
+pub fn write_solution_registry(
+    home: &AxiomHome,
+    connection: &Connection,
+    instance_id: &str,
+) -> Result<(), AxiomError> {
+    let path = home.config_registry();
+    if let Ok(text) = std::fs::read_to_string(&path) {
+        if !graph_core::config::is_solution_registry(&text) {
+            return Err(AxiomError::new(
+                ErrorCode::Conflict,
+                "config/registry.json still holds daemon settings; move them to config/daemon.json",
+            )
+            .with_detail("rule", LEGACY_DAEMON_CONFIG_RULE));
+        }
+    }
+    let rows = solutions(connection)?;
+    let bindings = if rows.is_empty() {
+        Vec::new()
+    } else {
+        load_bindings(home)?
+    };
+    let mut entries = Vec::new();
+    for row in &rows {
+        let members = projects(connection, &row.id)?;
+        let catalog = catalog_host_repo(home, row, &members)?;
+        let mut repos: std::collections::BTreeMap<&str, Vec<serde_json::Value>> =
+            std::collections::BTreeMap::new();
+        for project in &members {
+            repos
+                .entry(project.repo_id.as_str())
+                .or_default()
+                .push(serde_json::json!({ "project_id": project.id }));
+        }
+        let mut repositories = Vec::new();
+        for (repo_id, projects) in repos {
+            let root = bindings
+                .iter()
+                .find(|binding| binding.repo_id() == repo_id)
+                .ok_or_else(|| {
+                    AxiomError::new(
+                        ErrorCode::ConfigInvalid,
+                        "a registered repository has no local binding",
+                    )
+                    .with_detail("repo_id", repo_id)
+                })?
+                .root();
+            repositories.push(serde_json::json!({
+                "repo_id": repo_id,
+                "repo_root": root,
+                "projects": projects,
+            }));
+        }
+        entries.push(serde_json::json!({
+            "solution_id": row.id,
+            "instance_id": instance_id,
+            "catalog_host_repo": catalog,
+            "repositories": repositories,
+        }));
+    }
+    let document = serde_json::json!({
+        "schema_version": 1,
+        "instances": [{ "instance_id": instance_id }],
+        "solutions": entries,
+    });
+    let mut bytes = serde_json::to_vec_pretty(&document)
+        .map_err(|error| storage_error("solution registry encoding", &error))?;
+    bytes.push(b'\n');
+    stage_and_replace(&path, &bytes, "solution registry")
+}
+
 /// Read and validate the machine-local binding table.
 ///
 /// # Errors
