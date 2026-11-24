@@ -100,6 +100,9 @@ pub const CONTAINS_RULE_ID: &str = "declaration-contains-v1";
 /// Evidence rule of a lexical C# call site (field report #14).
 pub const CALL_RULE_ID: &str = "csharp-call-site-v1";
 
+/// Evidence rule of a lexical TypeScript call site.
+pub const TS_CALL_RULE_ID: &str = "typescript-call-site-v1";
+
 /// Evidence rule of a C# base-list entry (`class A : B, IC`).
 pub const BASE_TYPE_RULE_ID: &str = "csharp-base-list-v1";
 
@@ -665,7 +668,10 @@ impl<'a> CallIndex<'a> {
     fn new(nodes: &'a [StoredNode]) -> Self {
         let mut by_name: BTreeMap<&str, Vec<(&str, &str)>> = BTreeMap::new();
         let mut container_of = BTreeMap::new();
-        for node in nodes.iter().filter(|node| node.analyzer_kind == "method") {
+        for node in nodes
+            .iter()
+            .filter(|node| matches!(node.analyzer_kind.as_str(), "method" | "function"))
+        {
             let container = container_name(&node.qualified_name);
             by_name
                 .entry(node.name.as_str())
@@ -711,11 +717,18 @@ impl<'a> CallIndex<'a> {
             (None, None) => self.container_of.get(caller).copied()?,
             (None, Some(_)) => return None,
         };
-        let mut matches = candidates
-            .iter()
-            .filter(|(container, _)| *container == wanted);
-        let first = matches.next()?;
-        matches.next().is_none().then_some(first.1)
+        let unique = |container: &str| {
+            let mut matches = candidates.iter().filter(|(owner, _)| *owner == container);
+            let first = matches.next()?;
+            matches.next().is_none().then_some(first.1)
+        };
+        // A bare call that is not a member of the caller's own type may be a
+        // top-level function (TypeScript), declared with no container.
+        unique(wanted).or_else(|| {
+            (receiver.is_none() && !wanted.is_empty())
+                .then(|| unique(""))
+                .flatten()
+        })
     }
 }
 

@@ -1544,6 +1544,8 @@ fn analyze_file(path: &str, source: &str, project_id: &str) -> Result<GraphFactS
                 project_id,
                 path,
                 &graph_analyze::csharp::call_sites::extract(source, &analysis.declarations),
+                payload::CSHARP_ANALYZER_ID,
+                payload::CALL_RULE_ID,
             ));
             facts.edges.extend(base_type_edges(
                 project_id,
@@ -1581,13 +1583,42 @@ fn analyze_file(path: &str, source: &str, project_id: &str) -> Result<GraphFactS
                     }
                 })
                 .collect();
-            facts_from_declarations(
+            let mut facts = facts_from_declarations(
                 project_id,
                 Language::TypeScript.as_str(),
                 payload::TYPESCRIPT_ANALYZER_ID,
                 path,
                 declarations,
-            )
+            );
+            // Field report #14: class methods and functions are scanned for calls.
+            let methods: Vec<graph_analyze::csharp::call_sites::MethodRef> = analysis
+                .declarations
+                .iter()
+                .filter(|d| {
+                    matches!(
+                        d.kind,
+                        graph_analyze::typescript::declarations::TsDeclarationKind::Method
+                            | graph_analyze::typescript::declarations::TsDeclarationKind::Function
+                    ) && d.name.is_some()
+                })
+                .map(|d| graph_analyze::csharp::call_sites::MethodRef {
+                    key: d.key.clone(),
+                    name_end: d.span.end,
+                    container: d.semantic_path.last().cloned(),
+                })
+                .collect();
+            facts.edges.extend(call_edges(
+                project_id,
+                path,
+                &graph_analyze::csharp::call_sites::extract_methods(
+                    source,
+                    &methods,
+                    graph_analyze::csharp::call_sites::Dialect::TypeScript,
+                ),
+                payload::TYPESCRIPT_ANALYZER_ID,
+                payload::TS_CALL_RULE_ID,
+            ));
+            facts
         }
         None => GraphFactSet::new(Vec::new(), Vec::new()),
     })
@@ -1690,6 +1721,8 @@ fn call_edges(
     project_id: &str,
     path: &str,
     sites: &[graph_analyze::csharp::call_sites::CsharpCallSite],
+    analyzer_id: &str,
+    rule_id: &str,
 ) -> Vec<EdgeFact> {
     let file = portable_path(path);
     let mut seen: BTreeMap<String, usize> = BTreeMap::new();
@@ -1711,9 +1744,9 @@ fn call_edges(
         let body = serde_json::json!({
             "evidence": [{
                 "source": {"file": file, "start_line": site.line, "end_line": site.line},
-                "rule_id": payload::CALL_RULE_ID,
+                "rule_id": rule_id,
             }],
-            "analyzer_id": payload::CSHARP_ANALYZER_ID,
+            "analyzer_id": analyzer_id,
             "call": {
                 "member": site.member,
                 "receiver": site.receiver,

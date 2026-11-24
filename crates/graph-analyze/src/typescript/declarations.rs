@@ -23,6 +23,8 @@ pub enum TsDeclarationKind {
     Namespace,
     /// `export default ...`.
     DefaultExport,
+    /// A class method or arrow-function property (field report #14).
+    Method,
 }
 
 impl TsDeclarationKind {
@@ -37,6 +39,7 @@ impl TsDeclarationKind {
             Self::Variable => "variable",
             Self::Namespace => "namespace",
             Self::DefaultExport => "default-export",
+            Self::Method => "method",
         }
     }
 }
@@ -163,8 +166,14 @@ pub fn analyze(file: &str, source: &str) -> TsAnalysis {
     let mut declarations = Vec::new();
     let mut diagnostics = Vec::new();
     let mut scopes: Vec<(i32, String)> = Vec::new();
+    let mut class_scopes: Vec<i32> = Vec::new();
     let mut depth: i32 = 0;
     let mut anonymous_ordinal: usize = 0;
+
+    // Braces inside strings, template literals and comments are not
+    // structure; count them on a masked copy with identical offsets.
+    let masked = crate::csharp::call_sites::mask(source);
+    let masked_lines: Vec<&str> = masked.split_inclusive('\n').collect();
 
     for (index, raw_line) in lines.iter().enumerate() {
         let span = line_span(source, &starts, index);
@@ -174,11 +183,23 @@ pub fn analyze(file: &str, source: &str) -> TsAnalysis {
         if trimmed.is_empty() {
             continue;
         }
-        let opens = trimmed.matches('{').count() as i32;
-        let closes = trimmed.matches('}').count() as i32;
+        let structure = masked_lines.get(index).copied().unwrap_or_default();
+        let opens = structure.matches('{').count() as i32;
+        let closes = structure.matches('}').count() as i32;
         let mut enclosing: Vec<String> = scopes.iter().map(|(_, name)| name.clone()).collect();
 
-        if let Some(declaration) = classify(trimmed) {
+        let in_class_body = class_scopes.last().is_some_and(|scope| *scope + 1 == depth);
+        let classified = classify(trimmed).or_else(|| {
+            in_class_body
+                .then(|| class_member(trimmed))
+                .flatten()
+                .map(|name| Classified {
+                    kind: TsDeclarationKind::Method,
+                    name: Some(name),
+                    quality: IdentityQuality::Explicit,
+                })
+        });
+        if let Some(declaration) = classified {
             let name_span = match &declaration.name {
                 Some(name) => name_span_before(source, line_start, code, name, Some('(')),
                 None => Span::new(line_start, line_start + trimmed.len()),
@@ -203,8 +224,13 @@ pub fn analyze(file: &str, source: &str) -> TsAnalysis {
                     )
                 }
             };
-            if opens > 0 {
+            // A method body is not a naming scope, so declarations inside it keep
+            // the keys they had before methods were recorded.
+            if opens > 0 && declaration.kind != TsDeclarationKind::Method {
                 scopes.push((depth, declaration.name.clone().unwrap_or_default()));
+                if declaration.kind == TsDeclarationKind::Class {
+                    class_scopes.push(depth);
+                }
             }
             declarations.push(TsDeclaration {
                 kind: declaration.kind,
@@ -223,6 +249,9 @@ pub fn analyze(file: &str, source: &str) -> TsAnalysis {
             } else {
                 break;
             }
+        }
+        while class_scopes.last().is_some_and(|scope| *scope >= depth) {
+            class_scopes.pop();
         }
     }
 
@@ -372,6 +401,88 @@ fn default_export(rest: &str) -> Classified {
     }
 }
 
+/// The member name of a class-body line that declares a method:
+/// `[modifiers] name[?]<T>(` or `[modifiers] name = [async] (`/`name = async x =>`.
+/// Decorators in front (`@HostListener('x')`) are skipped. Fields are not
+/// methods.
+fn class_member(trimmed: &str) -> Option<String> {
+    let mut rest = trimmed;
+    while let Some(after) = rest.strip_prefix('@') {
+        let name = take_identifier(after)?;
+        rest = after[name.len()..].trim_start();
+        if rest.starts_with('(') {
+            let mut depth = 0i32;
+            let mut end = None;
+            for (index, character) in rest.char_indices() {
+                match character {
+                    '(' => depth += 1,
+                    ')' => {
+                        depth -= 1;
+                        if depth == 0 {
+                            end = Some(index + 1);
+                            break;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            rest = rest[end?..].trim_start();
+        }
+    }
+    const MODIFIERS: &[&str] = &[
+        "public ",
+        "private ",
+        "protected ",
+        "static ",
+        "async ",
+        "readonly ",
+        "override ",
+        "abstract ",
+        "declare ",
+        "get ",
+        "set ",
+        "*",
+    ];
+    loop {
+        let before = rest;
+        for modifier in MODIFIERS {
+            if let Some(after) = rest.strip_prefix(modifier) {
+                rest = after.trim_start();
+            }
+        }
+        if before == rest {
+            break;
+        }
+    }
+    let rest = rest.strip_prefix('#').unwrap_or(rest);
+    let name = take_identifier(rest)?;
+    if matches!(
+        name.as_str(),
+        "if" | "for" | "while" | "switch" | "return" | "catch" | "else" | "do" | "try"
+    ) {
+        return None;
+    }
+    let mut after = rest[name.len()..].trim_start();
+    after = after.strip_prefix(['?', '!']).unwrap_or(after).trim_start();
+    if after.starts_with('<') {
+        let close = after.find('>')?;
+        after = after[close + 1..].trim_start();
+    }
+    if after.starts_with('(') {
+        return Some(name);
+    }
+    // `name = (...) =>`, `name = async (...) =>`, `name = x =>`, with an optional type.
+    let value = after.split_once('=').map(|(_, value)| value.trim_start())?;
+    if after.starts_with(':') && !after.contains('=') {
+        return None;
+    }
+    let value = value.strip_prefix("async").map_or(value, str::trim_start);
+    let arrow = value.starts_with('(')
+        || take_identifier(value)
+            .is_some_and(|param| value[param.len()..].trim_start().starts_with("=>"));
+    (arrow && trimmed.contains("=>")).then_some(name)
+}
+
 fn take_identifier(text: &str) -> Option<String> {
     let mut name = String::new();
     for character in text.chars() {
@@ -431,7 +542,10 @@ mod tests {
             .iter()
             .filter_map(|declaration| declaration.name.as_deref())
             .collect();
-        assert_eq!(names, vec!["Widget", "Id", "Panel", "build", "counter"]);
+        assert_eq!(
+            names,
+            vec!["Widget", "Id", "Panel", "run", "build", "counter"]
+        );
         for declaration in &analysis.declarations {
             assert_eq!(declaration.quality, IdentityQuality::Explicit);
         }
@@ -524,12 +638,28 @@ mod tests {
     }
 
     #[test]
-    fn class_bodies_are_not_reported_as_declarations_by_this_scan() {
-        let source = "export class Outer {\n  method() {}\n}\n";
+    fn class_methods_are_declared_and_fields_are_not() {
+        // Field report #14: methods are recorded so TypeScript calls can target
+        // them. Fields, nested blocks and statements inside a method are not.
+        let source = "export class Outer {\n  @Input() title = '';\n  private readonly http = inject(HttpClient);\n  count: number = 0;\n  method() {\n    if (x) {\n      run();\n    }\n  }\n  async load<T>(id: string): Promise<T> {\n    return null;\n  }\n  @HostListener('click') onClick() {}\n  handle = async (event: Event) => {\n  };\n}\n";
         let analysis = analyze("src/outer.ts", source);
-        assert_eq!(analysis.declarations.len(), 1);
-        assert_eq!(analysis.declarations[0].semantic_path, Vec::<String>::new());
-        assert_eq!(analysis.declarations[0].name.as_deref(), Some("Outer"));
+        let names: Vec<(&str, &str)> = analysis
+            .declarations
+            .iter()
+            .map(|d| (d.kind.as_str(), d.name.as_deref().unwrap_or_default()))
+            .collect();
+        assert_eq!(
+            names,
+            vec![
+                ("class", "Outer"),
+                ("method", "method"),
+                ("method", "load"),
+                ("method", "onClick"),
+                ("method", "handle"),
+            ]
+        );
+        let method = &analysis.declarations[1];
+        assert_eq!(method.semantic_path, vec!["Outer".to_owned()]);
         assert!(analysis.not_explicit().is_empty());
     }
 

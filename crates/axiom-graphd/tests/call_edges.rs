@@ -225,3 +225,75 @@ public class RepoBase : ControllerBase
         "names outside the project are not published: {references:?}"
     );
 }
+
+#[test]
+fn typescript_service_calls_resolve_through_inject_and_this() {
+    let dir = tempfile::tempdir().unwrap();
+    #[cfg(not(windows))]
+    let root = std::fs::canonicalize(dir.path()).unwrap();
+    #[cfg(windows)]
+    let root = dir.path().to_path_buf();
+    let repo = root.join("web");
+    std::fs::create_dir_all(repo.join("src")).unwrap();
+    std::fs::write(
+        repo.join("src/api.service.ts"),
+        "export class ApiService {\n  fetch(id: string) {\n    return format(id);\n  }\n}\n\nexport function format(id: string) {\n  return id;\n}\n",
+    )
+    .unwrap();
+    std::fs::write(
+        repo.join("src/panel.component.ts"),
+        "export class PanelComponent {\n  private readonly api = inject(ApiService);\n  load(id: string) {\n    this.api.fetch(id);\n    this.render();\n  }\n  render() {}\n}\n",
+    )
+    .unwrap();
+    let config = root.join("solution.json");
+    std::fs::write(
+        &config,
+        serde_json::to_vec(&serde_json::json!({
+            "id": "web", "catalog_host_repo": "web-repo",
+            "projects": [{"id": "web", "repo_id": "web-repo", "path": "."}]
+        }))
+        .unwrap(),
+    )
+    .unwrap();
+    let bindings = root.join("bindings.json");
+    std::fs::write(
+        &bindings,
+        serde_json::to_vec(&serde_json::json!({"bindings": {"web-repo": repo}})).unwrap(),
+    )
+    .unwrap();
+    let home = root.join("home");
+    run(
+        &home,
+        &[
+            "solution",
+            "register",
+            "--config",
+            config.to_str().unwrap(),
+            "--bindings",
+            bindings.to_str().unwrap(),
+            "--apply",
+        ],
+    );
+    run(&home, &["build", "--solution", "web"]);
+    let (edges, names) = published_edges(&repo.join(".axiom/graph/web/web/live"));
+    let resolved: Vec<(String, String)> = edges
+        .iter()
+        .filter(|e| e["kind"] == "CALLS" && e["resolution"] == "inferred_static")
+        .map(|e| {
+            (
+                names[e["source_id"].as_str().unwrap()].clone(),
+                names[e["target_id"].as_str().unwrap()].clone(),
+            )
+        })
+        .collect();
+    for (from, to) in [
+        ("PanelComponent.load", "ApiService.fetch"),
+        ("PanelComponent.load", "PanelComponent.render"),
+        ("ApiService.fetch", "format"),
+    ] {
+        assert!(
+            resolved.contains(&(from.to_owned(), to.to_owned())),
+            "{from} -> {to} missing from {resolved:?}"
+        );
+    }
+}

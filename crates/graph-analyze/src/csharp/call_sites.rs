@@ -98,16 +98,57 @@ const NOT_TYPES: &[&str] = &[
     "as",
 ];
 
+/// Source dialect of a call-site scan.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Dialect {
+    /// C#: `Type name` declarations.
+    CSharp,
+    /// TypeScript: `name: Type`, `name = inject(Type)` and `this.name.m()`.
+    TypeScript,
+}
+
+/// A method whose body is scanned: key, name-span end and declaring type.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MethodRef {
+    /// Stable declaration key.
+    pub key: String,
+    /// Byte offset just after the method name.
+    pub name_end: usize,
+    /// Enclosing type name, when the method is a member.
+    pub container: Option<String>,
+}
+
 /// Extract the call sites of every method body in `source`.
 #[must_use]
 pub fn extract(source: &str, declarations: &[CsharpDeclaration]) -> Vec<CsharpCallSite> {
-    let masked = mask(source);
-    let bytes = masked.as_bytes();
-    let types = declared_types(bytes);
-    let mut bodies: Vec<(usize, usize, &CsharpDeclaration)> = declarations
+    let methods: Vec<MethodRef> = declarations
         .iter()
         .filter(|d| d.kind == CsharpDeclarationKind::Method)
-        .filter_map(|d| body_range(bytes, d.span.end).map(|(s, e)| (s, e, d)))
+        .map(|d| MethodRef {
+            key: d.key.clone(),
+            name_end: d.span.end,
+            container: d.semantic_path.last().cloned(),
+        })
+        .collect();
+    extract_methods(source, &methods, Dialect::CSharp)
+}
+
+/// Extract the call sites of the given method bodies.
+#[must_use]
+pub fn extract_methods(
+    source: &str,
+    methods: &[MethodRef],
+    dialect: Dialect,
+) -> Vec<CsharpCallSite> {
+    let masked = mask(source);
+    let bytes = masked.as_bytes();
+    let types = match dialect {
+        Dialect::CSharp => declared_types(bytes),
+        Dialect::TypeScript => declared_types_ts(bytes),
+    };
+    let mut bodies: Vec<(usize, usize, &MethodRef)> = methods
+        .iter()
+        .filter_map(|m| body_range(bytes, m.name_end).map(|(s, e)| (s, e, m)))
         .collect();
     // Innermost body wins for a local function: sort so smaller ranges come first.
     bodies.sort_by_key(|(start, end, _)| (end - start, *start));
@@ -141,7 +182,21 @@ pub fn extract(source: &str, declarations: &[CsharpDeclaration]) -> Vec<CsharpCa
         if before > 0 && previous_word(bytes, before) == Some("new") {
             continue;
         }
-        let receiver = if before > 0 && bytes[before - 1] == b'.' {
+        let this_member =
+            dialect == Dialect::TypeScript && before > 0 && bytes[before - 1] == b'.' && {
+                let dot = skip_space_back(bytes, before - 1);
+                identifier_before(bytes, dot).is_some_and(|(name, start)| {
+                    let gap = skip_space_back(bytes, start);
+                    name != "this"
+                        && gap >= 5
+                        && bytes[gap - 1] == b'.'
+                        && previous_word(bytes, skip_space_back(bytes, gap - 1)) == Some("this")
+                })
+            };
+        let receiver = if this_member {
+            let dot = skip_space_back(bytes, before - 1);
+            identifier_before(bytes, dot).map(|(name, _)| name)
+        } else if before > 0 && bytes[before - 1] == b'.' {
             let dot = skip_space_back(bytes, before - 1);
             match identifier_before(bytes, dot) {
                 Some((name, start))
@@ -161,7 +216,7 @@ pub fn extract(source: &str, declarations: &[CsharpDeclaration]) -> Vec<CsharpCa
             None
         };
         let receiver_type = match receiver.as_deref() {
-            Some("this") => caller.semantic_path.last().cloned(),
+            Some("this") => caller.container.clone(),
             Some(name) if name != "?" => types.get(name).cloned().or_else(|| {
                 name.chars()
                     .next()
@@ -384,7 +439,7 @@ pub fn type_references(
 
 /// Replace comment and string/char literal contents with spaces, keeping
 /// byte offsets and newlines.
-fn mask(source: &str) -> String {
+pub(crate) fn mask(source: &str) -> String {
     let bytes = source.as_bytes();
     let mut out = bytes.to_vec();
     let mut index = 0;
@@ -412,7 +467,7 @@ fn mask(source: &str) -> String {
                 }
                 index += 2;
             }
-            quote @ (b'"' | b'\'') => {
+            quote @ (b'"' | b'\'' | b'`') => {
                 let verbatim = index > 0 && matches!(bytes[index - 1], b'@')
                     || index > 1 && bytes[index - 1] == b'$' && bytes[index - 2] == b'@';
                 index += 1;
@@ -437,7 +492,7 @@ fn mask(source: &str) -> String {
                         }
                         break;
                     }
-                    if byte == b'\n' && !verbatim {
+                    if byte == b'\n' && !verbatim && quote != b'`' {
                         break;
                     }
                     if byte != b'\n' {
@@ -562,6 +617,92 @@ fn previous_word(bytes: &[u8], end: usize) -> Option<&str> {
     std::str::from_utf8(&bytes[start..end]).ok()
 }
 
+/// TypeScript `name -> Type` for `name: Type` (fields, parameters,
+/// constructor properties), `name = inject(Type)` and `name = new Type(`.
+fn declared_types_ts(bytes: &[u8]) -> BTreeMap<String, String> {
+    let mut found: BTreeMap<String, Option<String>> = BTreeMap::new();
+    let mut record = |name: &str, ty: &str| {
+        let slot = found
+            .entry(name.to_owned())
+            .or_insert_with(|| Some(ty.to_owned()));
+        if slot.as_deref() != Some(ty) {
+            *slot = None;
+        }
+    };
+    let word_at = |at: usize| {
+        let mut end = at;
+        while end < bytes.len() && is_ident(bytes[end]) {
+            end += 1;
+        }
+        (end > at).then(|| {
+            (
+                std::str::from_utf8(&bytes[at..end]).unwrap_or_default(),
+                end,
+            )
+        })
+    };
+    let skip_ws = |mut at: usize| {
+        while at < bytes.len() && bytes[at].is_ascii_whitespace() {
+            at += 1;
+        }
+        at
+    };
+    let mut index = 0;
+    while index < bytes.len() {
+        if !is_ident(bytes[index])
+            || (index > 0 && (is_ident(bytes[index - 1]) || bytes[index - 1] == b'.'))
+        {
+            index += 1;
+            continue;
+        }
+        let Some((name, end)) = word_at(index) else {
+            index += 1;
+            continue;
+        };
+        index = end;
+        let mut cursor = end;
+        if matches!(bytes.get(cursor), Some(b'?' | b'!')) {
+            cursor += 1;
+        }
+        cursor = skip_ws(cursor);
+        match bytes.get(cursor) {
+            Some(b':') => {
+                let at = skip_ws(cursor + 1);
+                if let Some((ty, _)) = word_at(at) {
+                    if ty.chars().next().is_some_and(char::is_uppercase) {
+                        record(name, ty);
+                    }
+                }
+            }
+            Some(b'=')
+                if bytes.get(cursor + 1) != Some(&b'=') && bytes.get(cursor + 1) != Some(&b'>') =>
+            {
+                let at = skip_ws(cursor + 1);
+                if let Some((word, after)) = word_at(at) {
+                    let open = skip_ws(after);
+                    if word == "new" || (word == "inject" && bytes.get(open) == Some(&b'(')) {
+                        let start = if word == "new" {
+                            open
+                        } else {
+                            skip_ws(open + 1)
+                        };
+                        if let Some((ty, _)) = word_at(start) {
+                            if ty.chars().next().is_some_and(char::is_uppercase) {
+                                record(name, ty);
+                            }
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    found
+        .into_iter()
+        .filter_map(|(name, ty)| ty.map(|ty| (name, ty)))
+        .collect()
+}
+
 /// `name -> Type` for `Type name` declarations and `var name = new Type(`.
 /// A name declared with two different types is dropped as ambiguous.
 fn declared_types(bytes: &[u8]) -> BTreeMap<String, String> {
@@ -680,6 +821,57 @@ public class Controller
     private void Log(string message) => Console.WriteLine(message);
 }
 "#;
+
+    #[test]
+    fn typescript_calls_use_this_members_inject_and_typed_parameters() {
+        let source = "export class Panel {\n  private readonly api = inject(ApiService);\n  constructor(private store: StoreService) {}\n  load(id: string) {\n    const label = `this.fake(${id})`;\n    this.api.fetch(id);\n    this.store.save(id);\n    this.render();\n    helper(id);\n  }\n  render() {}\n}\n";
+        let analysis = crate::typescript::declarations::analyze("src/panel.ts", source);
+        let methods: Vec<MethodRef> = analysis
+            .declarations
+            .iter()
+            .filter(|d| {
+                matches!(
+                    d.kind,
+                    crate::typescript::declarations::TsDeclarationKind::Method
+                )
+            })
+            .map(|d| MethodRef {
+                key: d.key.clone(),
+                name_end: d.span.end,
+                container: d.semantic_path.last().cloned(),
+            })
+            .collect();
+        let seen: Vec<(String, Option<String>, Option<String>)> =
+            extract_methods(source, &methods, Dialect::TypeScript)
+                .into_iter()
+                .map(|s| (s.member, s.receiver, s.receiver_type))
+                .collect();
+        assert!(
+            seen.contains(&(
+                "fetch".into(),
+                Some("api".into()),
+                Some("ApiService".into())
+            )),
+            "{seen:?}"
+        );
+        assert!(
+            seen.contains(&(
+                "save".into(),
+                Some("store".into()),
+                Some("StoreService".into())
+            )),
+            "{seen:?}"
+        );
+        assert!(
+            seen.contains(&("render".into(), Some("this".into()), Some("Panel".into()))),
+            "{seen:?}"
+        );
+        assert!(seen.contains(&("helper".into(), None, None)), "{seen:?}");
+        assert!(
+            !seen.iter().any(|s| s.0 == "fake" || s.0 == "inject"),
+            "{seen:?}"
+        );
+    }
 
     #[test]
     fn type_references_skip_calls_members_declarations_and_comments() {
