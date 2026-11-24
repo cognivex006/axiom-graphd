@@ -145,6 +145,16 @@ public class RepoBase : ControllerBase
         )),
         "{calls:?}"
     );
+    // The call through IRepo also reaches the one implementation, as a
+    // separate inferred edge; the interface edge stays.
+    assert!(
+        calls.contains(&(
+            "App.UseCase.Run".into(),
+            "App.SqlRepo.Load".into(),
+            "inferred_static".into()
+        )),
+        "{calls:?}"
+    );
     assert!(
         calls.contains(&(
             "App.UseCase.Run".into(),

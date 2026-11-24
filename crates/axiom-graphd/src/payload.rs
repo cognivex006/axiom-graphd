@@ -103,6 +103,11 @@ pub const CALL_RULE_ID: &str = "csharp-call-site-v1";
 /// Evidence rule of a C# base-list entry (`class A : B, IC`).
 pub const BASE_TYPE_RULE_ID: &str = "csharp-base-list-v1";
 
+/// Evidence rule of a call through an interface to one possible
+/// implementation (`docs/15` §3: possible implementations are separate
+/// `inferred_static` edges and never replace the interface call).
+pub const INTERFACE_DISPATCH_RULE_ID: &str = "csharp-interface-dispatch-v1";
+
 /// Map a pinned declaration kind onto the contract's node kinds.
 ///
 /// `struct`, `record` and `enum` are published as `Class` because the contract's node kind
@@ -458,6 +463,80 @@ pub fn render(connection: &Connection, project_id: &str) -> Result<Payload, Axio
         }
         edges.push(document);
     }
+    // Interface dispatch: a resolved call to `I.M` also reaches `T.M` for every
+    // type `T` whose base list names `I` and that declares exactly one `M`.
+    // Each is a separate `inferred_static` edge; the interface call stays.
+    let mut implementors: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+    let node_name: BTreeMap<&str, &str> = stored_nodes
+        .iter()
+        .map(|node| (node.id.as_str(), node.name.as_str()))
+        .collect();
+    for edge in stored_edges
+        .iter()
+        .filter(|e| e.analyzer_kind == "implements")
+    {
+        if let (Some((interface, true)), Some(name)) = (
+            edge.base.as_deref().and_then(|base| types.resolve(base)),
+            node_name.get(edge.source_id.as_str()),
+        ) {
+            implementors.entry(interface).or_default().push(name);
+        }
+    }
+    for edge in stored_edges
+        .iter()
+        .filter(|e| e.analyzer_kind == "calls" && e.target_id.is_none())
+    {
+        let Some((source_id, _)) = published.get(&edge.source_id) else {
+            continue;
+        };
+        let Some(interface_method) = calls.resolve(&edge.source_id, edge.call.as_ref()) else {
+            continue;
+        };
+        let Some(member) = node_name.get(interface_method) else {
+            continue;
+        };
+        let Some((interface, true)) = calls
+            .container_of(interface_method)
+            .and_then(|container| types.resolve(container))
+        else {
+            continue;
+        };
+        for implementor in implementors.get(interface).into_iter().flatten() {
+            let Some(target) = calls
+                .method_on(implementor, member)
+                .and_then(|id| published.get(id))
+                .map(|(id, _)| id.clone())
+            else {
+                continue;
+            };
+            let evidence: Vec<Value> = edge
+                .evidence
+                .iter()
+                .map(|item| {
+                    let mut item = item.clone();
+                    item["rule_id"] = Value::String(INTERFACE_DISPATCH_RULE_ID.to_owned());
+                    item
+                })
+                .collect();
+            if evidence.is_empty() {
+                continue;
+            }
+            let id = edge_identity(source_id, "CALLS", &target, &evidence_key(&evidence)?)?;
+            if seen_edges.insert(id.clone(), ()).is_some() {
+                continue;
+            }
+            edges.push(json!({
+                "id": id,
+                "source_id": source_id,
+                "target_project_id": edge.target_project_id,
+                "kind": "CALLS",
+                "resolution": "inferred_static",
+                "evidence": evidence,
+                "analyzer_id": edge.analyzer_id,
+                "target_id": target,
+            }));
+        }
+    }
     edges.sort_by(|left, right| left["id"].as_str().cmp(&right["id"].as_str()));
 
     let input_files = inputs.len();
@@ -554,6 +633,22 @@ impl<'a> CallIndex<'a> {
             by_name,
             container_of,
         }
+    }
+
+    /// Simple name of the type declaring `method`.
+    fn container_of(&self, method: &str) -> Option<&'a str> {
+        self.container_of.get(method).copied()
+    }
+
+    /// The one method `member` declared on the type named `container`.
+    fn method_on(&self, container: &str, member: &str) -> Option<&'a str> {
+        let mut matches = self
+            .by_name
+            .get(member)?
+            .iter()
+            .filter(|(owner, _)| *owner == container);
+        let first = matches.next()?;
+        matches.next().is_none().then_some(first.1)
     }
 
     /// The single method a call site names, or `None` when none or several match.
