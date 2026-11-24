@@ -81,6 +81,10 @@ pub enum IgnoreReason {
     BackupArtifact,
     /// Local credential store.
     CredentialStore,
+    /// Matched a solution `ignore` glob (ADR-0048).
+    SolutionIgnore,
+    /// An untracked file Git ignores (ADR-0048).
+    GitIgnored,
 }
 
 impl IgnoreReason {
@@ -99,6 +103,18 @@ impl IgnoreReason {
             Self::EditorTemporaryFile => "editor_temporary_file",
             Self::BackupArtifact => "backup_artifact",
             Self::CredentialStore => "credential_store",
+            Self::SolutionIgnore => "solution_ignore",
+            Self::GitIgnored => "git_ignored",
+        }
+    }
+
+    /// ADR-0048 exclusion step: `builtin`, `solution_ignore` or `git_ignored`.
+    #[must_use]
+    pub const fn step(self) -> &'static str {
+        match self {
+            Self::SolutionIgnore => "solution_ignore",
+            Self::GitIgnored => "git_ignored",
+            _ => "builtin",
         }
     }
 }
@@ -139,6 +155,11 @@ impl IgnoreDecision {
 pub struct IgnorePolicy {
     graph_output_root: String,
     additional_roots: Vec<String>,
+    /// Repository-relative prefix of the project root (`""` for `.`).
+    repo_prefix: String,
+    solution_globs: Vec<String>,
+    git_ignored_files: std::collections::BTreeSet<String>,
+    git_ignored_dirs: std::collections::BTreeSet<String>,
 }
 
 impl Default for IgnorePolicy {
@@ -154,7 +175,71 @@ impl IgnorePolicy {
         Self {
             graph_output_root: graph_output_root.into(),
             additional_roots: Vec::new(),
+            repo_prefix: String::new(),
+            solution_globs: Vec::new(),
+            git_ignored_files: std::collections::BTreeSet::new(),
+            git_ignored_dirs: std::collections::BTreeSet::new(),
         }
+    }
+
+    /// Apply solution `ignore` globs (ADR-0048). Globs are repository-relative;
+    /// `repo_prefix` is the project root relative to the repository.
+    #[must_use]
+    pub fn with_solution_ignore(mut self, repo_prefix: &str, globs: &[String]) -> Self {
+        let prefix = repo_prefix.trim_matches('/');
+        self.repo_prefix = if prefix == "." {
+            String::new()
+        } else {
+            prefix.to_owned()
+        };
+        self.solution_globs = globs.to_vec();
+        self
+    }
+
+    /// Exclude untracked paths Git ignores (ADR-0048). Paths are
+    /// project-relative; a directory entry excludes everything below it.
+    #[must_use]
+    pub fn with_git_ignored(
+        mut self,
+        files: impl IntoIterator<Item = String>,
+        directories: impl IntoIterator<Item = String>,
+    ) -> Self {
+        self.git_ignored_files = files.into_iter().collect();
+        self.git_ignored_dirs = directories.into_iter().collect();
+        self
+    }
+
+    fn solution_ignored(&self, path: &str) -> bool {
+        if self.solution_globs.is_empty() {
+            return false;
+        }
+        let repo_path = if self.repo_prefix.is_empty() {
+            path.to_owned()
+        } else {
+            format!("{}/{path}", self.repo_prefix)
+        };
+        let segments: Vec<&str> = repo_path.split('/').collect();
+        self.solution_globs.iter().any(|glob| {
+            let pattern: Vec<&str> = glob.trim_start_matches("./").split('/').collect();
+            glob_segments(&pattern, &segments)
+        })
+    }
+
+    fn git_ignored(&self, path: &str) -> bool {
+        if self.git_ignored_files.contains(path) {
+            return true;
+        }
+        let mut ancestor = String::new();
+        for segment in path.split('/') {
+            if !ancestor.is_empty() {
+                ancestor.push('/');
+            }
+            ancestor.push_str(segment);
+            if self.git_ignored_dirs.contains(&ancestor) {
+                return true;
+            }
+        }
+        false
     }
 
     /// Also exclude an operator-configured project-relative root.
@@ -237,7 +322,45 @@ impl IgnorePolicy {
                 rule: "policy.atomic-replace-scratch",
             });
         }
+        // ADR-0048: the built-in list above is the floor; then the solution
+        // globs, then Git ignore rules for untracked paths.
+        if self.solution_ignored(&path) {
+            return Ok(IgnoreDecision::Ignored {
+                reason: IgnoreReason::SolutionIgnore,
+                rule: "solution.ignore",
+            });
+        }
+        if self.git_ignored(&path) {
+            return Ok(IgnoreDecision::Ignored {
+                reason: IgnoreReason::GitIgnored,
+                rule: "git.ignored-untracked",
+            });
+        }
         Ok(IgnoreDecision::Tracked)
+    }
+}
+
+/// Case-sensitive portable glob over `/` segments: `**` spans any number of
+/// segments, `*` and `?` match within one segment.
+fn glob_segments(pattern: &[&str], path: &[&str]) -> bool {
+    match pattern.split_first() {
+        None => path.is_empty(),
+        Some((&"**", rest)) => (0..=path.len()).any(|skip| glob_segments(rest, &path[skip..])),
+        Some((head, rest)) => match path.split_first() {
+            Some((segment, tail)) => {
+                glob_one(head.as_bytes(), segment.as_bytes()) && glob_segments(rest, tail)
+            }
+            None => false,
+        },
+    }
+}
+
+fn glob_one(pattern: &[u8], text: &[u8]) -> bool {
+    match pattern.split_first() {
+        None => text.is_empty(),
+        Some((b'*', rest)) => (0..=text.len()).any(|skip| glob_one(rest, &text[skip..])),
+        Some((b'?', rest)) => !text.is_empty() && glob_one(rest, &text[1..]),
+        Some((byte, rest)) => text.first() == Some(byte) && glob_one(rest, &text[1..]),
     }
 }
 
@@ -248,6 +371,44 @@ mod tests {
 
     fn reason(policy: &IgnorePolicy, path: &str) -> Option<IgnoreReason> {
         policy.classify(path).expect("portable path").reason()
+    }
+
+    #[test]
+    fn solution_globs_and_git_rules_exclude_after_the_builtin_floor() {
+        let policy = IgnorePolicy::default()
+            .with_solution_ignore(".", &[".agrimap-agent/**".to_owned(), "**/*.md".to_owned()])
+            .with_git_ignored(["notes.txt".to_owned()], ["cache".to_owned()]);
+        assert_eq!(
+            reason(&policy, ".agrimap-agent/knowledge/a.json"),
+            Some(IgnoreReason::SolutionIgnore)
+        );
+        assert_eq!(
+            reason(&policy, "docs/README.md"),
+            Some(IgnoreReason::SolutionIgnore)
+        );
+        assert_eq!(
+            reason(&policy, "README.MD"),
+            None,
+            "globs are case-sensitive"
+        );
+        assert_eq!(
+            reason(&policy, "cache/x/y.bin"),
+            Some(IgnoreReason::GitIgnored)
+        );
+        assert_eq!(reason(&policy, "notes.txt"), Some(IgnoreReason::GitIgnored));
+        assert_eq!(reason(&policy, "src/Program.cs"), None);
+        assert_eq!(
+            reason(&policy, "bin/Debug/app.dll"),
+            Some(IgnoreReason::BuildOutput),
+            "the built-in floor wins"
+        );
+        let nested =
+            IgnorePolicy::default().with_solution_ignore("svc/api", &["svc/api/gen/**".to_owned()]);
+        assert_eq!(
+            reason(&nested, "gen/a.cs"),
+            Some(IgnoreReason::SolutionIgnore)
+        );
+        assert_eq!(reason(&nested, "src/a.cs"), None);
     }
 
     #[test]

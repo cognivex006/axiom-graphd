@@ -1465,6 +1465,7 @@ fn solution_command(command: &SolutionCommand) -> Result<String, AxiomError> {
                     declaration.id(),
                     &plan.config_hash,
                     catalog_host,
+                    declaration.ignore(),
                 )?;
                 runtime::write_solution_registry(
                     &context.home,

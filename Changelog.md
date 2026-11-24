@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Improvements
+
+- Builds skip untracked files that Git ignores (`.gitignore`, `.git/info/exclude`, your global excludes). Tracked files are never skipped by this step (ADR-0048).
+- Solution configurations accept an `ignore` list of repository-relative globs, such as `".agrimap-agent/**"`, to leave out tracked non-code folders. The built-in exclusions (`bin`, `obj`, `node_modules`, `.git`, engine folders) always apply.
+- `axge build` reports, for each project, how many entries each step excluded (`builtin`, `solution_ignore`, `git_ignored`).
+
 ### Fixes
 
 - `axge solution register --apply` and `axge solution remove --apply` now write `config/registry.json`, the solution registry the MCP gateway reads, so solutions you register become queryable through MCP (ADR-0047).

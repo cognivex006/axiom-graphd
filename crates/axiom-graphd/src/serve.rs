@@ -89,6 +89,9 @@ pub struct ProjectOutcome {
     pub inventory_changed: usize,
     /// Paths newly tombstoned because the inventory no longer lists them.
     pub inventory_deleted: usize,
+    /// Excluded inventory entries (files or whole directories) per ADR-0048
+    /// step: `builtin`, `solution_ignore`, `git_ignored`.
+    pub inventory_excluded: std::collections::BTreeMap<String, usize>,
     /// Files whose facts were replaced in this pass.
     pub analyzed_files: usize,
     /// Nodes written for the project.
@@ -610,6 +613,7 @@ fn run_bounded(
             .iter()
             .map(|project| CatalogRepoReference::new(project.repo_id.clone()))
             .collect();
+        let solution_ignore = runtime::solution_ignore(home, &solution.id)?;
         let mut scanned_every_project = true;
         for project in &projects {
             if let Some(only) = selection.project.as_deref() {
@@ -631,6 +635,7 @@ fn run_bounded(
                 ResolutionInputs {
                     bindings: &bindings,
                     catalog: &catalog,
+                    ignore: &solution_ignore,
                 },
                 token,
                 &mut recoveries,
@@ -691,6 +696,8 @@ fn mark_solution_jobs_succeeded(
 struct ResolutionInputs<'a> {
     bindings: &'a [graph_core::bindings::LocalBinding],
     catalog: &'a [CatalogRepoReference],
+    /// Solution `ignore` globs (ADR-0048).
+    ignore: &'a [String],
 }
 
 fn require_complete_inventory(plan: &InventoryPlan) -> Result<(), AxiomError> {
@@ -745,13 +752,29 @@ fn reconcile_project(
     // Inventory is planned with the watcher's own ignore and input policies, so
     // the daemon and the watcher agree on what counts as source.
     let known = known_inventory(connection, &project.id)?;
+    // ADR-0048: built-in floor, then solution globs, then Git ignore rules
+    // for untracked files.
+    let (git_files, git_directories) = runtime::git_ignored_untracked(Path::new(&project_root));
+    let ignore_policy = IgnorePolicy::new(".axiom")
+        .with_solution_ignore(&project.relative_path, resolution.ignore)
+        .with_git_ignored(git_files, git_directories);
     let plan = plan_inventory(
         &StdDirentSource,
         Path::new(&project_root),
         &known,
-        &IgnorePolicy::new(".axiom"),
+        &ignore_policy,
         &InputPolicy::new(project_root.clone()),
     )?;
+    let mut inventory_excluded: std::collections::BTreeMap<String, usize> =
+        ["builtin", "solution_ignore", "git_ignored"]
+            .into_iter()
+            .map(|step| (step.to_owned(), 0))
+            .collect();
+    for excluded in plan.excluded() {
+        *inventory_excluded
+            .entry(excluded.reason().step().to_owned())
+            .or_default() += 1;
+    }
     // Missing observations from a denied/truncated walk are not deletions.
     // Refuse before any inventory mutation, analysis or publication.
     require_complete_inventory(&plan)?;
@@ -852,6 +875,7 @@ fn reconcile_project(
         inventory_added: inventory.added,
         inventory_changed: inventory.changed,
         inventory_deleted: inventory.deleted,
+        inventory_excluded,
         analyzed_files: analyzed,
         nodes,
         edges,

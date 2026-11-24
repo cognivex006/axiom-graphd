@@ -117,6 +117,7 @@ pub struct SolutionDeclaration {
     profile: String,
     projects: Vec<ProjectDeclaration>,
     catalog_host_repo: Option<String>,
+    ignore: Vec<String>,
 }
 
 impl SolutionDeclaration {
@@ -132,7 +133,21 @@ impl SolutionDeclaration {
             profile: profile.into(),
             projects,
             catalog_host_repo: None,
+            ignore: Vec::new(),
         }
+    }
+
+    /// Solution `ignore` globs (ADR-0048), repository-relative.
+    #[must_use]
+    pub fn ignore(&self) -> &[String] {
+        &self.ignore
+    }
+
+    /// Set the solution `ignore` globs.
+    #[must_use]
+    pub fn with_ignore(mut self, globs: Vec<String>) -> Self {
+        self.ignore = globs;
+        self
     }
 
     /// Solution id.
@@ -301,7 +316,8 @@ pub fn parse_config(document: &serde_json::Value) -> Result<SolutionDeclaration,
         }
         projects.push(project);
     }
-    let declaration = SolutionDeclaration::new(id, profile, projects);
+    let ignore = parse_ignore(document)?;
+    let declaration = SolutionDeclaration::new(id, profile, projects).with_ignore(ignore);
     match catalog_host_repo {
         Some(repo_id) if !is_portable_id(&repo_id) => Err(AxiomError::new(
             ErrorCode::ValidationError,
@@ -311,6 +327,49 @@ pub fn parse_config(document: &serde_json::Value) -> Result<SolutionDeclaration,
         Some(repo_id) => Ok(declaration.with_catalog_host_repo(repo_id)),
         None => Ok(declaration),
     }
+}
+
+/// Upper bound on solution `ignore` globs.
+pub const MAX_IGNORE_GLOBS: usize = 256;
+
+fn parse_ignore(document: &serde_json::Value) -> Result<Vec<String>, AxiomError> {
+    let Some(raw) = document.get("ignore") else {
+        return Ok(Vec::new());
+    };
+    let items = raw.as_array().ok_or_else(|| {
+        AxiomError::new(
+            ErrorCode::ValidationError,
+            "ignore must be an array of globs",
+        )
+    })?;
+    if items.len() > MAX_IGNORE_GLOBS {
+        return Err(
+            AxiomError::new(ErrorCode::ValidationError, "too many ignore globs")
+                .with_detail("limit", MAX_IGNORE_GLOBS.to_string()),
+        );
+    }
+    let mut globs = Vec::with_capacity(items.len());
+    for item in items {
+        let glob = item
+            .as_str()
+            .filter(|glob| !glob.is_empty())
+            .ok_or_else(|| {
+                AxiomError::new(
+                    ErrorCode::ValidationError,
+                    "each ignore glob must be a non-empty string",
+                )
+            })?;
+        if glob.contains('\\') || is_absolute_host_path(glob) || glob.split('/').any(|s| s == "..")
+        {
+            return Err(AxiomError::new(
+                ErrorCode::ValidationError,
+                "an ignore glob must be repository-relative and use /",
+            )
+            .with_detail("glob", glob));
+        }
+        globs.push(glob.to_owned());
+    }
+    Ok(globs)
 }
 
 fn require_string(document: &serde_json::Value, key: &str) -> Result<String, AxiomError> {
@@ -438,7 +497,7 @@ fn join_root(root: &str, relative: &str) -> String {
 ///
 /// Canonical-encoding failures.
 pub fn config_hash(declaration: &SolutionDeclaration) -> Result<String, AxiomError> {
-    let document = serde_json::json!({
+    let mut document = serde_json::json!({
         "id": declaration.id(),
         "profile": declaration.profile(),
         "catalog_host_repo": declaration.catalog_host_repo(),
@@ -453,6 +512,11 @@ pub fn config_hash(declaration: &SolutionDeclaration) -> Result<String, AxiomErr
             }))
             .collect::<Vec<_>>(),
     });
+    // Only a non-empty ignore list enters the digest, so registrations made
+    // before ADR-0048 keep their hash.
+    if !declaration.ignore().is_empty() {
+        document["ignore"] = serde_json::json!(declaration.ignore());
+    }
     let canonical = graph_export::canonical::canonical_value(&document)
         .map_err(|error| crate::commands::storage_error("config canonicalization", &error))?;
     Ok(graph_export::sha256_hex(canonical.as_bytes()))

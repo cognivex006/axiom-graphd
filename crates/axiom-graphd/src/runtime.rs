@@ -97,6 +97,8 @@ struct RegisteredSolutionMetadata {
     solution_id: String,
     config_hash: String,
     catalog_host_repo: String,
+    #[serde(default)]
+    ignore: Vec<String>,
 }
 
 fn registered_solution_path(home: &AxiomHome, solution_id: &str) -> PathBuf {
@@ -111,6 +113,7 @@ pub fn write_catalog_host_metadata(
     solution_id: &str,
     config_hash: &str,
     catalog_host_repo: &str,
+    ignore: &[String],
 ) -> Result<(), AxiomError> {
     let path = registered_solution_path(home, solution_id);
     let parent = path.parent().ok_or_else(|| {
@@ -121,13 +124,17 @@ pub fn write_catalog_host_metadata(
     })?;
     std::fs::create_dir_all(parent)
         .map_err(|error| storage_error("registered solution metadata directory", &error))?;
-    let bytes = graph_export::canonical::canonical_document_value(&serde_json::json!({
+    let mut document = serde_json::json!({
         "catalog_host_repo": catalog_host_repo,
         "config_hash": config_hash,
         "schema_version": 1,
         "solution_id": solution_id,
-    }))
-    .map_err(export_error)?;
+    });
+    if !ignore.is_empty() {
+        document["ignore"] = serde_json::json!(ignore);
+    }
+    let bytes =
+        graph_export::canonical::canonical_document_value(&document).map_err(export_error)?;
     let temporary = path.with_extension("json.tmp");
     std::fs::write(&temporary, bytes)
         .map_err(|error| storage_error("registered solution metadata write", &error))?;
@@ -333,6 +340,72 @@ pub fn write_solution_registry(
         .map_err(|error| storage_error("solution registry encoding", &error))?;
     bytes.push(b'\n');
     stage_and_replace(&path, &bytes, "solution registry")
+}
+
+/// The solution `ignore` globs stored at registration (ADR-0048); empty when
+/// none were declared or the metadata predates them.
+///
+/// # Errors
+///
+/// [`ErrorCode::ConfigInvalid`] for unreadable metadata.
+pub fn solution_ignore(home: &AxiomHome, solution_id: &str) -> Result<Vec<String>, AxiomError> {
+    let path = registered_solution_path(home, solution_id);
+    match std::fs::read(&path) {
+        Ok(bytes) => serde_json::from_slice::<RegisteredSolutionMetadata>(&bytes)
+            .map(|metadata| metadata.ignore)
+            .map_err(|error| {
+                AxiomError::new(
+                    ErrorCode::ConfigInvalid,
+                    "registered solution metadata is invalid",
+                )
+                .with_detail("path", path.to_string_lossy())
+                .with_detail("io", error.to_string())
+            }),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(Vec::new()),
+        Err(error) => Err(storage_error("registered solution metadata read", &error)),
+    }
+}
+
+/// Untracked paths Git ignores under `project_root` (ADR-0048), as
+/// project-relative `(files, directories)`. Empty outside a Git work tree or
+/// when Git is unavailable: the step then excludes nothing.
+#[must_use]
+pub fn git_ignored_untracked(project_root: &Path) -> (Vec<String>, Vec<String>) {
+    let output = std::process::Command::new("git")
+        .arg("-C")
+        .arg(project_root)
+        .args([
+            "ls-files",
+            "-z",
+            "--others",
+            "--ignored",
+            "--exclude-standard",
+            "--directory",
+        ])
+        .stdin(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .output();
+    let Ok(output) = output else {
+        return (Vec::new(), Vec::new());
+    };
+    if !output.status.success() {
+        return (Vec::new(), Vec::new());
+    }
+    let mut files = Vec::new();
+    let mut directories = Vec::new();
+    for raw in output.stdout.split(|byte| *byte == 0) {
+        let Ok(text) = std::str::from_utf8(raw) else {
+            continue;
+        };
+        if text.is_empty() || text.starts_with("../") {
+            continue;
+        }
+        match text.strip_suffix('/') {
+            Some(directory) => directories.push(directory.to_owned()),
+            None => files.push(text.to_owned()),
+        }
+    }
+    (files, directories)
 }
 
 /// Read and validate the machine-local binding table.
