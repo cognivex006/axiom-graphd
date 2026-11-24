@@ -1533,13 +1533,19 @@ fn analyze_file(path: &str, source: &str, project_id: &str) -> Result<GraphFactS
                     }
                 })
                 .collect();
-            facts_from_declarations(
+            let mut facts = facts_from_declarations(
                 project_id,
                 Language::CSharp.as_str(),
                 payload::CSHARP_ANALYZER_ID,
                 path,
                 declarations,
-            )
+            );
+            facts.edges.extend(call_edges(
+                project_id,
+                path,
+                &graph_analyze::csharp::call_sites::extract(source, &analysis.declarations),
+            ));
+            facts
         }
         Some(Language::TypeScript) => {
             let analysis = graph_analyze::typescript::declarations::analyze(path, source);
@@ -1664,6 +1670,56 @@ fn facts_from_declarations(
         }
     }
     GraphFactSet::new(nodes, edges)
+}
+
+/// One file's C# call sites as `calls` edges. The target is left unresolved
+/// here; the project-wide render resolves it against every declared method
+/// (field report #14). The literal receiver and its declared type travel in
+/// the stored record, never in the published edge document.
+fn call_edges(
+    project_id: &str,
+    path: &str,
+    sites: &[graph_analyze::csharp::call_sites::CsharpCallSite],
+) -> Vec<EdgeFact> {
+    let file = portable_path(path);
+    let mut seen: BTreeMap<String, usize> = BTreeMap::new();
+    let mut edges = Vec::with_capacity(sites.len());
+    for site in sites {
+        let label = match (&site.receiver_type, &site.receiver) {
+            (Some(ty), _) => format!("{ty}.{}", site.member),
+            (None, Some(receiver)) if receiver != "?" => format!("{receiver}.{}", site.member),
+            _ => site.member.clone(),
+        };
+        let base = format!("{}->calls->{label}@{}", site.caller_key, site.line);
+        let ordinal = seen.entry(base.clone()).or_insert(0);
+        *ordinal += 1;
+        let edge_id = if *ordinal == 1 {
+            base
+        } else {
+            format!("{base}#{ordinal}")
+        };
+        let body = serde_json::json!({
+            "evidence": [{
+                "source": {"file": file, "start_line": site.line, "end_line": site.line},
+                "rule_id": payload::CALL_RULE_ID,
+            }],
+            "analyzer_id": payload::CSHARP_ANALYZER_ID,
+            "call": {
+                "member": site.member,
+                "receiver": site.receiver,
+                "receiver_type": site.receiver_type,
+            },
+        });
+        edges.push(EdgeFact::new(
+            edge_id,
+            site.caller_key.clone(),
+            EdgeTarget::Unresolved(label),
+            project_id,
+            "calls",
+            body.to_string(),
+        ));
+    }
+    edges
 }
 
 fn scope_key(path: &[String], name: &str) -> String {

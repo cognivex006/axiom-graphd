@@ -97,6 +97,9 @@ pub const TYPESCRIPT_ANALYZER_ID: &str = "typescript-declarations-v1";
 /// The evidence rule id for a declaration containment edge.
 pub const CONTAINS_RULE_ID: &str = "declaration-contains-v1";
 
+/// Evidence rule of a lexical C# call site (field report #14).
+pub const CALL_RULE_ID: &str = "csharp-call-site-v1";
+
 /// Map a pinned declaration kind onto the contract's node kinds.
 ///
 /// `struct`, `record` and `enum` are published as `Class` because the contract's node kind
@@ -122,6 +125,7 @@ pub fn contract_node_kind(declaration_kind: &str) -> Option<&'static str> {
 pub fn contract_edge_kind(declaration_kind: &str) -> Option<&'static str> {
     Some(match declaration_kind {
         "contains" => "CONTAINS",
+        "calls" => "CALLS",
         _ => return None,
     })
 }
@@ -223,6 +227,8 @@ struct StoredEdge {
     evidence: Vec<Value>,
     analyzer_id: String,
     owner_file: String,
+    /// Stored call-site detail (`member`, `receiver`, `receiver_type`).
+    call: Option<Value>,
 }
 
 /// The published payload of one project: the shards and the coverage block.
@@ -322,6 +328,7 @@ pub fn render(connection: &Connection, project_id: &str) -> Result<Payload, Axio
     }
     nodes.sort_by(|left, right| left["id"].as_str().cmp(&right["id"].as_str()));
 
+    let calls = CallIndex::new(&stored_nodes);
     let mut edges: Vec<Value> = Vec::new();
     let mut unresolved_references = 0usize;
     let mut seen_edges: BTreeMap<String, ()> = BTreeMap::new();
@@ -341,7 +348,21 @@ pub fn render(connection: &Connection, project_id: &str) -> Result<Payload, Axio
         // resolved but this generation does not pin (its kind has no contract
         // spelling) is published as the weaker, true claim `unresolved` and is
         // counted in coverage rather than dropped or asserted as pinned.
+        // A call site is resolved here, where every method of the project is
+        // known. A unique match is `inferred_static`: the scan is lexical, so it
+        // never claims `exact_static`.
+        let inferred_call = if edge.analyzer_kind == "calls" && edge.target_id.is_none() {
+            calls
+                .resolve(&edge.source_id, edge.call.as_ref())
+                .and_then(|id| published.get(id))
+                .map(|(target_id, _)| target_id.clone())
+        } else {
+            None
+        };
         let target = match edge.target_id.as_ref().and_then(|id| published.get(id)) {
+            _ if inferred_call.is_some() => {
+                Some((inferred_call.clone(), "inferred_static".to_owned()))
+            }
             Some((target_id, _)) => Some((Some(target_id.clone()), edge.resolution.clone())),
             None => {
                 let name = edge
@@ -441,6 +462,60 @@ pub fn render(connection: &Connection, project_id: &str) -> Result<Payload, Axio
         coverage,
         input_paths,
     })
+}
+
+/// Every method of one project, by member name, for call-site resolution.
+struct CallIndex<'a> {
+    by_name: BTreeMap<&'a str, Vec<(&'a str, &'a str)>>,
+    container_of: BTreeMap<&'a str, &'a str>,
+}
+
+fn container_name(qualified_name: &str) -> &str {
+    qualified_name.rsplit_once('.').map_or("", |(parent, _)| {
+        parent.rsplit('.').next().unwrap_or(parent)
+    })
+}
+
+impl<'a> CallIndex<'a> {
+    fn new(nodes: &'a [StoredNode]) -> Self {
+        let mut by_name: BTreeMap<&str, Vec<(&str, &str)>> = BTreeMap::new();
+        let mut container_of = BTreeMap::new();
+        for node in nodes.iter().filter(|node| node.analyzer_kind == "method") {
+            let container = container_name(&node.qualified_name);
+            by_name
+                .entry(node.name.as_str())
+                .or_default()
+                .push((container, node.id.as_str()));
+            container_of.insert(node.id.as_str(), container);
+        }
+        Self {
+            by_name,
+            container_of,
+        }
+    }
+
+    /// The single method a call site names, or `None` when none or several match.
+    ///
+    /// A typed receiver narrows to methods declared on that type; a bare call
+    /// narrows to the caller's own type. Overloads of one method on one type
+    /// count as one target only when they share a stored id, so they stay
+    /// ambiguous otherwise.
+    fn resolve(&self, caller: &str, call: Option<&Value>) -> Option<&'a str> {
+        let call = call?;
+        let member = call.get("member")?.as_str()?;
+        let candidates = self.by_name.get(member)?;
+        let receiver = call.get("receiver").and_then(Value::as_str);
+        let wanted = match (call.get("receiver_type").and_then(Value::as_str), receiver) {
+            (Some(ty), _) => ty,
+            (None, None) => self.container_of.get(caller).copied()?,
+            (None, Some(_)) => return None,
+        };
+        let mut matches = candidates
+            .iter()
+            .filter(|(container, _)| *container == wanted);
+        let first = matches.next()?;
+        matches.next().is_none().then_some(first.1)
+    }
 }
 
 fn read_nodes(connection: &Connection, project_id: &str) -> Result<Vec<StoredNode>, AxiomError> {
@@ -578,6 +653,7 @@ fn read_edges(connection: &Connection, project_id: &str) -> Result<Vec<StoredEdg
             .and_then(Value::as_str)
             .map(str::to_owned)
             .unwrap_or_else(|| CSHARP_ANALYZER_ID.to_owned());
+        let call = record.get("call").cloned();
         edges.push(StoredEdge {
             source_id,
             target_id,
@@ -588,6 +664,7 @@ fn read_edges(connection: &Connection, project_id: &str) -> Result<Vec<StoredEdg
             evidence,
             analyzer_id,
             owner_file,
+            call,
         });
     }
     Ok(edges)

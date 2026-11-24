@@ -11,4 +11,5 @@
 //! unbalanced brace never panics and never yields a clean, complete result; it
 //! yields a diagnostic, and a caller that respects coverage must lower its claim.
 
+pub mod call_sites;
 pub mod declarations;
