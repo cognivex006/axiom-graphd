@@ -275,6 +275,113 @@ pub fn base_types(source: &str, declarations: &[CsharpDeclaration]) -> Vec<Cshar
     out
 }
 
+/// A capitalised name used inside a method or type (a candidate type
+/// reference). Only the first use per `(source, name)` is kept. Whether the
+/// name is a project type is decided later, against the whole project.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CsharpTypeReference {
+    /// Key of the innermost method (signature included) or type using it.
+    pub source_key: String,
+    /// The name as written, e.g. `WidgetDto`.
+    pub name: String,
+    /// One-based line of the first use.
+    pub line: usize,
+}
+
+/// Candidate type references of every method and type body in `source`.
+///
+/// A name right after `.` is a member access and a name followed by `(` is a
+/// call, so both are skipped (`new T(` is kept); declared names and base
+/// lists (already `IMPLEMENTS`/`INHERITS`) are not references.
+#[must_use]
+pub fn type_references(
+    source: &str,
+    declarations: &[CsharpDeclaration],
+) -> Vec<CsharpTypeReference> {
+    let masked = mask(source);
+    let bytes = masked.as_bytes();
+    let line_starts = crate::line_starts(source);
+    let line_of = |offset: usize| match line_starts.binary_search(&offset) {
+        Ok(index) => index + 1,
+        Err(index) => index,
+    };
+    let mut scopes: Vec<(usize, usize, &CsharpDeclaration)> = Vec::new();
+    for declaration in declarations {
+        let range = match declaration.kind {
+            CsharpDeclarationKind::Method => {
+                body_range(bytes, declaration.span.end).map(|(_, end)| {
+                    // The signature belongs to the method: start at its line.
+                    let line = line_of(declaration.span.start);
+                    (line_starts[line - 1], end)
+                })
+            }
+            CsharpDeclarationKind::Namespace => None,
+            _ => {
+                let open = bytes[declaration.span.end..]
+                    .iter()
+                    .position(|byte| matches!(byte, b'{' | b';'))
+                    .map(|offset| declaration.span.end + offset);
+                open.filter(|at| bytes[*at] == b'{')
+                    .and_then(|at| matching(bytes, at, b'{', b'}').map(|end| (at, end + 1)))
+            }
+        };
+        if let Some((start, end)) = range {
+            scopes.push((start, end, declaration));
+        }
+    }
+    scopes.sort_by_key(|(start, end, _)| (end - start, *start));
+    let declared: std::collections::BTreeSet<usize> =
+        declarations.iter().map(|d| d.span.start).collect();
+    let mut seen: std::collections::BTreeSet<(String, String)> = std::collections::BTreeSet::new();
+    let mut out = Vec::new();
+    let mut index = 0;
+    while index < bytes.len() {
+        if !is_ident(bytes[index]) || (index > 0 && is_ident(bytes[index - 1])) {
+            index += 1;
+            continue;
+        }
+        let start = index;
+        while index < bytes.len() && is_ident(bytes[index]) {
+            index += 1;
+        }
+        if !bytes[start].is_ascii_uppercase() || declared.contains(&start) {
+            continue;
+        }
+        let before = skip_space_back(bytes, start);
+        if before > 0 && bytes[before - 1] == b'.' {
+            continue;
+        }
+        let mut after = index;
+        while after < bytes.len() && bytes[after].is_ascii_whitespace() {
+            after += 1;
+        }
+        if bytes.get(after) == Some(&b'(') && previous_word(bytes, before) != Some("new") {
+            continue;
+        }
+        let Some(scope) = scopes
+            .iter()
+            .find(|(from, to, _)| *from <= start && start < *to)
+            .map(|(_, _, d)| *d)
+        else {
+            continue;
+        };
+        let name = std::str::from_utf8(&bytes[start..index])
+            .unwrap_or_default()
+            .to_owned();
+        if scope.name == name || scope.semantic_path.last() == Some(&name) {
+            continue;
+        }
+        if seen.insert((scope.key.clone(), name.clone())) {
+            out.push(CsharpTypeReference {
+                source_key: scope.key.clone(),
+                name,
+                line: line_of(start),
+            });
+        }
+    }
+    out
+}
+
 /// Replace comment and string/char literal contents with spaces, keeping
 /// byte offsets and newlines.
 fn mask(source: &str) -> String {
@@ -573,6 +680,47 @@ public class Controller
     private void Log(string message) => Console.WriteLine(message);
 }
 "#;
+
+    #[test]
+    fn type_references_skip_calls_members_declarations_and_comments() {
+        let source = "namespace App;\npublic class Widget : IWidget\n{\n    private Store _store;\n    // Hidden reference\n    public WidgetDto Map(Input input)\n    {\n        var dto = new WidgetDto();\n        Helper.Format(input.Value);\n        Convert(input);\n        return dto;\n    }\n}\n";
+        let analysis = analyze("src/Widget.cs", source);
+        let refs: Vec<(String, String, usize)> = type_references(source, &analysis.declarations)
+            .into_iter()
+            .map(|r| {
+                let owner = analysis
+                    .declarations
+                    .iter()
+                    .find(|d| d.key == r.source_key)
+                    .unwrap();
+                (owner.name.clone(), r.name, r.line)
+            })
+            .collect();
+        assert!(
+            refs.contains(&("Widget".into(), "Store".into(), 4)),
+            "{refs:?}"
+        );
+        assert!(
+            refs.contains(&("Map".into(), "WidgetDto".into(), 6)),
+            "{refs:?}"
+        );
+        assert!(
+            refs.contains(&("Map".into(), "Input".into(), 6)),
+            "{refs:?}"
+        );
+        assert!(
+            refs.contains(&("Map".into(), "Helper".into(), 9)),
+            "{refs:?}"
+        );
+        assert_eq!(
+            refs.iter().filter(|r| r.1 == "WidgetDto").count(),
+            1,
+            "first use only"
+        );
+        for absent in ["Hidden", "Value", "Convert", "IWidget", "Format"] {
+            assert!(!refs.iter().any(|r| r.1 == absent), "{absent}: {refs:?}");
+        }
+    }
 
     #[test]
     fn base_lists_name_each_base_once_without_generics_or_constraints() {

@@ -1550,6 +1550,11 @@ fn analyze_file(path: &str, source: &str, project_id: &str) -> Result<GraphFactS
                 path,
                 &graph_analyze::csharp::call_sites::base_types(source, &analysis.declarations),
             ));
+            facts.edges.extend(reference_edges(
+                project_id,
+                path,
+                &graph_analyze::csharp::call_sites::type_references(source, &analysis.declarations),
+            ));
             facts
         }
         Some(Language::TypeScript) => {
@@ -1753,6 +1758,37 @@ fn base_type_edges(
                 EdgeTarget::Unresolved(base.base.clone()),
                 project_id,
                 "implements",
+                body.to_string(),
+            )
+        })
+        .collect()
+}
+
+/// One file's candidate type references as `references` edges. The render
+/// publishes only those naming exactly one project type.
+fn reference_edges(
+    project_id: &str,
+    path: &str,
+    references: &[graph_analyze::csharp::call_sites::CsharpTypeReference],
+) -> Vec<EdgeFact> {
+    let file = portable_path(path);
+    references
+        .iter()
+        .map(|reference| {
+            let body = serde_json::json!({
+                "evidence": [{
+                    "source": {"file": file, "start_line": reference.line, "end_line": reference.line},
+                    "rule_id": payload::TYPE_REFERENCE_RULE_ID,
+                }],
+                "analyzer_id": payload::CSHARP_ANALYZER_ID,
+                "base": reference.name,
+            });
+            EdgeFact::new(
+                format!("{}->references->{}", reference.source_key, reference.name),
+                reference.source_key.clone(),
+                EdgeTarget::Unresolved(reference.name.clone()),
+                project_id,
+                "references",
                 body.to_string(),
             )
         })

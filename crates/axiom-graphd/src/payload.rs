@@ -108,6 +108,9 @@ pub const BASE_TYPE_RULE_ID: &str = "csharp-base-list-v1";
 /// `inferred_static` edges and never replace the interface call).
 pub const INTERFACE_DISPATCH_RULE_ID: &str = "csharp-interface-dispatch-v1";
 
+/// Evidence rule of a C# use of a project type by name.
+pub const TYPE_REFERENCE_RULE_ID: &str = "csharp-type-reference-v1";
+
 /// Map a pinned declaration kind onto the contract's node kinds.
 ///
 /// `struct`, `record` and `enum` are published as `Class` because the contract's node kind
@@ -135,6 +138,7 @@ pub fn contract_edge_kind(declaration_kind: &str) -> Option<&'static str> {
         "contains" => "CONTAINS",
         "calls" => "CALLS",
         "implements" => "IMPLEMENTS",
+        "references" => "REFERENCES",
         _ => return None,
     })
 }
@@ -351,6 +355,42 @@ pub fn render(connection: &Connection, project_id: &str) -> Result<Payload, Axio
         // A base-list entry is IMPLEMENTS for an interface and INHERITS for a
         // class. A resolved target decides; an unresolved one follows the C#
         // naming convention (`IName` is an interface) and stays unresolved.
+        // A candidate reference is published only when it names exactly one
+        // project type: any capitalised name is a candidate, so an unknown one
+        // is not evidence of a reference at all.
+        if edge.analyzer_kind == "references" {
+            if !published.contains_key(&edge.source_id) {
+                continue;
+            }
+            let Some(target) = edge
+                .base
+                .as_deref()
+                .and_then(|name| types.resolve(name))
+                .and_then(|(id, _)| published.get(id))
+                .map(|(id, _)| id.clone())
+            else {
+                continue;
+            };
+            if target == *source_id_of(&published, &edge.source_id) {
+                continue;
+            }
+            let evidence_key = evidence_key(&edge.evidence)?;
+            let source_id = source_id_of(&published, &edge.source_id).clone();
+            let id = edge_identity(&source_id, "REFERENCES", &target, &evidence_key)?;
+            if seen_edges.insert(id.clone(), ()).is_none() {
+                edges.push(json!({
+                    "id": id,
+                    "source_id": source_id,
+                    "target_project_id": edge.target_project_id,
+                    "kind": "REFERENCES",
+                    "resolution": "inferred_static",
+                    "evidence": edge.evidence,
+                    "analyzer_id": edge.analyzer_id,
+                    "target_id": target,
+                }));
+            }
+            continue;
+        }
         let inferred_base = if edge.analyzer_kind == "implements" {
             let resolved = edge.base.as_deref().and_then(|name| types.resolve(name));
             let interface = match resolved {
@@ -568,6 +608,10 @@ pub fn render(connection: &Connection, project_id: &str) -> Result<Payload, Axio
         coverage,
         input_paths,
     })
+}
+
+fn source_id_of<'m>(published: &'m BTreeMap<String, (String, String)>, stored: &str) -> &'m String {
+    &published[stored].0
 }
 
 fn looks_like_interface(name: &str) -> bool {

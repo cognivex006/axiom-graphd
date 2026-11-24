@@ -203,4 +203,25 @@ public class RepoBase : ControllerBase
         );
         assert!(types.contains(&wanted), "{wanted:?} missing from {types:?}");
     }
+    let references: Vec<(String, String)> = edges
+        .iter()
+        .filter(|e| e["kind"] == "REFERENCES")
+        .map(|e| {
+            assert_eq!(e["resolution"], "inferred_static");
+            (
+                names[e["source_id"].as_str().unwrap()].clone(),
+                names[e["target_id"].as_str().unwrap()].clone(),
+            )
+        })
+        .collect();
+    assert!(
+        references.contains(&("App.UseCase".into(), "App.IRepo".into())),
+        "field type: {references:?}"
+    );
+    assert!(
+        !references
+            .iter()
+            .any(|(_, t)| t.ends_with("Math") || t.ends_with("System")),
+        "names outside the project are not published: {references:?}"
+    );
 }
