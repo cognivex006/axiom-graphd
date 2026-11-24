@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Improvements
+
+- `axge query context --symbol` accepts a short name such as `DashboardQueryUseCase` as well as the full qualified name.
+- `axge <verb> --help` (for example `axge query context --help`) shows that verb's forms instead of the general help.
+
 ### Chores
 
 - Move repository and download references to cognivex006 and run verification/builds on operator-managed machines instead of GitHub Actions.

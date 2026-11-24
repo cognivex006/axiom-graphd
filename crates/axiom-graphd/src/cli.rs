@@ -53,6 +53,20 @@ pub struct OperatorSlice {
 }
 
 /// Every operator slice reachable from argv, in `--help` order.
+/// Usage of one verb: its accepted forms and a pointer to the full help.
+fn verb_usage(verb: &str) -> String {
+    let mut text = format!("Usage: axge {verb} ...\n\n");
+    for slice in OPERATOR_SLICES.iter().filter(|slice| slice.verb == verb) {
+        for form in slice.forms {
+            text.push_str("  axge ");
+            text.push_str(form);
+            text.push('\n');
+        }
+    }
+    text.push_str("\nRun `axge --help` for setup steps, exit codes and every verb.\n");
+    text
+}
+
 pub const OPERATOR_SLICES: &[OperatorSlice] = &[
     OperatorSlice {
         module: "changed",
@@ -477,6 +491,8 @@ pub enum Command {
     Update(UpdateCommand),
     /// Print usage.
     Help,
+    /// Print the usage of one verb (`axge <verb> --help`, field report #17).
+    VerbHelp(&'static str),
     /// The arguments were rejected; the error carries the reason.
     Rejected {
         /// Why the arguments were rejected.
@@ -735,10 +751,11 @@ pub fn parse(arguments: &[String]) -> Invocation {
         return rejected_invocation(message, json);
     }
     if help {
-        return Invocation {
-            command: Command::Help,
-            json,
-        };
+        let command = positionals
+            .first()
+            .and_then(|verb| OPERATOR_SLICES.iter().find(|slice| slice.verb == verb))
+            .map_or(Command::Help, |slice| Command::VerbHelp(slice.verb));
+        return Invocation { command, json };
     }
     if positionals.is_empty() {
         return Invocation {
@@ -1710,6 +1727,7 @@ fn execute(command: &Command, telemetry: &mut Telemetry) -> Result<String, Axiom
         Command::Watch { registry } => serve_command(registry.as_deref(), telemetry),
         Command::Export(command) => report_json(&crate::workflow::export(command)?),
         Command::Help => Ok(usage()),
+        Command::VerbHelp(verb) => Ok(verb_usage(verb)),
         Command::Rejected { error } => Err(error.clone()),
         Command::Version => {
             let output = VersionOutput::current();
@@ -2027,6 +2045,19 @@ mod tests {
     }
 
     #[test]
+    fn query_help_lists_the_query_forms_only() {
+        let Command::VerbHelp(verb) = parse(&argv(&["query", "context", "--help"]))
+            .command()
+            .clone()
+        else {
+            panic!("query --help must select the query usage");
+        };
+        let text = verb_usage(verb);
+        assert!(text.contains("axge query context --solution <id>"));
+        assert!(!text.contains("solution register"));
+    }
+
+    #[test]
     fn every_wired_verb_accepts_help() {
         for arguments in [
             vec!["serve", "--help"],
@@ -2041,7 +2072,10 @@ mod tests {
             vec!["update", "--help"],
         ] {
             assert!(
-                matches!(parse(&argv(&arguments)).command(), Command::Help),
+                matches!(
+                    parse(&argv(&arguments)).command(),
+                    Command::Help | Command::VerbHelp(_)
+                ),
                 "{arguments:?} must print help"
             );
         }

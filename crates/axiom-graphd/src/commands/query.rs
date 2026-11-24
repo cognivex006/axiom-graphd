@@ -366,8 +366,18 @@ pub fn context(
             .and_then(serde_json::Value::as_str)
             .unwrap_or_default();
         let named = field(value, &["qualified_name", "name"]);
-        let matches =
-            key == symbol || named == Some(symbol) || key.split(':').any(|part| part == symbol);
+        // A short name (`DashboardQueryUseCase`) matches the node's own `name`
+        // or the last segment of its qualified name, not only the full
+        // qualified name (field report 2026-11-23, #16).
+        let short = !is_edge(value)
+            && (field(value, &["name"]) == Some(symbol)
+                || named.is_some_and(|q| {
+                    q.rsplit(['.', ':', '/']).next() == Some(symbol) && q != symbol
+                }));
+        let matches = key == symbol
+            || named == Some(symbol)
+            || short
+            || key.split(':').any(|part| part == symbol);
         if matches {
             // A contract edge addresses a node by its `id`, while a caller
             // usually types the readable name. Both are seeded so an incident
@@ -612,6 +622,25 @@ mod tests {
             "{}",
             text.len()
         );
+    }
+
+    #[test]
+    fn context_accepts_the_short_name_of_a_qualified_symbol() {
+        let mut node = symbol("App.UseCases.DashboardQueryUseCase");
+        node["name"] = serde_json::json!("DashboardQueryUseCase");
+        let snapshot = FakeSnapshot::new(vec![node, symbol("App.Other")]);
+        let projection = context(
+            "demo-solution",
+            &snapshot,
+            "DashboardQueryUseCase",
+            QueryLimits::default(),
+        )
+        .expect("a short name resolves");
+        assert!(projection
+            .records
+            .iter()
+            .any(|record| record.key == "sym:App.UseCases.DashboardQueryUseCase"));
+        assert!(context("demo-solution", &snapshot, "Query", QueryLimits::default()).is_err());
     }
 
     #[test]
