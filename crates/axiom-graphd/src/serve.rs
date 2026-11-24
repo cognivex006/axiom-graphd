@@ -1545,6 +1545,11 @@ fn analyze_file(path: &str, source: &str, project_id: &str) -> Result<GraphFactS
                 path,
                 &graph_analyze::csharp::call_sites::extract(source, &analysis.declarations),
             ));
+            facts.edges.extend(base_type_edges(
+                project_id,
+                path,
+                &graph_analyze::csharp::call_sites::base_types(source, &analysis.declarations),
+            ));
             facts
         }
         Some(Language::TypeScript) => {
@@ -1720,6 +1725,38 @@ fn call_edges(
         ));
     }
     edges
+}
+
+/// One file's C# base-list entries as `implements` edges. The render resolves
+/// the base by name and publishes `IMPLEMENTS` for an interface and
+/// `INHERITS` for a class.
+fn base_type_edges(
+    project_id: &str,
+    path: &str,
+    bases: &[graph_analyze::csharp::call_sites::CsharpBaseType],
+) -> Vec<EdgeFact> {
+    let file = portable_path(path);
+    bases
+        .iter()
+        .map(|base| {
+            let body = serde_json::json!({
+                "evidence": [{
+                    "source": {"file": file, "start_line": base.line, "end_line": base.line},
+                    "rule_id": payload::BASE_TYPE_RULE_ID,
+                }],
+                "analyzer_id": payload::CSHARP_ANALYZER_ID,
+                "base": base.base,
+            });
+            EdgeFact::new(
+                format!("{}->implements->{}", base.type_key, base.base),
+                base.type_key.clone(),
+                EdgeTarget::Unresolved(base.base.clone()),
+                project_id,
+                "implements",
+                body.to_string(),
+            )
+        })
+        .collect()
 }
 
 fn scope_key(path: &[String], name: &str) -> String {

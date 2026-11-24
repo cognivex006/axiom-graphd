@@ -77,6 +77,19 @@ fn typed_and_same_type_calls_resolve_and_others_stay_unresolved() {
         "namespace App;\npublic class UseCase\n{\n    private readonly IRepo _repo;\n    public UseCase(IRepo repo) { _repo = repo; }\n    public int Run(int id)\n    {\n        var value = _repo.Load(id);\n        Audit(value);\n        return System.Math.Max(value, 0);\n    }\n    private void Audit(int value)\n    {\n    }\n}\n",
     )
     .unwrap();
+    std::fs::write(
+        repo.join("SqlRepo.cs"),
+        "namespace App;
+public class SqlRepo : RepoBase, IRepo
+{
+    public int Load(int id) => id;
+}
+public class RepoBase : ControllerBase
+{
+}
+",
+    )
+    .unwrap();
     let config = root.join("solution.json");
     std::fs::write(
         &config,
@@ -150,4 +163,34 @@ fn typed_and_same_type_calls_resolve_and_others_stay_unresolved() {
         !calls.iter().any(|(_, _, r)| r == "exact_static"),
         "a lexical scan never claims exact_static"
     );
+    let types: Vec<(String, String, String, String)> = edges
+        .iter()
+        .filter(|e| e["kind"] == "IMPLEMENTS" || e["kind"] == "INHERITS")
+        .map(|e| {
+            let target = e
+                .get("target_id")
+                .and_then(|t| t.as_str())
+                .map(|t| names[t].clone())
+                .unwrap_or_else(|| e["unresolved_target"].as_str().unwrap().to_owned());
+            (
+                names[e["source_id"].as_str().unwrap()].clone(),
+                e["kind"].as_str().unwrap().to_owned(),
+                target,
+                e["resolution"].as_str().unwrap().to_owned(),
+            )
+        })
+        .collect();
+    for expected in [
+        ("App.SqlRepo", "IMPLEMENTS", "App.IRepo", "inferred_static"),
+        ("App.SqlRepo", "INHERITS", "App.RepoBase", "inferred_static"),
+        ("App.RepoBase", "INHERITS", "ControllerBase", "unresolved"),
+    ] {
+        let wanted = (
+            expected.0.to_owned(),
+            expected.1.to_owned(),
+            expected.2.to_owned(),
+            expected.3.to_owned(),
+        );
+        assert!(types.contains(&wanted), "{wanted:?} missing from {types:?}");
+    }
 }

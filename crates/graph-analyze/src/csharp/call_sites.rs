@@ -184,6 +184,97 @@ pub fn extract(source: &str, declarations: &[CsharpDeclaration]) -> Vec<CsharpCa
     sites
 }
 
+/// One base type named in a type declaration's base list (`class A : B, IC`).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CsharpBaseType {
+    /// Key of the declaring type.
+    pub type_key: String,
+    /// Base name as written, namespace and generic arguments stripped.
+    pub base: String,
+    /// One-based source line of the base name.
+    pub line: usize,
+}
+
+/// Base lists of every class, struct, record and interface declaration.
+#[must_use]
+pub fn base_types(source: &str, declarations: &[CsharpDeclaration]) -> Vec<CsharpBaseType> {
+    let masked = mask(source);
+    let bytes = masked.as_bytes();
+    let line_starts = crate::line_starts(source);
+    let line_of = |offset: usize| match line_starts.binary_search(&offset) {
+        Ok(index) => index + 1,
+        Err(index) => index,
+    };
+    let mut out = Vec::new();
+    for declaration in declarations.iter().filter(|d| {
+        matches!(
+            d.kind,
+            CsharpDeclarationKind::Class
+                | CsharpDeclarationKind::Struct
+                | CsharpDeclarationKind::Record
+                | CsharpDeclarationKind::Interface
+        )
+    }) {
+        let mut index = declaration.span.end;
+        // Generic parameters and a record's primary constructor come first.
+        loop {
+            while index < bytes.len() && bytes[index].is_ascii_whitespace() {
+                index += 1;
+            }
+            match bytes.get(index) {
+                Some(b'<') => match matching(bytes, index, b'<', b'>') {
+                    Some(close) => index = close + 1,
+                    None => break,
+                },
+                Some(b'(') => match matching(bytes, index, b'(', b')') {
+                    Some(close) => index = close + 1,
+                    None => break,
+                },
+                _ => break,
+            }
+        }
+        if bytes.get(index) != Some(&b':') {
+            continue;
+        }
+        index += 1;
+        let mut depth = 0i32;
+        let mut item_start = index;
+        while index <= bytes.len() {
+            let byte = bytes.get(index).copied().unwrap_or(b'{');
+            let at_where = depth == 0
+                && bytes[index..].starts_with(b"where")
+                && index > 0
+                && bytes[index - 1].is_ascii_whitespace()
+                && !bytes.get(index + 5).copied().is_some_and(is_ident);
+            match byte {
+                b'<' | b'(' => depth += 1,
+                b'>' | b')' => depth -= 1,
+                _ => {}
+            }
+            let end_of_list = depth == 0 && (matches!(byte, b'{' | b';') || at_where);
+            if (depth == 0 && byte == b',') || end_of_list {
+                let item = std::str::from_utf8(&bytes[item_start..index]).unwrap_or_default();
+                let head = item.split('<').next().unwrap_or_default().trim();
+                let name = head.rsplit('.').next().unwrap_or_default().trim();
+                if !name.is_empty() && name.bytes().all(is_ident) {
+                    let offset = item_start + item.find(name).unwrap_or(0);
+                    out.push(CsharpBaseType {
+                        type_key: declaration.key.clone(),
+                        base: name.to_owned(),
+                        line: line_of(offset),
+                    });
+                }
+                item_start = index + 1;
+                if end_of_list {
+                    break;
+                }
+            }
+            index += 1;
+        }
+    }
+    out
+}
+
 /// Replace comment and string/char literal contents with spaces, keeping
 /// byte offsets and newlines.
 fn mask(source: &str) -> String {
@@ -482,6 +573,26 @@ public class Controller
     private void Log(string message) => Console.WriteLine(message);
 }
 "#;
+
+    #[test]
+    fn base_lists_name_each_base_once_without_generics_or_constraints() {
+        let source = "namespace App;\npublic class Repo<T> : Base<T>, IRepo, System.IDisposable where T : class\n{\n}\npublic record Point(int X) : IShape;\npublic interface IRepo : IRead\n{\n}\npublic class Plain\n{\n}\n";
+        let analysis = analyze("src/Repo.cs", source);
+        let bases: Vec<(String, usize)> = base_types(source, &analysis.declarations)
+            .into_iter()
+            .map(|b| (b.base, b.line))
+            .collect();
+        assert_eq!(
+            bases,
+            vec![
+                ("Base".to_owned(), 2),
+                ("IRepo".to_owned(), 2),
+                ("IDisposable".to_owned(), 2),
+                ("IShape".to_owned(), 5),
+                ("IRead".to_owned(), 6),
+            ]
+        );
+    }
 
     #[test]
     fn extracts_receivers_types_and_skips_comments_strings_and_constructors() {

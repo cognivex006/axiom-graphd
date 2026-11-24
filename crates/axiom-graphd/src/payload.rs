@@ -100,6 +100,9 @@ pub const CONTAINS_RULE_ID: &str = "declaration-contains-v1";
 /// Evidence rule of a lexical C# call site (field report #14).
 pub const CALL_RULE_ID: &str = "csharp-call-site-v1";
 
+/// Evidence rule of a C# base-list entry (`class A : B, IC`).
+pub const BASE_TYPE_RULE_ID: &str = "csharp-base-list-v1";
+
 /// Map a pinned declaration kind onto the contract's node kinds.
 ///
 /// `struct`, `record` and `enum` are published as `Class` because the contract's node kind
@@ -126,6 +129,7 @@ pub fn contract_edge_kind(declaration_kind: &str) -> Option<&'static str> {
     Some(match declaration_kind {
         "contains" => "CONTAINS",
         "calls" => "CALLS",
+        "implements" => "IMPLEMENTS",
         _ => return None,
     })
 }
@@ -229,6 +233,8 @@ struct StoredEdge {
     owner_file: String,
     /// Stored call-site detail (`member`, `receiver`, `receiver_type`).
     call: Option<Value>,
+    /// Stored base-list name, for an `implements` row.
+    base: Option<String>,
 }
 
 /// The published payload of one project: the shards and the coverage block.
@@ -329,12 +335,31 @@ pub fn render(connection: &Connection, project_id: &str) -> Result<Payload, Axio
     nodes.sort_by(|left, right| left["id"].as_str().cmp(&right["id"].as_str()));
 
     let calls = CallIndex::new(&stored_nodes);
+    let types = TypeIndex::new(&stored_nodes);
     let mut edges: Vec<Value> = Vec::new();
     let mut unresolved_references = 0usize;
     let mut seen_edges: BTreeMap<String, ()> = BTreeMap::new();
     for edge in &stored_edges {
-        let Some(kind) = contract_edge_kind(&edge.analyzer_kind) else {
+        let Some(mut kind) = contract_edge_kind(&edge.analyzer_kind) else {
             continue;
+        };
+        // A base-list entry is IMPLEMENTS for an interface and INHERITS for a
+        // class. A resolved target decides; an unresolved one follows the C#
+        // naming convention (`IName` is an interface) and stays unresolved.
+        let inferred_base = if edge.analyzer_kind == "implements" {
+            let resolved = edge.base.as_deref().and_then(|name| types.resolve(name));
+            let interface = match resolved {
+                Some((_, is_interface)) => is_interface,
+                None => edge.base.as_deref().is_some_and(looks_like_interface),
+            };
+            if !interface {
+                kind = "INHERITS";
+            }
+            resolved
+                .and_then(|(id, _)| published.get(id))
+                .map(|(target_id, _)| target_id.clone())
+        } else {
+            None
         };
         let Some((source_id, _)) = published.get(&edge.source_id) else {
             // The source is not a pinned node, so this edge would be refused by every
@@ -351,7 +376,9 @@ pub fn render(connection: &Connection, project_id: &str) -> Result<Payload, Axio
         // A call site is resolved here, where every method of the project is
         // known. A unique match is `inferred_static`: the scan is lexical, so it
         // never claims `exact_static`.
-        let inferred_call = if edge.analyzer_kind == "calls" && edge.target_id.is_none() {
+        let inferred_call = if inferred_base.is_some() {
+            inferred_base.clone()
+        } else if edge.analyzer_kind == "calls" && edge.target_id.is_none() {
             calls
                 .resolve(&edge.source_id, edge.call.as_ref())
                 .and_then(|id| published.get(id))
@@ -462,6 +489,41 @@ pub fn render(connection: &Connection, project_id: &str) -> Result<Payload, Axio
         coverage,
         input_paths,
     })
+}
+
+fn looks_like_interface(name: &str) -> bool {
+    let mut chars = name.chars();
+    chars.next() == Some('I') && chars.next().is_some_and(char::is_uppercase)
+}
+
+/// Every type of one project by its simple name, for base-list resolution.
+struct TypeIndex<'a> {
+    by_name: BTreeMap<&'a str, Vec<(&'a str, bool)>>,
+}
+
+impl<'a> TypeIndex<'a> {
+    fn new(nodes: &'a [StoredNode]) -> Self {
+        let mut by_name: BTreeMap<&str, Vec<(&str, bool)>> = BTreeMap::new();
+        for node in nodes {
+            let is_interface = node.analyzer_kind == "interface";
+            if is_interface || matches!(node.analyzer_kind.as_str(), "class" | "struct" | "record")
+            {
+                by_name
+                    .entry(node.name.as_str())
+                    .or_default()
+                    .push((node.id.as_str(), is_interface));
+            }
+        }
+        Self { by_name }
+    }
+
+    /// The one type with this simple name; `None` when none or several exist.
+    fn resolve(&self, name: &str) -> Option<(&'a str, bool)> {
+        match self.by_name.get(name).map(Vec::as_slice) {
+            Some([only]) => Some(*only),
+            _ => None,
+        }
+    }
 }
 
 /// Every method of one project, by member name, for call-site resolution.
@@ -654,6 +716,10 @@ fn read_edges(connection: &Connection, project_id: &str) -> Result<Vec<StoredEdg
             .map(str::to_owned)
             .unwrap_or_else(|| CSHARP_ANALYZER_ID.to_owned());
         let call = record.get("call").cloned();
+        let base = record
+            .get("base")
+            .and_then(Value::as_str)
+            .map(str::to_owned);
         edges.push(StoredEdge {
             source_id,
             target_id,
@@ -665,6 +731,7 @@ fn read_edges(connection: &Connection, project_id: &str) -> Result<Vec<StoredEdg
             analyzer_id,
             owner_file,
             call,
+            base,
         });
     }
     Ok(edges)
@@ -765,7 +832,13 @@ mod tests {
         assert!(contract_node_kind("unknown-kind").is_none());
         assert_eq!(contract_edge_kind("contains"), Some("CONTAINS"));
         assert!(EDGE_KINDS.contains(&"CONTAINS"));
-        assert!(contract_edge_kind("calls").is_none());
+        // Field report #14: call sites and base lists are published.
+        for (stored, published) in [("calls", "CALLS"), ("implements", "IMPLEMENTS")] {
+            assert_eq!(contract_edge_kind(stored), Some(published));
+            assert!(EDGE_KINDS.contains(&published));
+        }
+        assert!(EDGE_KINDS.contains(&"INHERITS"));
+        assert!(contract_edge_kind("unknown-edge").is_none());
     }
 
     #[test]
