@@ -1408,6 +1408,33 @@ fn solution_command(command: &SolutionCommand) -> Result<String, AxiomError> {
                 None => runtime::load_bindings(&context.home)?,
             };
             let dry_run = matches!(mode, PlanMode::DryRun);
+            // ADR-0047: re-registering the identical declaration is not a
+            // conflict; it refreshes the derived solution registry only.
+            let requested_hash = solution::config_hash(&declaration)?;
+            let existing = runtime::solutions(context.store.connection())?
+                .into_iter()
+                .find(|row| row.id == declaration.id());
+            if existing
+                .as_ref()
+                .is_some_and(|row| row.config_hash == requested_hash)
+            {
+                if !dry_run {
+                    runtime::migrate_legacy_daemon_config(&context.home)?;
+                    runtime::persist_bindings(&context.home, &table)?;
+                    runtime::write_solution_registry(
+                        &context.home,
+                        context.store.connection(),
+                        &context.instance_id,
+                    )?;
+                }
+                return report_json(&serde_json::json!({
+                    "id": declaration.id(),
+                    "config_hash": requested_hash,
+                    "unchanged": true,
+                    "dry_run": dry_run,
+                    "registry_refreshed": !dry_run,
+                }));
+            }
             let plan =
                 solution::plan_register(context.store.connection(), &declaration, &table, dry_run)?;
             if dry_run {

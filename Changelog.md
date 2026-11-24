@@ -5,6 +5,7 @@
 ### Fixes
 
 - `axge solution register --apply` and `axge solution remove --apply` now write `config/registry.json`, the solution registry the MCP gateway reads, so solutions you register become queryable through MCP (ADR-0047).
+- Registering the same solution again with an unchanged configuration is no longer refused. It only refreshes `config/registry.json` and the bindings, so machines registered before this change can produce the file without removing the solution. A changed configuration is still refused.
 - Daemon settings now live in `config/daemon.json`. An existing `config/registry.json` that holds daemon settings is still honoured, and the next registration moves it to `config/daemon.json`. If both files hold different settings, registration stops and changes neither.
 
 ### Chores

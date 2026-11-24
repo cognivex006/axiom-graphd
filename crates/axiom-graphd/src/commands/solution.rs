@@ -432,7 +432,12 @@ fn join_root(root: &str, relative: &str) -> String {
     format!("{trimmed}/{relative}")
 }
 
-fn config_hash(declaration: &SolutionDeclaration) -> Result<String, AxiomError> {
+/// Digest of a declaration, as stored in `solutions.config_hash`.
+///
+/// # Errors
+///
+/// Canonical-encoding failures.
+pub fn config_hash(declaration: &SolutionDeclaration) -> Result<String, AxiomError> {
     let document = serde_json::json!({
         "id": declaration.id(),
         "profile": declaration.profile(),

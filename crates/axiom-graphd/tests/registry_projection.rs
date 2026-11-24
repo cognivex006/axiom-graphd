@@ -165,3 +165,26 @@ fn conflicting_daemon_settings_are_refused_not_overwritten() {
         current
     );
 }
+
+#[test]
+fn identical_re_registration_refreshes_the_registry_and_changed_is_refused() {
+    let f = fixture();
+    ok(&register(&f));
+    std::fs::remove_file(f.home.join("config/registry.json")).unwrap();
+    let again = register(&f);
+    ok(&again);
+    let report: serde_json::Value = serde_json::from_slice(&again.stdout).unwrap();
+    assert_eq!(report["unchanged"], true);
+    assert!(f.home.join("config/registry.json").exists());
+    let changed = std::fs::read_to_string(&f.config)
+        .unwrap()
+        .replace("\"path\":\".\"", "\"path\":\"src\"");
+    std::fs::create_dir_all(f.repo.join("src")).unwrap();
+    std::fs::write(&f.config, changed).unwrap();
+    let refused = register(&f);
+    assert!(!refused.status.success());
+    assert!(
+        String::from_utf8_lossy(&refused.stdout).contains("duplicate-solution")
+            || String::from_utf8_lossy(&refused.stderr).contains("duplicate-solution")
+    );
+}
